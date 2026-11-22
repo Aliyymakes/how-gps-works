@@ -29,3 +29,7 @@ Reading: The hackathon site is gvhackathon.com. "4. sure" approves the priority 
 ### 2026-11-22 15:55
 His words: (quoting "how-gps-works") "1.yep all done 2.i choose this3.alright4.yes"
 Reading: 1. Consent forms are signed for all four and uploaded by the teacher. 2. The repo is named how-gps-works. 3. He will send teammates' usernames, agents and skills when they reply. 4. The repo uses the MIT licence. Does NOT settle: the name that goes on the licence's copyright line, the project name shown on the page (the repo name is not the project name), when the repo turns public, the roster.
+
+### 2026-11-22 15:57
+His words: "4. senior" (with terminal output: first commit 735453a made, then "scripts/setup-github.sh: line 15: gh: command not found")
+Reading: The team is in the senior division. The first commit exists locally; the GitHub repo was not created because gh is not installed on his Mac. Does NOT settle: the three product questions asked with it (what the user learns in two minutes, what the user changes, where the real-satellites view sits), the name on the licence.

@@ -51,6 +51,8 @@ Folders:
 
 Goals, bugs and progress are tracked with GitHub Issues and a Projects board (Icarus, 2026-11-22). The repo lives under Icarus's GitHub account and all four teammates have GitHub accounts (Icarus, 2026-11-22). The loop is in CONTRIBUTING.md.
 
+Division: senior (Icarus, 2026-11-22).
+
 ## 5. What gets submitted
 
 Live link, public repository, project page, short demo video. Who makes the project page and the video: TBA.
@@ -76,5 +78,4 @@ Each line is detailed in decision-map.md.
 - When the repo turns public (it is `how-gps-works`, private for now; Icarus 2026-11-22): TBA. It must be public by submission.
 - The name on the MIT licence's copyright line: TBA. (Licence is MIT, Icarus 2026-11-22. Consent forms: done for all four, Icarus 2026-11-22.)
 - When all four are free together for the Round 2 interview: TBA.
-- Division (junior or senior): unknown.
 - Where satellite orbit data comes from and how positions are computed: TBA (technical, orchestrator recommends).
