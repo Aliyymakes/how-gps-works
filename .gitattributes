@@ -1,0 +1,5 @@
+# Append-only team logs: keep both sides' new lines instead of raising a conflict.
+.memory/decisions.md merge=union
+.memory/gotchas.md merge=union
+.memory/commands.md merge=union
+.memory/overview.md merge=union
