@@ -104,7 +104,7 @@ See section 6, question 6.2.
 It tells you how much the layout of the satellites multiplies the measurement errors. Lower is better (docs/interface.md). The page shows PDOP (`web/step-geometry.js` reads `dop.pdop`).
 
 **4.2 How does `dop` work?**
-For each satellite it takes the direction from the receiver to the satellite as an arrow of length 1, and adds a 1 for the clock. That gives one row per satellite. It then multiplies the table by its own transpose, inverts the result, and takes square roots of sums of the diagonal (`mechanism/geometry.py`).
+For each satellite it takes the direction from the receiver to the satellite as an arrow of length 1, and adds a 1 for the clock. That gives one row per satellite. It then multiplies the transpose of the table by the table itself (a 4 by 4 result, one row and column per unknown: east, north, up, clock), inverts that, and takes square roots of sums of the diagonal (`mechanism/geometry.py`).
 
 **4.3 What is the difference between GDOP, PDOP and TDOP?**
 From the code: GDOP uses all four diagonal entries (position and clock together), PDOP uses the first three (position only), TDOP uses the last one (the clock) (`mechanism/geometry.py`).
