@@ -86,3 +86,4 @@ def test_malformed_points_return_error():
     broken = [dict(sats[0])] + sats[1:]
     del broken[0]["x_m"]
     assert "error" in distance_lines(LAT, LON, broken, ranges, 0)
+    assert "error" in distance_lines(LAT, LON, sats, [None] + ranges[1:], 0)

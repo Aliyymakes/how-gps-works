@@ -84,6 +84,8 @@ def distance_lines(receiver_lat_deg, receiver_lon_deg, satellites, pseudoranges_
         return {"error": "At least 2 samples are needed."}
     if not all(_is_point(satellite) for satellite in satellites):
         return {"error": "Each satellite needs numbers for x_m, y_m and z_m."}
+    if not all(isinstance(value, (int, float)) for value in pseudoranges_m):
+        return {"error": "Each measured distance must be a number."}
     receiver = latlon_to_xyz(receiver_lat_deg, receiver_lon_deg)
     if "error" in receiver:
         return receiver
