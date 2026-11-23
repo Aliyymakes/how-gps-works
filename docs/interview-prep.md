@@ -177,7 +177,7 @@ The slider range, noise and error limits are placeholders to be tuned in testing
 **6.6 What other simplifications should we admit?**
 - The satellites do not move; each scenario is a fixed snapshot (code in open PRs sets fixed azimuth and elevation).
 - Noise on distances is a plain random value with a chosen size (docs/interface.md).
-- The relativity step and the reflections step are not built yet. Relativity (rung 4) is tested before it is promised: a drift shared by all satellites may be absorbed by the clock solve and show no position drift. Reflections are the first rung to cut (design.md 2b).
+- Relativity (rung 4) exists only in the mechanism so far (mechanism/relativity.py, `drift_over_time`), not on the page. It treats the drift as the same for every satellite, so solving for the clock absorbs it completely (see 6.7). The reflections step is not built; it is the first rung to cut (design.md 2b).
 - Team to confirm the list after merge.
 
 **6.7 Trap: What would happen if all the satellite clocks drifted the same way?**
