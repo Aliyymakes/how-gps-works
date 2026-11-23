@@ -10,6 +10,7 @@ What is built. One dated line per merged issue, added at the end: `- YYYY-MM-DD 
 
 ## Built
 - 2026-11-22 | setup | Team system only: AGENTS.md, CLAUDE.md, CONTRIBUTING.md, .memory/, issue and pull request templates, test workflow, one smoke test. No project code yet. Not yet pushed to GitHub.
+- 2026-11-23 | #7 | mechanism/geometry.py: `dop(receiver, satellites)` gives GDOP, PDOP, TDOP from the satellite directions; tests in tests/test_geometry.py.
 - 2026-11-23 | #11 | docs/project-page.md: draft project page text (idea, rungs, simplifications, components, team); numbers only from docs/facts.md.
 - 2026-11-23 | #6 | docs/facts.md: every number the page and documents use, each with a source link and exact quoted value, re-checked by a second reviewer. Use only rows not marked unconfirmed.
 - 2026-11-23 | #2 | mechanism/coords.py (lat/lon ↔ xyz on a sphere, satellite from azimuth/elevation), mechanism/scenario.py (make_pseudoranges with clock error and seeded noise), EARTH_RADIUS_M and GPS_ORBIT_RADIUS_M in constants.py, with tests.
