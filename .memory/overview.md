@@ -10,3 +10,4 @@ What is built. One dated line per merged issue, added at the end: `- YYYY-MM-DD 
 
 ## Built
 - 2026-11-22 | setup | Team system only: AGENTS.md, CLAUDE.md, CONTRIBUTING.md, .memory/, issue and pull request templates, test workflow, one smoke test. No project code yet. Not yet pushed to GitHub.
+- 2026-11-23 | #9 (draft) | web/step-geometry.js + web/dev/step-geometry.html: rung 2 section ("Bunch the satellites" slider, sky diagram, DOP, position error). Waits on the bridge and mechanism.

@@ -39,11 +39,11 @@ const STYLE = `
 .geo-stack { display: grid; gap: var(--s-4); }
 .geo-sky { width: 100%; max-width: 320px; aspect-ratio: 1; display: block; margin: 0 auto; }
 .geo-sky .sky-sat { transition: none; }
-.geo-sky text { fill: var(--text-muted); font: 500 11px var(--font-mono); }
+.geo-sky text { fill: var(--text-muted); font: 500 var(--text-xs) var(--font-mono); }
 .geo-note { font-size: var(--text-sm); color: var(--text-muted); min-height: 1.5em; }
 .geo-highlight { border-color: var(--accent); padding: var(--s-4); }
 .geo-readout { padding: var(--s-4); display: grid; gap: var(--s-2); }
-.geo-big { font-size: 28px; }
+.geo-big { font-size: var(--text-xl); }
 .geo .badge[hidden] { display: none; }
 .geo .btn { touch-action: manipulation; }
 .geo input[type="range"] { touch-action: pan-y; }
