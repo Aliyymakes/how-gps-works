@@ -10,3 +10,5 @@ Traps that cut across areas. One line per entry, added at the end:
 - 2026-11-22 | .github/workflows/tests.yml | The test workflow uses Python 3.12. Pyodide ships its own Python version; when the Pyodide version is chosen, match the workflow to it (unverified).
 - 2026-11-22 | external | `gh` is not installed by default on a Mac; scripts and agents fail with "gh: command not found". Install it (`brew install gh`) and run `gh auth login` before anything else.
 - 2026-11-23 | pytest.ini | Plain `pytest` puts tests/ on the import path, not the repo root, so `import mechanism` fails; pytest.ini sets `pythonpath = .`. Keep it, and run `python -m pytest -q` from the repo root.
+- 2026-11-23 | docs/facts.md | The "38 µs a day" relativity figure is 45 − 7 rounded; IS-GPS-200N's exact factory offset (−4.4647e-10) gives 38.58 µs a day (about 11.6 km). Say "about 38 µs" and "about 11 km", never exact.
+- 2026-11-23 | docs/facts.md | Many sources quote −160 dBW for the received L1 C/A power; IS-GPS-200N gives −158.5 dBW minimum. The satellite count also depends on date (31 on gps.gov's 2023 page, 32 in an April 2026 Space Force slide): always say which date.
