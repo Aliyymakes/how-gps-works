@@ -23,3 +23,4 @@ If Icarus or your human is not around: decide technical calls by the priority or
 ## Hard checks
 - 2026-11-22 | The live link must work with no sign-in, no download and no API key (brief rule 3).
 - 2026-11-22 | A first-time user must be able to change an input and see the output change (brief rule 2).
+- 2026-11-23 | Feature freeze 25 Nov 18:59 WIB. After it, no new features: only bug fixes, the project page, the demo video and interview practice. A goal for a new feature opened after the freeze is refused.

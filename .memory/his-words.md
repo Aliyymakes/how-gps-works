@@ -67,3 +67,7 @@ Reading: Get an independent second opinion before deciding. Done; the advisor's 
 ### 2026-11-23 11:32
 His words: "yes go ahead"
 Reading: Approves exactly the changes listed under "What changes if you say yes": (1) the first screen becomes the advisor's version (4 satellites, "make the phone's clock wrong" control, distance lines on a local ground map, "let the phone solve for its clock" button, refusal with 3 satellites, real computed error shown); (2) a new mechanism function computes the distance lines so the page does no GPS maths; (3) a first-screen goal for jstnstyad10 and Icarus; (4) the spec updated, with multipath the first rung to cut. Does NOT approve: the feature freeze date or any change to the relativity rung beyond testing it first.
+
+### 2026-11-23 11:33
+His words: "yes" (to: freeze new features at 25 Nov 18:59 WIB, one day before the deadline, and spend the last day only on fixes, the project page, the video and interview practice)
+Reading: Feature freeze approved at 25 Nov 18:59 WIB. After it, only bug fixes, the project page, the demo video and interview practice. Does NOT settle: who makes the project page and the video.

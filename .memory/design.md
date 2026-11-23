@@ -98,7 +98,7 @@ The Area column is Proposed by the orchestrator from the skills; Icarus can chan
 
 Division: senior (Icarus, 2026-11-22).
 
-Feature freeze: Proposed 25 Nov 18:59 WIB, one day before the deadline (advisor suggestion, not yet approved by Icarus).
+Feature freeze: 25 Nov 18:59 WIB, one day before the deadline (Icarus, 2026-11-23). After it, only bug fixes, the project page, the demo video and interview practice.
 
 ## 5. What gets submitted
 
