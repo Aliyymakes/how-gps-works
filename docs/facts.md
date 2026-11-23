@@ -10,7 +10,7 @@ IS-GPS-200 means Revision N (01-AUG-2022), the latest revision on gps.gov: <http
 | 2 | Speed of light used by GPS | c = 2.99792458 x 10^8 "which is the official WGS 84 speed of light. The user shall use the same value for the speed of light in all computations." | m/s | IS-GPS-200N, section 20.3.4.3 "Speed of Light" (also used in the clock-correction equation, section 20.3.3.3.3.1) | pseudorange to distance | confirmed |
 | 3 | Orbit semi-major axis | 26,559.7 (nominal, "Reference Orbit Parameters", eccentricity 0.0, inclination 55.0 deg) | km | SPS PS (2008), Table 3.2-3 | orbit radius from Earth centre | confirmed |
 | 4 | Orbit altitude above Earth | "approximately 20,200 km (12,550 miles)" | km | gps.gov Space Segment, <https://www.gps.gov/space-segment> | satellite height | confirmed |
-| 5 | Orbital period | "Repeating ground tracks (11 hours 58 minutes)"; gps.gov: "Each satellite circles the Earth twice a day." | h min | NASA GSFC slides (Moreau, 2012), slide 8, <https://ntrs.nasa.gov/api/citations/20120010317/downloads/20120010317.pdf>; gps.gov Space Segment | orbit speed / period | confirmed |
+| 5 | Orbital period | "Repeating ground tracks (11 hours 58 minutes)"; gps.gov: "Each satellite circles the Earth twice a day." | h min | NASA GSFC slides (Moreau, 2012), slide 9 ("GPS Space Segment"), <https://ntrs.nasa.gov/api/citations/20120010317/downloads/20120010317.pdf>; gps.gov Space Segment | orbit speed / period | confirmed |
 | 6 | Period from Kepler (check) | 43 077 s = 11.966 h (about 11 h 58 min) | s | derived from rows 3 and 15 (D1) | cross-check of row 5 | derived |
 | 7 | Half a sidereal day | sidereal day 86 164.0905 s (not read on a fetched page) | s | none fetched (IERS value from memory) | "about half a sidereal day" | unconfirmed |
 | 8 | Orbital planes and baseline slots | "six equally-spaced orbital planes ... Each plane contains four 'slots' occupied by baseline satellites"; 24-slot baseline; "now effectively operates as a 27-slot constellation" | count | gps.gov Space Segment | constellation size | confirmed |
@@ -20,7 +20,7 @@ IS-GPS-200 means Revision N (01-AUG-2022), the latest revision on gps.gov: <http
 | 12 | C/A chip rate | "chipping rate of 1023 kbps"; "G1 and G2 registers are clocked at 1.023 MHz" | kbps / MHz | IS-GPS-200N, sections 3.2.1.3 and 3.3.2.3 (C/A-Code Generation) | chip rate | confirmed |
 | 13 | C/A code period | "of 1 millisecond in length" | ms | IS-GPS-200N, section 3.2.1.3 | code repeats every 1 ms | confirmed |
 | 14 | Chip length in time and distance | 977.5 ns; 293.05 m | ns; m | derived (D2) | what one chip is worth | derived |
-| 15 | Earth gravitational parameter | mu = 3.986005 x 10^14 "value of Earth's universal gravitational parameters" | m^3/s^2 | IS-GPS-200N, section 20.3.3.4.3 | Kepler check (row 6) | confirmed |
+| 15 | Earth gravitational parameter | mu = 3.986005 x 10^14 "value of Earth's universal gravitational parameters" | m^3/s^2 | IS-GPS-200N, section 20.3.3.3.3.1 (definition of F, phrase quoted); Table 20-IV in section 20.3.3.4.3 repeats mu = 3.986005 x 10^14 as "WGS 84 value of the earth's gravitational constant for GPS user" | Kepler check (row 6) | confirmed |
 | 16 | L1 carrier frequency | "1575.42 MHz" | MHz | IS-GPS-200N, section 3.3.1.1 | signal band | confirmed |
 | 17 | Minimum received power, L1 C/A | -158.5 (Table 3-Va, column "C/A or L2C", row L1, Block IIR, IIR-M/IIF, GPS III/IIIF; P(Y) is -161.5). Measured at "the output of a 3 dBi linearly polarized user receiving antenna (located near ground) ... when the SV is above a 5-degree elevation angle" | dBW | IS-GPS-200N, section 3.3.1.6, Table 3-Va; SPS PS section 2.2.1 repeats "-158.5 dBW for L1 C/A-code" | signal strength at the ground | confirmed |
 | 18 | Specified receive bandwidth | "20.46 MHz" (Table 3-Va heading); two 20.46 MHz bands centred on L1 and L2 | MHz | IS-GPS-200N, sections 3.3.1.1 and 3.3.1.6 | noise bandwidth (D4) | confirmed |
@@ -39,7 +39,7 @@ IS-GPS-200 means Revision N (01-AUG-2022), the latest revision on gps.gov: <http
 | 31 | Range error equal to the net daily offset | 11.39 km (38 us x c); 11.56 km (38.58 us x c) | km | derived (D6); NASA slide 27 says "~11 km" | error per day if uncorrected | derived |
 | 32 | 1 microsecond as distance | 299.792458 m (about 300 m) | m | derived from row 1 (D7) | "1 us is about 300 m" | derived |
 | 33 | Earth mean radius R1 | R1 = 6 371 008.7714 m "mean radius", R1 = (2a+b)/3. GRS 1980 adopted by IUGG, Canberra, Dec 1979, Resolution 7 | m | H. Moritz, "Geodetic Reference System 1980", section 1 Definition, <https://ciencias.ulisboa.pt/sites/default/files/fcul/dep/dqb/doc/GRS80_Moritz.pdf> | sphere model radius (6371.0088 km) | confirmed |
-| 34 | Earth equatorial radius a (GRS 80) | 6378137 (semi-major axis) | m | same Moritz paper (value seen in search summary; not located in the extracted text) | ellipsoid, not used by the sphere model | unconfirmed |
+| 34 | Earth equatorial radius a (GRS 80) | 6378137 (semi-major axis) | m | same Moritz paper, section 1 Definition ("a = 6378 137 m") | ellipsoid, not used by the sphere model | confirmed |
 | 35 | Orbit radius above the sphere | 20 188.7 km (26 559.7 - 6371.0088) | km | derived (D8) | sanity check vs 20,200 km | derived |
 
 ## Derived arithmetic
@@ -62,3 +62,43 @@ IS-GPS-200 means Revision N (01-AUG-2022), the latest revision on gps.gov: <http
 - gps.gov's Space Segment page still shows the July 2023 count (31). The April 2026 Space Force slide says 32 and 7 more "residuals". Say which date you quote.
 - gps.gov no longer serves the old /technical/icwg/ path (returns 404); the live PDF is under /sites/default/files/2025-07/.
 - The NIST page date and the TU Delft slides were read from fetched pages; the Ashby review (Living Reviews in Relativity 2003) states these offsets only inside equations, so it was not used as a source.
+
+## Re-check (2026-11-23)
+
+Independent re-check: every link opened or downloaded; PDF text extracted and searched. Rows 1-35:
+
+- 1 ok (NIST page: 299 792 458 m s^-1, exact)
+- 2 ok (IS-GPS-200N 20.3.4.3 and 20.3.3.3.3.1)
+- 3 ok (SPS PS Table 3.2-3: 26,559.7; e 0.0; i 55.0)
+- 4 ok
+- 5 corrected: NASA slide is 9 ("GPS Space Segment"), not 8; text and gps.gov quote ok
+- 6 ok (D1 redone: 43 077.02 s, 11.9658 h)
+- 7 ok (stays unconfirmed; no page fetched)
+- 8 ok
+- 9 ok
+- 10 ok (slide "Space Segment (Satellites)", "As of: 4/13/2026", Current: 32 Presented (+7 residuals), altitude 20,200 km; NAVCEN not checked)
+- 11 ok
+- 12 ok
+- 13 ok
+- 14 ok (D2 redone: 977.52 ns, 293.05 m)
+- 15 corrected: the quoted phrase is in 20.3.3.3.3.1, not 20.3.3.4.3; value also in Table 20-IV (20.3.3.4.3) with different wording
+- 16 ok
+- 17 ok (Table 3-Va: C/A L1 -158.5, P(Y) -161.5; 3 dBi, 5 degrees; SPS PS 2.2.1)
+- 18 ok
+- 19 ok (derived)
+- 20 ok
+- 21 ok (stays unconfirmed)
+- 22 ok (D3 redone: -203.975)
+- 23 ok (D4 redone: -140.87 and -130.87; signal 17.6 and 27.6 dB below; 1/58 is 57.5, fine)
+- 24 ok (TU Delft slides: -138.5 dBW, -157.6 dBW, "well below noise level"; 512 K implied checks out)
+- 25 ok (NIST text "by seven microseconds"; the words "per day" fall in the elided part of the sheet's quote)
+- 26 ok
+- 27 ok (NIST 38 us/day; NASA slide 27 "~38 microseconds per day ... (~11 km range error)")
+- 28 ok
+- 29 ok
+- 30 ok (D5 redone: 38.575 us/day)
+- 31 ok (D6 redone: 11 392 m; 11 564.5 m with the unrounded 38.575008 us, 11 564.6 with 38.575 as printed)
+- 32 ok
+- 33 ok (R1 = 6 371 008.7714 m, R1 = (2a+b)/3, IUGG Canberra Dec 1979, Resolution 7)
+- 34 corrected: now confirmed; Moritz text states a = 6378 137 m
+- 35 ok (D8 redone: 20 188.69 km)
