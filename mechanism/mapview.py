@@ -45,8 +45,21 @@ def to_local(receiver_lat_deg, receiver_lon_deg, point):
     return {"east_m": float(east_m), "north_m": float(north_m), "up_m": float(up_m)}
 
 
+def _circle_reaches_square(centre_e, centre_n, radius, half_width_m):
+    """True when the circle crosses the square: it passes between the square's nearest and farthest points."""
+    # Nearest point of the square to the circle's centre (clamp the centre into the square).
+    near_e = min(max(centre_e, -half_width_m), half_width_m)
+    near_n = min(max(centre_n, -half_width_m), half_width_m)
+    nearest = math.hypot(centre_e - near_e, centre_n - near_n)
+    # Farthest point of the square is one of its corners.
+    farthest = math.hypot(abs(centre_e) + half_width_m, abs(centre_n) + half_width_m)
+    return nearest <= radius <= farthest
+
+
 def _circle_points(centre_e, centre_n, radius, half_width_m, samples):
     """Points of the circle that fall inside the square, sampled only near the square."""
+    if not _circle_reaches_square(centre_e, centre_n, radius, half_width_m):
+        return []
     # The angle (seen from the circle's centre) that points at the middle of the square.
     middle_angle = math.atan2(-centre_n, -centre_e)
     # The square fits inside a circle of radius half_width * sqrt(2) around its middle.
@@ -64,9 +77,9 @@ def _circle_points(centre_e, centre_n, radius, half_width_m, samples):
             # Keep only points inside the square (tiny tolerance for rounding).
             if abs(east_m) <= half_width_m + 1e-6 and abs(north_m) <= half_width_m + 1e-6:
                 points.append([float(east_m), float(north_m)])
-        if len(points) >= _MIN_POINTS or not points:
+        if len(points) >= _MIN_POINTS:
             break
-        # Too few points landed inside: sample more densely.
+        # Too few points landed inside (the line may only clip a corner): sample more densely.
         samples *= 2
     return points
 
