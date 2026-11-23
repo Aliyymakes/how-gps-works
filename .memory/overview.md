@@ -18,3 +18,4 @@ What is built. One dated line per merged issue, added at the end: `- YYYY-MM-DD 
 - 2026-11-23 | #1 | mechanism/solver.py matches docs/interface.md: satellites and results as x_m/y_m/z_m dicts, steps from the Earth's centre; tests use satellites above the horizon. Duplicate mechanism/test_solver.py and the zip removed.
 - 2026-11-23 | #4 | mechanism/mapview.py: to_local (east/north/up from the true receiver) and distance_lines (each satellite's distance circle on the flat local map), with tests.
 - 2026-11-23 | #27 | scripts/check_relativity.py: prints the position error with the clock solved and trusted when a shared relativity drift is added.
+- 2026-11-23 | #31 | README.md rewritten for judges: what it is, how to try it (LIVE LINK TBA), how it works, what is simplified, components we did not write, team.
