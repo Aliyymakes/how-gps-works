@@ -40,6 +40,20 @@ The local ground map is a flat square centred on the true receiver position: eas
 | `to_local(receiver_lat_deg, receiver_lon_deg, point)` | `{"east_m", "north_m", "up_m"}`: where a point (for example the solved position) is relative to the true receiver |
 | `distance_lines(receiver_lat_deg, receiver_lon_deg, satellites, pseudoranges_m, assumed_clock_error_s, half_width_m=1000, samples=40)` | one entry per satellite, same order: `{"id", "points": [[east_m, north_m], ...], "inside": true/false}`. `points` traces where the satellite's distance sphere cuts the ground plane, inside the square of `half_width_m`. The distance used is `pseudorange - assumed_clock_error_s * SPEED_OF_LIGHT_M_PER_S`. `inside` is false and `points` empty when the line does not cross the square |
 
+## mechanism/geometry.py (added 2026-11-23, rung 2)
+
+| Function | Returns |
+|---|---|
+| `dop(receiver, satellites)` | `{"gdop", "pdop", "tdop"}`: how much the satellites' layout multiplies measurement errors. Lower is better. Needs at least 4 satellites. Uses only the directions from receiver to satellites, so it needs no local map frame |
+
+## mechanism/signal.py (added 2026-11-23, rung 3)
+
+| Function | Returns |
+|---|---|
+| `ca_code(prn)` | list of 1023 values, each +1 or -1: the GPS C/A code for satellite number `prn` (1 to 32), generated with the two shift registers in the public GPS signal spec |
+| `make_received(prn, delay_chips, noise_std, seed=0)` | list of 1023 numbers: the code shifted by `delay_chips` (whole chips, 0 to 1022) plus random noise with standard deviation `noise_std` (the code itself has size 1) |
+| `correlate(received, prn)` | `{"scores": [1023 numbers], "best_delay_chips": int, "peak_to_next": number}`: how well the code matches at each shift, the best shift, and how far the peak stands above the next highest score |
+
 ## The page side (web/bridge.js)
 
 | Function | Does |
@@ -47,4 +61,4 @@ The local ground map is a flat square centred on the true receiver position: eas
 | `await loadMechanism(onStatus)` | loads Pyodide, numpy and the mechanism files; calls `onStatus(text)` with progress messages |
 | `callPython("module.function", [arg1, arg2, ...])` | calls `mechanism.<module>.<function>` and returns its result as a plain JavaScript value |
 
-Later rungs add `mechanism/signal.py` and `mechanism/relativity.py`. The bridge's file list must include `mapview.py`. Their functions are added here by the goal that builds them.
+Later rungs add `mechanism/signal.py` and `mechanism/relativity.py`. The bridge's file list must include `mapview.py` and `geometry.py`. Their functions are added here by the goal that builds them.

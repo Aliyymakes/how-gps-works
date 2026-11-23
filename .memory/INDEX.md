@@ -15,3 +15,5 @@ Read only the file(s) the task needs. Goals and bugs are GitHub issues, not file
 | commands.md | Install, run, test, deploy. Anything nobody has run is marked (unverified) | sessions |
 | ../docs/interface.md | The contract between mechanism/ (Python) and the page | changed only through its own issue |
 | ../docs/ui-guide.md | Layout, look and motion rules for the page | Icarus |
+| overnight/plan-NNN.md | Ordered list for an away run | Icarus |
+| overnight/state-NNN.md, overnight/report-<date>.md | Log and report of that run | sessions |
