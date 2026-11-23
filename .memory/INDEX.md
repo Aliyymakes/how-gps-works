@@ -14,3 +14,4 @@ Read only the file(s) the task needs. Goals and bugs are GitHub issues, not file
 | gotchas.md | Traps, each with what to do instead | sessions |
 | commands.md | Install, run, test, deploy. Anything nobody has run is marked (unverified) | sessions |
 | ../docs/interface.md | The contract between mechanism/ (Python) and the page | changed only through its own issue |
+| ../docs/ui-guide.md | Layout, look and motion rules for the page | Icarus |

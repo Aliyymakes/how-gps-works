@@ -19,3 +19,4 @@ Read `.memory/start.md` and follow it. It names the other files to read.
 7. The mechanism must be the team's own code and must compute its outputs from the user's inputs. No prepared results, no hosted AI in the mechanism.
 8. Every teammate must be able to explain the code they merge. Write simple code, and fill in the "Explain it" part of the pull request in plain words.
 9. Say plainly what you verified and what you could not.
+10. Any work on the page (`index.html`, `web/`) follows `docs/ui-guide.md`. Read it before writing page code.

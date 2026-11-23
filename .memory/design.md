@@ -61,6 +61,10 @@ Folders:
 - `docs/interface.md` the contract.
 - `.memory/` team memory. `.github/` issue and pull request templates, test workflow.
 
+## 3a. Look (2026-11-23, Icarus)
+
+The page uses Icarus's Instrument system. Rules for layout, look and motion are in docs/ui-guide.md.
+
 ## 4. How the team works (2026-11-22, Icarus)
 
 Goals, bugs and progress are tracked with GitHub Issues and a Projects board (Icarus, 2026-11-22). The repo is Aliyymakes/how-gps-works. The loop is in CONTRIBUTING.md.
@@ -97,7 +101,7 @@ Live link, public repository, project page, short demo video. Who makes the proj
 Each line is detailed in decision-map.md.
 - Project name: TBA.
 - What the user changes on the first screen and how the sky and the position are drawn: TBA.
-- Look of the page (colours, fonts, style): TBA. Ask Icarus; do not choose.
+- Where the Instrument files (theme.css, theme.js, reference index.html) come from: Icarus adds them. Page layout and look rules are in docs/ui-guide.md.
 - When the repo turns public (it is `how-gps-works`, private for now; Icarus 2026-11-22): TBA. It must be public by submission.
 - The name on the MIT licence's copyright line: TBA. (Licence is MIT, Icarus 2026-11-22. Consent forms: done for all four, Icarus 2026-11-22.)
 - When all four are free together for the Round 2 interview: TBA.

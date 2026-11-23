@@ -47,3 +47,7 @@ His words: "1. looks right
 2. aliyymakes(me)[claude code]{can do javascript,html,python},tw-2866[codex]{python},scoobertfan[claude code]{python},jstnstyad10[codex]{javascript}
 3.  yep"
 Reading: 1. The depth ladder in design.md 2a is confirmed as asked: rung 1 is the two-minute idea, rungs 2 to 5 in that order, and the real-satellites view is a late extra. 2. Roster: aliyymakes is Icarus, Claude Code, JavaScript + HTML + Python. tw-2866, Codex, Python. scoobertfan, Claude Code, Python. jstnstyad10, Codex, JavaScript. 3. gh is installed and the repo is on GitHub (remote is Aliyymakes/how-gps-works). Does NOT settle: who is on which area (the orchestrator proposes it from the skills), what the user changes on the first screen and how it is shown, the look of the page, when the repo turns public, the name on the licence.
+
+### 2026-11-23 09:14
+His words: "instrument is fine i think,go ahead and write it" (quoting "If it's Instrument," and the offer to write docs/ui-guide.md)
+Reading: The page uses his Instrument system, with a soft "i think". The orchestrator writes docs/ui-guide.md and points AGENTS.md at it. Does NOT settle: where the Instrument files are, the first-screen controls, the thresholds for ok/warn/bad colours.
