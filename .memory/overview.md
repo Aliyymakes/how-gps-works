@@ -12,6 +12,7 @@ What is built. One dated line per merged issue, added at the end: `- YYYY-MM-DD 
 - 2026-11-22 | setup | Team system only: AGENTS.md, CLAUDE.md, CONTRIBUTING.md, .memory/, issue and pull request templates, test workflow, one smoke test. No project code yet. Not yet pushed to GitHub.
 - 2026-11-23 | #5 (draft) | index.html, web/config.js, web/first-screen.js: the first screen (ground map, clock slider, solve button, satellite switches). Paints without Python; waits on bridge, coords, scenario, solver, mapview to run.
 - 2026-11-23 | #9 (draft) | web/step-geometry.js + web/dev/step-geometry.html: rung 2 section ("Bunch the satellites" slider, sky diagram, DOP, position error). Waits on the bridge and mechanism.
+- 2026-11-23 | #10 (draft) | web/step-signal.js + web/dev/step-signal.html: rung 3 section (noise slider, received signal, 1023 correlation scores with best and true delay marked). Waits on the bridge and signal.py.
 - 2026-11-23 | #8 | mechanism/signal.py: `ca_code`, `make_received`, `correlate` (C/A code from the IS-GPS-200 shift registers, noisy copy, sliding match); tests in tests/test_signal.py.
 - 2026-11-23 | #7 | mechanism/geometry.py: `dop(receiver, satellites)` gives GDOP, PDOP, TDOP from the satellite directions; tests in tests/test_geometry.py.
 - 2026-11-23 | #11 | docs/project-page.md: draft project page text (idea, rungs, simplifications, components, team); numbers only from docs/facts.md.

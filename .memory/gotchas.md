@@ -12,6 +12,7 @@ Traps that cut across areas. One line per entry, added at the end:
 - 2026-11-23 | pytest.ini | Plain `pytest` puts tests/ on the import path, not the repo root, so `import mechanism` fails; pytest.ini sets `pythonpath = .`. Keep it, and run `python -m pytest -q` from the repo root.
 - 2026-11-23 | web/theme.css | `.badge` sets `display: inline-flex`, which beats the `hidden` attribute; index.html adds `.badge[hidden] { display: none; }`. Do the same for any themed element you hide with `hidden`.
 - 2026-11-23 | external | macOS (BSD) `sed -i` needs a suffix argument (`sed -i '' ...`); GNU-style `sed -i` fails.
+- 2026-11-23 | mechanism/signal.py | `make_received` rejects a float `delay_chips` or `seed`. The page must pass whole numbers, and the bridge must turn JS integers into Python ints (Pyodide does this for safe integers; unverified until bridge.js exists).
 - 2026-11-23 | external | gps.gov/technical/icwg/ and older IS-GPS-200 PDF links return 404. IS-GPS-200N is at https://www.gps.gov/sites/default/files/2025-07/IS-GPS-200N.pdf. Its Table 3-Ia text extracts scrambled; the "first 10 chips octal" for PRN 20-32 could not be read, so tests check PRN 1-19 only.
 - 2026-11-23 | mechanism/signal.py | The "first 10 chips" octal in IS-GPS-200 is logic bits, and its first digit is ONE bit (1440 = 1 100 100 000). Compare against bits, not ±1 values.
 - 2026-11-23 | tests/test_signal.py | At noise_std 50 the peak_to_next ratio sits between about 1.0 and 1.26 depending on the seed; the high-noise test relies on its fixed seed.
