@@ -11,9 +11,9 @@
 | 5 | Lines meet | Lines redraw and meet; page states how fast or slow the clock was | Holds on the sentence | "The lines meet again, and the page says how wrong the clock was." |
 | 6 | Take one away | Per-satellite switches | Switches one satellite off | "Take one satellite away..." |
 | 7 | Refusal | Page refuses in one sentence: four unknowns (east, north, up, clock), three measurements | Holds on the sentence | "...and it refuses: four unknowns, only three measurements." |
-| 8 | Bunch them (rung 2) | Sky view with satellites; DOP and position error readouts (placeholder control: satellite spread) | Drags the satellites closer together | "Same error, but with the satellites bunched together the fix gets much worse." |
+| 8 | Bunch them (rung 2) | Rung 2 section: "bunch the satellites" control, DOP and position error readouts | Drags the satellites closer together | "Same error, but with the satellites bunched together the fix gets much worse." |
 | 9 | Read the geometry | DOP readout and position error readout both larger | Holds, then spreads them out again | "DOP says how much the layout multiplies the error. Spread out, it shrinks." |
-| 10 | Clean signal (rung 3) | Correlation plot with a clear peak (placeholder control: noise) | Presses play on the sliding code, or moves the delay | "The phone finds the signal by sliding a known code along it until it lines up." |
+| 10 | Clean signal (rung 3) | Rung 3 section: received signal line, 1023 correlation scores underneath with the peak marked, noise slider at low | Nothing. Lets the peak be seen | "The phone finds the signal by sliding a known code along it until it lines up." |
 | 11 | Add noise | Same plot, noise slider (placeholder name) | Raises noise slowly | "Add noise and the peak holds, even though the signal is weaker than the noise." |
 | 12 | Peak lost | Peak sinks into the noise; best delay jumps to a wrong one | Raises noise further | "Past a point the peak is lost, and the phone no longer knows the time." |
 
