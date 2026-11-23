@@ -10,3 +10,6 @@ Traps that cut across areas. One line per entry, added at the end:
 - 2026-11-22 | .github/workflows/tests.yml | The test workflow uses Python 3.12. Pyodide ships its own Python version; when the Pyodide version is chosen, match the workflow to it (unverified).
 - 2026-11-22 | external | `gh` is not installed by default on a Mac; scripts and agents fail with "gh: command not found". Install it (`brew install gh`) and run `gh auth login` before anything else.
 - 2026-11-23 | pytest.ini | Plain `pytest` puts tests/ on the import path, not the repo root, so `import mechanism` fails; pytest.ini sets `pythonpath = .`. Keep it, and run `python -m pytest -q` from the repo root.
+- 2026-11-23 | external | gps.gov/technical/icwg/ and older IS-GPS-200 PDF links return 404. IS-GPS-200N is at https://www.gps.gov/sites/default/files/2025-07/IS-GPS-200N.pdf. Its Table 3-Ia text extracts scrambled; the "first 10 chips octal" for PRN 20-32 could not be read, so tests check PRN 1-19 only.
+- 2026-11-23 | mechanism/signal.py | The "first 10 chips" octal in IS-GPS-200 is logic bits, and its first digit is ONE bit (1440 = 1 100 100 000). Compare against bits, not ±1 values.
+- 2026-11-23 | tests/test_signal.py | At noise_std 50 the peak_to_next ratio sits between about 1.0 and 1.26 depending on the seed; the high-noise test relies on its fixed seed.
