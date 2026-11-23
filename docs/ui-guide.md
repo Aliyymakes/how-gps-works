@@ -21,7 +21,7 @@ An interactive widget alone is not an explanation. The page leads the user's att
 
 ## 2. Look: the Instrument system
 
-Icarus chose his Instrument system for this project (2026-11-23). Use its files, tokens and components as they are; do not invent new colours, fonts or radii. The files (theme.css, theme.js and a reference index.html) are not in this repo yet: Icarus adds them. Until then, lay out with plain HTML and no custom styling.
+Icarus chose his Instrument system for this project (2026-11-23). The files are `web/theme.css` and `web/theme.js`; `web/theme-preview.html` shows every component. Use its variables and classes as they are; do not invent new colours, fonts or radii. If something is missing, add it to theme.css through its own issue. The theme is a first draft: colours are approved (2026-11-23), other values may change.
 
 What the system holds, as Icarus described it:
 - Dark first, with a light theme.
