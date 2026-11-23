@@ -5,12 +5,13 @@
 // Every tunable number for this step. All of these are provisional until Icarus confirms them.
 export const geometryConfig = {
   receiver: { lat_deg: -6.2, lon_deg: 106.8 }, // placeholder, provisional (Jakarta, as on the first screen)
-  // Four satellites spread around the sky. Elevation stays between 15 and 65 degrees.
+  // Four satellites spread around the sky: one nearly overhead, three low and 120 degrees apart.
+  // Elevation stays between 15 and 80 degrees.
   spread: [ // placeholder, provisional
-    { id: "1", azimuth_deg: 30, elevation_deg: 60 },
-    { id: "2", azimuth_deg: 120, elevation_deg: 35 },
+    { id: "1", azimuth_deg: 30, elevation_deg: 80 },
+    { id: "2", azimuth_deg: 90, elevation_deg: 20 },
     { id: "3", azimuth_deg: 210, elevation_deg: 20 },
-    { id: "4", azimuth_deg: 300, elevation_deg: 45 },
+    { id: "4", azimuth_deg: 330, elevation_deg: 20 },
   ],
   // The same four satellites bunched into one patch of sky, all within about 10 degrees.
   bunched: [ // placeholder, provisional
