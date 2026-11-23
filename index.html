@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0a0a">
+<title>How does your phone know where you are?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="web/theme.css">
+<style>
+  /* Layout for this page only. Colours, fonts and radii come from theme.css. */
+  main { max-width: 1100px; margin: 0 auto; padding: var(--s-6) var(--s-4); display: grid; gap: var(--s-5); }
+  .intro { display: grid; gap: var(--s-2); }
+  h1 { text-wrap: balance; }
+  .grid { display: grid; grid-template-columns: 1fr; gap: var(--s-5); }
+  @media (min-width: 760px) { .grid { grid-template-columns: 1.1fr 1fr; align-items: start; } }
+  .stack { display: grid; gap: var(--s-4); }
+  .map { width: 100%; aspect-ratio: 1; display: block; }
+  .map-frame { fill: none; stroke: var(--line-strong); }
+  .map-true { stroke: var(--text-faint); fill: none; }
+  .map-line { stroke: var(--text-muted); stroke-width: 1.5; fill: none; transition: opacity var(--dur-small) ease; }
+  .map-line.is-hidden { opacity: 0; }
+  .map-dot { fill: currentColor; fill-opacity: 0.25; stroke: currentColor; stroke-width: 2; }
+  .map-caption { margin-top: var(--s-3); font-size: var(--text-sm); }
+  .badge[hidden] { display: none; }
+  .highlight { border-color: var(--accent); }
+  .readout { padding: var(--s-4); display: grid; gap: var(--s-2); }
+  .big { font-size: 28px; }
+  .note { font-size: var(--text-sm); color: var(--text-muted); min-height: 1.5em; }
+  .switches { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--s-4); }
+  .actions { display: flex; flex-wrap: wrap; gap: var(--s-3); }
+  .btn:disabled, input:disabled + .toggle-track, input[type="range"]:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn:disabled:hover { border-color: var(--line-strong); }
+  .btn-primary:disabled:hover { border-color: var(--accent); }
+  .btn { touch-action: manipulation; }
+  input[type="range"] { touch-action: pan-y; }
+</style>
+</head>
+<body>
+<main>
+  <header class="intro">
+    <h1>How does your phone know where you are?</h1>
+    <p class="muted">Make the phone's clock wrong and watch its position move.</p>
+    <p class="note" id="status" role="status" aria-live="polite">Loading the maths…</p>
+  </header>
+
+  <div class="grid">
+    <section class="card" aria-labelledby="map-title">
+      <h2 class="label" id="map-title">Ground map</h2>
+      <svg class="map" id="map" viewBox="0 0 400 400" role="img" aria-label="Ground map. Each satellite draws a distance line. The dot is where the phone thinks it is.">
+        <rect class="map-frame" x="0.5" y="0.5" width="399" height="399"/>
+        <g class="map-true" id="map-true"></g>
+        <g id="map-lines"></g>
+        <g id="map-dot" class="is-ok" style="display: none"><circle class="map-dot" r="9"/></g>
+      </svg>
+      <p class="map-caption muted" id="map-caption"></p>
+    </section>
+
+    <section class="card stack" aria-label="Controls">
+      <div class="slider inset highlight" style="padding: var(--s-4)">
+        <div class="slider-head">
+          <label for="clock">Make the phone's clock wrong</label>
+          <span class="num" id="clock-value">0.00 µs</span>
+        </div>
+        <input id="clock" type="range" value="0" disabled>
+        <p class="note" id="msg-slider" role="status"></p>
+      </div>
+
+      <div class="inset readout">
+        <span class="label">Position off by</span>
+        <span class="num big" id="error-value">–</span>
+        <div><span class="badge is-ok" id="error-badge" hidden></span></div>
+        <p class="note" id="msg-readout"></p>
+      </div>
+
+      <div class="stack" style="gap: var(--s-2)">
+        <button class="btn btn-primary" id="solve" type="button" disabled>Let the phone solve for its clock</button>
+        <p class="note" id="msg-solve" role="status"></p>
+      </div>
+
+      <div class="stack" style="gap: var(--s-1)">
+        <span class="label" id="switch-label">Satellites</span>
+        <div class="switches" id="switches" role="group" aria-labelledby="switch-label"></div>
+        <p class="note" id="msg-switch" role="status"></p>
+      </div>
+
+      <div class="actions">
+        <button class="btn" id="reset" type="button" disabled>Reset</button>
+      </div>
+    </section>
+  </div>
+</main>
+<script type="module" src="web/first-screen.js"></script>
+</body>
+</html>
