@@ -12,3 +12,4 @@ What is built. One dated line per merged issue, added at the end: `- YYYY-MM-DD 
 - 2026-11-22 | setup | Team system only: AGENTS.md, CLAUDE.md, CONTRIBUTING.md, .memory/, issue and pull request templates, test workflow, one smoke test. No project code yet. Not yet pushed to GitHub.
 - 2026-11-23 | #11 | docs/project-page.md: draft project page text (idea, rungs, simplifications, components, team); numbers only from docs/facts.md.
 - 2026-11-23 | #6 | docs/facts.md: every number the page and documents use, each with a source link and exact quoted value, re-checked by a second reviewer. Use only rows not marked unconfirmed.
+- 2026-11-23 | #1 | mechanism/solver.py matches docs/interface.md: satellites and results as x_m/y_m/z_m dicts, steps from the Earth's centre; tests use satellites above the horizon. Duplicate mechanism/test_solver.py and the zip removed.
