@@ -87,3 +87,15 @@ def test_malformed_points_return_error():
     del broken[0]["x_m"]
     assert "error" in distance_lines(LAT, LON, broken, ranges, 0)
     assert "error" in distance_lines(LAT, LON, sats, [None] + ranges[1:], 0)
+
+
+def test_line_through_a_corner_is_found():
+    # A circle that only just crosses the corner (-999, -999) of the map square.
+    receiver = latlon_to_xyz(0, 0)
+    satellite = {"id": "S1", **satellite_from_sky(0, 0, 45, 40)}
+    east_m, north_m, up_m = (to_local(0, 0, satellite)[key] for key in ("east_m", "north_m", "up_m"))
+    radius = math.hypot(east_m, north_m) + 999 * math.sqrt(2)
+    distance = math.sqrt(radius**2 + up_m**2)
+    line = distance_lines(0, 0, [satellite], [distance], 0)[0]
+    assert line["inside"]
+    assert len(line["points"]) >= 10
