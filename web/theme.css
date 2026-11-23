@@ -1,0 +1,198 @@
+/* Instrument theme for how-gps-works.
+   Rules: docs/ui-guide.md section 2. Interactive = white. Colour only for state (ok / warn / bad).
+   Pages load the fonts with:
+   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"> */
+
+:root {
+  color-scheme: dark;
+
+  /* Surfaces and text */
+  --bg: #0a0a0a;
+  --surface: #121212;
+  --surface-2: #1a1a1a;
+  --line: rgba(255, 255, 255, 0.09);
+  --line-strong: rgba(255, 255, 255, 0.18);
+  --text: #ededed;
+  --text-muted: #9a9a9a;
+  --text-faint: #5f5f5f;
+
+  /* Interactive is white */
+  --accent: #ffffff;
+  --accent-ink: #0a0a0a;
+
+  /* State only */
+  --ok: #3ccf8e;
+  --warn: #f2a93b;
+  --bad: #f0524f;
+
+  /* Type */
+  --font-sans: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 20px;
+  --text-xl: 32px;
+
+  /* Space (4 px grid) */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px; --s-6: 32px; --s-7: 48px;
+
+  /* Concentric radii: inner = outer - padding */
+  --r-card: 16px;
+  --pad-card: var(--s-5);
+  --r-inner: max(4px, calc(var(--r-card) - var(--pad-card) / 2));
+  --r-pill: 999px;
+
+  /* Motion (docs/ui-guide.md section 3) */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --dur-press: 120ms;
+  --dur-small: 180ms;
+  --dur-panel: 280ms;
+
+  /* Pointer light, set by theme.js */
+  --px: 50%;
+  --py: 50%;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --surface-2: #f2f2f2;
+  --line: rgba(0, 0, 0, 0.08);
+  --line-strong: rgba(0, 0, 0, 0.16);
+  --text: #111111;
+  --text-muted: #666666;
+  --text-faint: #a3a3a3;
+  --accent: #111111;
+  --accent-ink: #ffffff;
+  --ok: #18a86b;
+  --warn: #c7820f;
+  --bad: #d63a37;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; }
+h1 { font-size: var(--text-xl); }
+h2 { font-size: var(--text-lg); }
+p { margin: 0; }
+.muted { color: var(--text-muted); }
+.mono, .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.label { font-size: var(--text-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+/* Card with pointer-tracked light */
+.card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: var(--pad-card);
+  overflow: hidden;
+}
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(360px circle at var(--px) var(--py), rgba(255, 255, 255, 0.06), transparent 60%);
+  opacity: 0;
+  transition: opacity var(--dur-small) ease;
+  pointer-events: none;
+}
+.card:hover::before { opacity: 1; }
+[data-theme="light"] .card::before {
+  background: radial-gradient(360px circle at var(--px) var(--py), rgba(0, 0, 0, 0.04), transparent 60%);
+}
+.inset {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-inner);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
+  min-height: 44px; padding: 0 var(--s-4);
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line-strong);
+  background: transparent; color: var(--text);
+  font: 500 var(--text-sm) var(--font-sans);
+  cursor: pointer;
+  transition: transform var(--dur-press) var(--ease-out), background-color var(--dur-small) ease, border-color var(--dur-small) ease;
+}
+.btn:hover { border-color: var(--accent); }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+/* Focus */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+/* Slider */
+.slider { display: grid; gap: var(--s-2); }
+.slider-head { display: flex; justify-content: space-between; align-items: baseline; }
+input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 44px; background: transparent; cursor: pointer; margin: 0;
+}
+input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: var(--line-strong); }
+input[type="range"]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--line-strong); }
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 20px; height: 20px; margin-top: -8px;
+  border-radius: 50%; background: var(--accent); border: 0;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--accent); border: 0; }
+input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.15); }
+
+/* Toggle */
+.toggle { display: inline-flex; align-items: center; gap: var(--s-3); min-height: 44px; cursor: pointer; }
+.toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.toggle-track {
+  width: 40px; height: 24px; border-radius: var(--r-pill);
+  background: var(--line-strong); position: relative;
+  transition: background-color var(--dur-small) ease;
+}
+.toggle-track::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px;
+  border-radius: 50%; background: var(--text-muted);
+  transition: transform var(--dur-small) var(--ease-out), background-color var(--dur-small) ease;
+}
+.toggle input:checked + .toggle-track { background: var(--accent); }
+.toggle input:checked + .toggle-track::after { transform: translateX(16px); background: var(--accent-ink); }
+.toggle input:focus-visible + .toggle-track { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* State badges: the only coloured elements */
+.badge {
+  display: inline-flex; align-items: center; gap: var(--s-2);
+  padding: 2px var(--s-3); border-radius: var(--r-pill);
+  font: 500 var(--text-xs) var(--font-mono);
+  border: 1px solid currentColor;
+}
+.badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.is-ok { color: var(--ok); }
+.is-warn { color: var(--warn); }
+.is-bad { color: var(--bad); }
+
+/* Sky drawing (SVG) */
+.sky-ring { fill: none; stroke: var(--line); }
+.sky-sat { fill: var(--accent); transition: opacity var(--dur-small) ease; }
+.sky-sat.is-off { opacity: 0.2; }
+.sky-signal { stroke: var(--line-strong); stroke-dasharray: 2 4; }
+.sky-fix { stroke: currentColor; fill: none; stroke-width: 2; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-property: opacity, color, background-color, border-color !important; }
+  .btn:active { transform: none; }
+}

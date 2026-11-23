@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Theme preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="theme.css">
+<style>
+  /* Preview layout only. Not part of the theme. */
+  main { max-width: 960px; margin: 0 auto; padding: var(--s-7) var(--s-5); display: grid; gap: var(--s-5); }
+  .grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--s-5); }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+  .stack { display: grid; gap: var(--s-4); }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); flex-wrap: wrap; }
+  .sky { width: 100%; aspect-ratio: 1; display: block; }
+  .readout { padding: var(--s-4); display: grid; gap: var(--s-1); }
+  .big { font-size: 28px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="row">
+    <div class="stack" style="gap: var(--s-2)">
+      <span class="label">Theme preview, sample content only</span>
+      <h1>How does your phone know where you are?</h1>
+      <p class="muted">Switch satellites off and drag the clock error. Watch the fix move.</p>
+    </div>
+    <button class="btn" id="theme-switch" type="button">Light theme</button>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <svg class="sky" viewBox="0 0 400 400" role="img" aria-label="Sample sky view with five satellites">
+        <circle class="sky-ring" cx="200" cy="200" r="180"/>
+        <circle class="sky-ring" cx="200" cy="200" r="120"/>
+        <circle class="sky-ring" cx="200" cy="200" r="60"/>
+        <line class="sky-signal" x1="200" y1="200" x2="120" y2="70"/>
+        <line class="sky-signal" x1="200" y1="200" x2="310" y2="110"/>
+        <line class="sky-signal" x1="200" y1="200" x2="80" y2="260"/>
+        <line class="sky-signal" x1="200" y1="200" x2="290" y2="300"/>
+        <circle class="sky-sat" cx="120" cy="70" r="7"/>
+        <circle class="sky-sat" cx="310" cy="110" r="7"/>
+        <circle class="sky-sat" cx="80" cy="260" r="7"/>
+        <circle class="sky-sat" cx="290" cy="300" r="7"/>
+        <circle class="sky-sat is-off" cx="215" cy="345" r="7"/>
+        <g class="is-ok"><circle class="sky-fix" cx="200" cy="200" r="10"/></g>
+        <g class="is-warn"><circle class="sky-fix" cx="230" cy="185" r="10"/></g>
+        <g class="is-bad"><circle class="sky-fix" cx="160" cy="235" r="10"/></g>
+      </svg>
+    </section>
+
+    <section class="card stack">
+      <div class="slider">
+        <div class="slider-head">
+          <label for="clock">Phone clock error</label>
+          <span class="num" id="clock-value">1.0 µs</span>
+        </div>
+        <input id="clock" type="range" min="0" max="10" step="0.1" value="1">
+      </div>
+
+      <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span>Satellite 1</label>
+      <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span>Satellite 2</label>
+      <label class="toggle"><input type="checkbox"><span class="toggle-track"></span>Satellite 5</label>
+
+      <div class="inset readout">
+        <span class="label">Position off by</span>
+        <span class="num big">300 m</span>
+        <div class="row" style="justify-content: flex-start">
+          <span class="badge is-ok">within 5 m</span>
+          <span class="badge is-warn">off by tens</span>
+          <span class="badge is-bad">off by hundreds</span>
+        </div>
+      </div>
+
+      <div class="row" style="justify-content: flex-start">
+        <button class="btn btn-primary" type="button">Add fourth satellite</button>
+        <button class="btn" type="button">Reset</button>
+      </div>
+    </section>
+  </div>
+</main>
+<script type="module">
+  import { trackPointerLight, loadSavedTheme, setTheme } from "./theme.js";
+  loadSavedTheme();
+  trackPointerLight();
+  const button = document.getElementById("theme-switch");
+  const label = () => { button.textContent = document.documentElement.dataset.theme === "dark" ? "Light theme" : "Dark theme"; };
+  label();
+  button.addEventListener("click", () => {
+    setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+    label();
+  });
+  // Preview only: shows the slider value, does no GPS maths.
+  const clock = document.getElementById("clock");
+  clock.addEventListener("input", () => { document.getElementById("clock-value").textContent = `${Number(clock.value).toFixed(1)} µs`; });
+</script>
+</body>
+</html>
