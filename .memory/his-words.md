@@ -71,3 +71,16 @@ Reading: Approves exactly the changes listed under "What changes if you say yes"
 ### 2026-11-23 11:33
 His words: "yes" (to: freeze new features at 25 Nov 18:59 WIB, one day before the deadline, and spend the last day only on fixes, the project page, the video and interview practice)
 Reading: Feature freeze approved at 25 Nov 18:59 WIB. After it, only bug fixes, the project page, the demo video and interview practice. Does NOT settle: who makes the project page and the video.
+
+### 2026-11-23 17:27
+His words: "accept all, also what video length"
+Reading: Accepts every recommendation in the 14 Questions for Icarus in .memory/overnight/report-2026-11-23.md (questions 1 to 11 and 14 as recommended; 12 and 13 recommended that he choose, so the video length, who records, the project name and the AI-use section are still open). Asks what length the video should be.
+
+### 2026-11-23 21:07
+His words: "yes" (to: write the takeover plan now, to paste into a fresh Claude Code session straight away instead of waiting for 22:00)
+Earlier, 20:54: "this si clearly not working efficiently, how do big companies with lots of devs do work continiously without having people wait for other people"
+Reading: His agent takes over the critical path tonight (solver fix, coordinates and measurements, map lines, bridge) and wires them into the first screen. Teammates move to reviewing, testing and submission work. Merging by the agent is part of the plan he will paste (stated in plan-002 and in the reply); pasting it is his approval for that run only. Does NOT approve: making the repo public, GitHub Pages, a LICENSE.
+
+### 2026-11-23 21:14
+His words: "i want as much stuff done, as quickly as possible, as cheapyly as possible. its better for everyone to learn the code rather than not having a finished product"
+Reading: A finished product comes before each teammate writing their own part. Whoever is free builds; everyone learns all the code afterwards for the interview. Speed and low cost matter. Does NOT change the priority order's first rule (correct maths) or approve going public.
