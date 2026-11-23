@@ -16,3 +16,4 @@ What is built. One dated line per merged issue, added at the end: `- YYYY-MM-DD 
 - 2026-11-23 | #6 | docs/facts.md: every number the page and documents use, each with a source link and exact quoted value, re-checked by a second reviewer. Use only rows not marked unconfirmed.
 - 2026-11-23 | #2 | mechanism/coords.py (lat/lon ↔ xyz on a sphere, satellite from azimuth/elevation), mechanism/scenario.py (make_pseudoranges with clock error and seeded noise), EARTH_RADIUS_M and GPS_ORBIT_RADIUS_M in constants.py, with tests.
 - 2026-11-23 | #1 | mechanism/solver.py matches docs/interface.md: satellites and results as x_m/y_m/z_m dicts, steps from the Earth's centre; tests use satellites above the horizon. Duplicate mechanism/test_solver.py and the zip removed.
+- 2026-11-23 | #4 | mechanism/mapview.py: to_local (east/north/up from the true receiver) and distance_lines (each satellite's distance circle on the flat local map), with tests.
