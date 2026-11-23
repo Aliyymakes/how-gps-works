@@ -12,3 +12,4 @@ What is still open, what it blocks, and when to ask. Oldest unanswered first.
 | 2026-11-22 | When are all four free together on camera for 40 minutes within 24 hours of submitting? | When we press submit | By 24 Nov |
 | 2026-11-22 | Name on the MIT licence's copyright line (licence itself decided: MIT) | Adding the LICENSE file, making the repo public | Now |
 | 2026-11-23 | Relativity rung: does a shared clock drift show any position drift in our solver? (test, then decide how to show it) | Rung 4 | After the solver merges |
+| 2026-11-23 | Make the repo public and turn on GitHub Pages for the live link (required by submission; Pages likely needs public on a free account) | The live link, judging | By 25 Nov 18:59 WIB |
