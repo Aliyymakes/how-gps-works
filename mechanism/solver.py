@@ -4,8 +4,9 @@ import math
 
 import numpy as np
 
+from mechanism.constants import SPEED_OF_LIGHT_M_PER_S
 
-SPEED_OF_LIGHT = 299_792_458  # metres per second
+
 MAX_STEPS = 20
 STOP_WHEN_CHANGE_IS_SMALLER_THAN = 0.001  # metres
 
@@ -13,15 +14,17 @@ STOP_WHEN_CHANGE_IS_SMALLER_THAN = 0.001  # metres
 def _save_step(x, y, z, clock_m):
     """Save one guess using normal Python numbers and lists."""
     return {
-        "position_m": [float(x), float(y), float(z)],
-        "clock_error_s": float(clock_m / SPEED_OF_LIGHT),
+        "x_m": float(x),
+        "y_m": float(y),
+        "z_m": float(z),
+        "clock_error_s": float(clock_m / SPEED_OF_LIGHT_M_PER_S),
     }
 
 
 def solve_position(satellites, pseudoranges_m, solve_clock=True):
     """Guess the receiver's location and improve it using satellite distances.
 
-    satellites: a list of [x, y, z] positions in metres
+    satellites: a list of {"id", "x_m", "y_m", "z_m"} dicts (positions in metres)
     pseudoranges_m: one measured distance in metres for each satellite
     solve_clock: whether to also find the receiver's clock error
     """
@@ -45,9 +48,9 @@ def solve_position(satellites, pseudoranges_m, solve_clock=True):
 
         for satellite, measured_distance in zip(satellites, pseudoranges_m):
             # Find the difference between the satellite and our guess.
-            dx = x - satellite[0]
-            dy = y - satellite[1]
-            dz = z - satellite[2]
+            dx = x - satellite["x_m"]
+            dy = y - satellite["y_m"]
+            dz = z - satellite["z_m"]
 
             # Use Pythagoras to find their straight-line distance.
             distance = math.sqrt(dx * dx + dy * dy + dz * dz)
@@ -86,8 +89,10 @@ def solve_position(satellites, pseudoranges_m, solve_clock=True):
             break
 
     return {
-        "position_m": [float(x), float(y), float(z)],
-        "clock_error_s": float(clock_m / SPEED_OF_LIGHT),
+        "x_m": float(x),
+        "y_m": float(y),
+        "z_m": float(z),
+        "clock_error_s": float(clock_m / SPEED_OF_LIGHT_M_PER_S),
         "converged": converged,
         "steps": steps,
     }
