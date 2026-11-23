@@ -84,3 +84,7 @@ Reading: His agent takes over the critical path tonight (solver fix, coordinates
 ### 2026-11-23 21:14
 His words: "i want as much stuff done, as quickly as possible, as cheapyly as possible. its better for everyone to learn the code rather than not having a finished product"
 Reading: A finished product comes before each teammate writing their own part. Whoever is free builds; everyone learns all the code afterwards for the interview. Speed and low cost matter. Does NOT change the priority order's first rule (correct maths) or approve going public.
+
+### 2026-11-23 21:20
+His words: "use fable for hardest descisions and tasks, opus for hard stuff, sonnet for regular stuff, haiku for easy stuff"
+Reading: Model ladder for agent work: Fable for the hardest decisions and tasks, Opus for hard work, Sonnet for regular work, Haiku for easy work. Written into plan-002. Applies to future plans too.
