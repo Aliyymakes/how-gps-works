@@ -53,7 +53,8 @@ def test_lines_pass_through_receiver_with_right_clock():
 def test_lines_miss_with_wrong_clock():
     sats, ranges = _setup(1e-6)
     for line in distance_lines(LAT, LON, sats, ranges, 0):
-        assert not line["inside"] or _miss_distance(line["points"]) > 100
+        assert line["inside"]
+        assert _miss_distance(line["points"]) > 100
 
 
 def test_points_inside_square_and_enough_of_them():
@@ -77,3 +78,11 @@ def test_bad_input_returns_error():
     assert "error" in distance_lines(LAT, LON, sats, ranges[:2], 0)
     assert "error" in distance_lines(LAT, LON, sats, ranges, 0, half_width_m=0)
     assert "error" in distance_lines(LAT, LON, sats, ranges, 0, samples=1)
+
+
+def test_malformed_points_return_error():
+    assert "error" in to_local(LAT, LON, {})
+    sats, ranges = _setup(0)
+    broken = [dict(sats[0])] + sats[1:]
+    del broken[0]["x_m"]
+    assert "error" in distance_lines(LAT, LON, broken, ranges, 0)

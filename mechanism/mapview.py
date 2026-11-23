@@ -26,8 +26,17 @@ def _local(receiver, directions, point):
     return _dot(arrow, east), _dot(arrow, north), _dot(arrow, up)
 
 
+def _is_point(point):
+    """True when the point is a dict with numbers for x_m, y_m and z_m."""
+    return isinstance(point, dict) and all(
+        isinstance(point.get(key), (int, float)) for key in ("x_m", "y_m", "z_m")
+    )
+
+
 def to_local(receiver_lat_deg, receiver_lon_deg, point):
     """Return where a point is relative to the true receiver, in east, north, up metres."""
+    if not _is_point(point):
+        return {"error": "A point needs numbers for x_m, y_m and z_m."}
     receiver = latlon_to_xyz(receiver_lat_deg, receiver_lon_deg)
     if "error" in receiver:
         return receiver
@@ -73,6 +82,8 @@ def distance_lines(receiver_lat_deg, receiver_lon_deg, satellites, pseudoranges_
         return {"error": "The map half width must be more than 0 metres."}
     if samples < 2:
         return {"error": "At least 2 samples are needed."}
+    if not all(_is_point(satellite) for satellite in satellites):
+        return {"error": "Each satellite needs numbers for x_m, y_m and z_m."}
     receiver = latlon_to_xyz(receiver_lat_deg, receiver_lon_deg)
     if "error" in receiver:
         return receiver
@@ -89,6 +100,7 @@ def distance_lines(receiver_lat_deg, receiver_lon_deg, satellites, pseudoranges_
         points = []
         if radius_squared > 0:
             points = _circle_points(east_m, north_m, math.sqrt(radius_squared), half_width_m, samples)
-        inside = len(points) >= 2
+        # A line that only clips a corner of the square by a metre or two is too short to draw.
+        inside = len(points) >= _MIN_POINTS
         lines.append({"id": satellite.get("id"), "points": points if inside else [], "inside": inside})
     return lines
