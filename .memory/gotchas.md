@@ -10,3 +10,4 @@ Traps that cut across areas. One line per entry, added at the end:
 - 2026-11-22 | .github/workflows/tests.yml | The test workflow uses Python 3.12. Pyodide ships its own Python version; when the Pyodide version is chosen, match the workflow to it (unverified).
 - 2026-11-22 | external | `gh` is not installed by default on a Mac; scripts and agents fail with "gh: command not found". Install it (`brew install gh`) and run `gh auth login` before anything else.
 - 2026-11-23 | pytest.ini | Plain `pytest` puts tests/ on the import path, not the repo root, so `import mechanism` fails; pytest.ini sets `pythonpath = .`. Keep it, and run `python -m pytest -q` from the repo root.
+- 2026-11-23 | mechanism/signal.py | `make_received` rejects a float `delay_chips` or `seed`. The page must pass whole numbers, and the bridge must turn JS integers into Python ints (Pyodide does this for safe integers; unverified until bridge.js exists).

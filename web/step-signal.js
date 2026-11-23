@@ -34,7 +34,7 @@ const STYLE = `
 .signal-step .key { font-size: var(--text-sm); }
 .signal-step .readout { padding: var(--s-4); display: grid; gap: var(--s-2); }
 .signal-step .readout-row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-3); }
-.signal-step .big { font-size: 28px; }
+.signal-step .big { font-size: var(--text-xl); }
 .signal-step .badge[hidden] { display: none; }
 .signal-step .note { font-size: var(--text-sm); color: var(--text-muted); min-height: 1.5em; }
 .signal-step .highlight { border-color: var(--accent); padding: var(--s-4); }
