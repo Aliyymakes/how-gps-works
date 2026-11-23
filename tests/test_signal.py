@@ -79,3 +79,12 @@ def test_outputs_are_json_safe():
     json.dumps(correlate(received, 3))
     json.dumps(correlate([0.0] * 1023, 3))
     json.dumps(ca_code(0))
+
+
+def test_negative_seed_is_an_error():
+    assert "error" in make_received(1, 0, 1, seed=-1)
+
+
+def test_silent_or_flat_input_has_no_peak():
+    assert correlate([0.0] * 1023, 1)["peak_to_next"] == 1.0
+    assert correlate([1.0] * 1023, 1)["peak_to_next"] == 1.0

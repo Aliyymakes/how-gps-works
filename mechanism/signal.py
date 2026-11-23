@@ -72,8 +72,8 @@ def make_received(prn, delay_chips, noise_std, seed=0):
         return {"error": "delay_chips must be a whole number from 0 to 1022."}
     if isinstance(noise_std, bool) or not isinstance(noise_std, (int, float)) or not noise_std >= 0 or noise_std == float("inf"):
         return {"error": "noise_std must be a number that is 0 or more."}
-    if isinstance(seed, bool) or not isinstance(seed, int):
-        return {"error": "seed must be a whole number."}
+    if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+        return {"error": "seed must be a whole number that is 0 or more."}
     # Shift the code later by delay_chips; the chips pushed off the end wrap round to the start.
     shifted = np.roll(np.array(code, dtype=float), delay_chips)
     noise = np.random.default_rng(seed).normal(0.0, noise_std, CODE_LENGTH)
@@ -84,8 +84,8 @@ def correlate(received, prn):
     """Try every shift of satellite prn's code against received and score how well each fits.
 
     Score 1.0 means a perfect match (no noise). peak_to_next is the best score divided by the
-    second best score; a big number means a clear winner. If the second best score is 0 or
-    negative the division is meaningless, so we return 1e9 ("extremely clear"). A plain big number is
+    second best score; a big number means a clear winner. If no score is above 0 there is no
+    peak, so we return 1.0. If the best is above 0 but the second best is not, we return 1e9 ("extremely clear"). A plain big number is
     used instead of infinity because infinity is not valid JSON.
     """
     code = ca_code(prn)
@@ -105,6 +105,12 @@ def correlate(received, prn):
     best = int(np.argmax(scores))
     others = sorted(scores[:best] + scores[best + 1:], reverse=True)
     next_best = others[0]
-    # If the runner-up is not positive there is no meaningful ratio: report a very large number.
-    peak_to_next = scores[best] / next_best if next_best > 0 else 1e9
+    if scores[best] <= 0:
+        # Nothing matches at any shift (for example a silent input): there is no peak at all.
+        peak_to_next = 1.0
+    elif next_best <= 0:
+        # A real peak and nothing else positive: the ratio would be meaningless, so report a very large number.
+        peak_to_next = 1e9
+    else:
+        peak_to_next = scores[best] / next_best
     return {"scores": scores, "best_delay_chips": best, "peak_to_next": float(peak_to_next)}
