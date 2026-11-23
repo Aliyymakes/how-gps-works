@@ -10,3 +10,4 @@ What is built. One dated line per merged issue, added at the end: `- YYYY-MM-DD 
 
 ## Built
 - 2026-11-22 | setup | Team system only: AGENTS.md, CLAUDE.md, CONTRIBUTING.md, .memory/, issue and pull request templates, test workflow, one smoke test. No project code yet. Not yet pushed to GitHub.
+- 2026-11-23 | #13 | docs/interview-prep.md: 57 judge questions in 8 groups; answers for geometry, signal and the page from open PRs; solver, bridge, coords and mapview answers left for their owners.
