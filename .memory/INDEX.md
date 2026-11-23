@@ -17,3 +17,4 @@ Read only the file(s) the task needs. Goals and bugs are GitHub issues, not file
 | ../docs/ui-guide.md | Layout, look and motion rules for the page | Icarus |
 | overnight/plan-NNN.md | Ordered list for an away run | Icarus |
 | overnight/state-NNN.md, overnight/report-<date>.md | Log and report of that run | sessions |
+| ../docs/facts.md | Every number shown on the page or in documents, with its source. Numbers not in it do not ship | sessions |
