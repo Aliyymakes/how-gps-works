@@ -36,6 +36,7 @@
   .btn-primary:disabled:hover { border-color: var(--accent); }
   .btn { touch-action: manipulation; }
   input[type="range"] { touch-action: pan-y; }
+  .link-line { font-size: var(--text-lg); text-wrap: balance; }
 </style>
 </head>
 <body>
@@ -91,7 +92,23 @@
       </div>
     </section>
   </div>
+
+  <!-- Rungs 2 to 4. Each step mounts into its own div. All of them share one bridge, so Pyodide loads once. -->
+  <p class="link-line">Solving for the clock works, <strong>but</strong> only if the satellites are spread across the sky. <strong>Therefore</strong> where they sit matters as much as how many there are.</p>
+  <div id="step-geometry"></div>
+  <p class="link-line">Good geometry only helps if the phone can read each distance in the first place, <strong>but</strong> the signal is buried in noise. <strong>Therefore</strong> the phone has to dig out the timing.</p>
+  <div id="step-signal"></div>
+  <p class="link-line">The phone can now read the time from each satellite, <strong>but</strong> the satellites' own clocks drift too. <strong>Therefore</strong> let us see whether that drift can move the position.</p>
+  <div id="step-relativity"></div>
 </main>
 <script type="module" src="web/first-screen.js"></script>
+<script type="module">
+  import { mountGeometryStep } from "./web/step-geometry.js";
+  import { mountSignalStep } from "./web/step-signal.js";
+  import { mountRelativityStep } from "./web/step-relativity.js";
+  mountGeometryStep(document.getElementById("step-geometry"));
+  mountSignalStep(document.getElementById("step-signal"));
+  mountRelativityStep(document.getElementById("step-relativity"));
+</script>
 </body>
 </html>

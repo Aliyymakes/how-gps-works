@@ -21,3 +21,7 @@ export const clockSlider = { min_s: 0, max_s: 3e-6, step_s: 5e-8 }; // placehold
 
 // Error colour thresholds in metres: below ok is "ok", below warn is "warn", else "bad".
 export const errorLimits = { ok_m: 10, warn_m: 100 }; // placeholder, provisional
+
+// Rung 4 (relativity) section. The satellites and receiver above are reused.
+export const relativityHours = [0, 1, 6, 24]; // placeholder, provisional: hours of drift to show
+export const relativityPhoneClockErrorS = 1e-6; // placeholder, provisional: the phone's own clock error, 1 microsecond
