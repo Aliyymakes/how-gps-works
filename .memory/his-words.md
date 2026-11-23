@@ -33,3 +33,17 @@ Reading: 1. Consent forms are signed for all four and uploaded by the teacher. 2
 ### 2026-11-22 15:57
 His words: "4. senior" (with terminal output: first commit 735453a made, then "scripts/setup-github.sh: line 15: gh: command not found")
 Reading: The team is in the senior division. The first commit exists locally; the GitHub repo was not created because gh is not installed on his Mac. Does NOT settle: the three product questions asked with it (what the user learns in two minutes, what the user changes, where the real-satellites view sits), the name on the licence.
+
+### 2026-11-22 16:04
+His words: "are you sure gps is the best/most interesting thing we can do think about the rules ad how far we can take the idea yknow the depth"
+Reading: He wants the idea judged on the rules and on how deep it can go. Depth matters to him.
+
+### 2026-11-22 16:06
+His words: "lets proceed with the gps"
+Reading: GPS stays, chosen over the camera-sensor idea (asked: "Which one?"). It does NOT by itself approve the depth ladder the orchestrator proposed in the same message, the two-minute idea, or cutting the real-satellites view. Those are recorded as Proposed in design.md section 2a until he confirms.
+
+### 2026-11-23 08:01
+His words: "1. looks right
+2. aliyymakes(me)[claude code]{can do javascript,html,python},tw-2866[codex]{python},scoobertfan[claude code]{python},jstnstyad10[codex]{javascript}
+3.  yep"
+Reading: 1. The depth ladder in design.md 2a is confirmed as asked: rung 1 is the two-minute idea, rungs 2 to 5 in that order, and the real-satellites view is a late extra. 2. Roster: aliyymakes is Icarus, Claude Code, JavaScript + HTML + Python. tw-2866, Codex, Python. scoobertfan, Claude Code, Python. jstnstyad10, Codex, JavaScript. 3. gh is installed and the repo is on GitHub (remote is Aliyymakes/how-gps-works). Does NOT settle: who is on which area (the orchestrator proposes it from the skills), what the user changes on the first screen and how it is shown, the look of the page, when the repo turns public, the name on the licence.

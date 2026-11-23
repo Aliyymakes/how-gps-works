@@ -9,3 +9,4 @@ Traps that cut across areas. One line per entry, added at the end:
 - 2026-11-22 | external | Pyodide downloads when the page first opens and that takes a few seconds (unverified how many). Show a loading message so the two-minute clock does not start on a blank page.
 - 2026-11-22 | .github/workflows/tests.yml | The test workflow uses Python 3.12. Pyodide ships its own Python version; when the Pyodide version is chosen, match the workflow to it (unverified).
 - 2026-11-22 | external | `gh` is not installed by default on a Mac; scripts and agents fail with "gh: command not found". Install it (`brew install gh`) and run `gh auth login` before anything else.
+- 2026-11-23 | pytest.ini | Plain `pytest` puts tests/ on the import path, not the repo root, so `import mechanism` fails; pytest.ini sets `pythonpath = .`. Keep it, and run `python -m pytest -q` from the repo root.

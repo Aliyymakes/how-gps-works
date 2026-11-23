@@ -44,7 +44,7 @@ Do not edit `.memory/design.md`. Open an issue with the label `needs-icarus` and
 
 | Area | Folder | People |
 |---|---|---|
-| Mechanism (Python) | `mechanism/`, `tests/` | TBA |
-| Page (HTML/CSS/JS) | `index.html`, `web/` | TBA |
+| Mechanism (Python) | `mechanism/`, `tests/` | tw-2866, scoobertfan |
+| Page (HTML/CSS/JS) | `index.html`, `web/` | jstnstyad10, aliyymakes |
 | Spec, board, final calls | `.memory/` spec files | Icarus |
 | Project page, demo video | TBA | TBA |

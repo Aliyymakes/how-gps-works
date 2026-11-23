@@ -15,7 +15,7 @@ Taken from the judging criteria in the brief. Approved by Icarus 2026-11-22 15:5
 - 2026-11-22 | none recorded yet. Icarus adds his own folders and files here.
 
 ## Approved
-- 2026-11-22 | nothing approved yet. Publishing, account use, uploads and new dependencies each need Icarus's yes.
+- 2026-11-22 | Pyodide (Python in the browser) and numpy, chosen by Icarus. Nothing else is approved: publishing, account use, uploads and other dependencies each need his yes.
 
 ## Away rules
 If Icarus or your human is not around: decide technical calls by the priority order above and mark the decisions.md line `provisional`. Do not make taste calls; list them under "Questions for Icarus" in the pull request with a recommendation each. Stop before anything destructive or irreversible.
