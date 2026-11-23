@@ -4,7 +4,13 @@ The teammates' goals #1 (solver fix), #2 (coordinates and measurements), #3 (bri
 
 ## How to run it cheaply
 
-You (Opus) plan, review maths and integrate. Sonnet subagents write code and tests. Haiku subagents run tests, check pull requests against their issue's "Done when" list, and check page files against docs/ui-guide.md. The subagent that built something never checks it. Give each subagent only its item, the files to read and touch, and the done checks.
+The main session (Opus) plans, hands out work, reviews and merges. It writes little code itself. Pick the cheapest model that can do each piece well (Icarus, 2026-11-23 21:20):
+- **Fable** subagent: the hardest decisions and tasks only. A bug that Opus and Sonnet both failed to fix; deciding what the relativity result (item 8) means and how to show it honestly; any case where the spec, the contract and the code disagree and a call has to be made.
+- **Opus** (you, or an Opus subagent): hard work. Reviewing the maths in solver.py, coords.py, scenario.py, mapview.py, geometry.py and signal.py; debugging a failing integration between the page and Python.
+- **Sonnet** subagent: regular work. Writing code and tests, wiring the page, drafting the README and interview answers, the bug sweep.
+- **Haiku** subagent: easy work. Running tests, checking a pull request against its "Done when" list, checking page files against docs/ui-guide.md, small fixes, formatting.
+
+The subagent that built something never checks it. Give each subagent only its item, the files to read and touch, and the done checks; never pass this whole plan.
 
 ## Approved for this run (Icarus, by pasting this plan)
 
