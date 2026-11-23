@@ -48,6 +48,22 @@ This section overrides section 2 on one point: the "real satellites above the us
 
 Every number shown on the page is verified against a source before it ships.
 
+## 2b. The first screen (2026-11-23, approved by Icarus 11:32; overrides the rung 1 wording in 2a)
+
+Section 2a rung 1 said "a fourth satellite solves for the clock error" and "1 microsecond is about 300 m". This section overrides both points: 1 microsecond makes each measured distance about 300 m too long, but the position error depends on where the satellites are, so the page always shows the error the solver computes, never a fixed 300 m.
+
+Why (from the advisor review, checked by the orchestrator): with 3 satellites and a wrong clock the three spheres still meet at one point, just the wrong one, so the picture cannot show "they stop meeting". With 4 satellites and the clock trusted, there are more measurements than unknowns and the distance lines visibly miss each other.
+
+The screen:
+1. Loads with 4 satellites and a green fix. Default satellites are between 15 and 65 degrees above the horizon (placeholder numbers).
+2. Left: a local ground map about 2 km wide (placeholder), centred on the true position. Each satellite draws its distance line: where its distance sphere cuts the ground. The lines look almost straight at this zoom; the page calls them "distance lines". The solved position is a dot.
+3. Right: one control is highlighted first: "Make the phone's clock wrong" (slider, in microseconds). Dragging it: the solver runs with the clock trusted, the lines pull apart, the dot moves, and the readout shows the computed position error in metres.
+4. Then a button: "Let the phone solve for its clock". The solver runs with the clock solved, the lines redraw using the solved clock value and meet, and the page says how fast or slow the phone worked out its clock is.
+5. A switch per satellite. With 3 satellites and the clock solved, the page refuses in one sentence: four unknowns (east, north, up, clock), three measurements.
+6. Every number and line comes from the mechanism functions in docs/interface.md.
+
+Rung order change (approved): multipath (rung 5) is the first rung to cut. Rung 4 (relativity) is tested before it is promised: a drift shared by all satellites may be absorbed by the clock solve and show no position drift. If so, the page shows the range error and says why the solver hides it.
+
 ## 3. How it is built (2026-11-22)
 
 - The mechanism is written in Python and runs in the user's browser through Pyodide (Icarus, 2026-11-22). Reason: two of the four teammates code only in Python, and they own the mechanism.
@@ -81,6 +97,8 @@ Roster (Icarus, 2026-11-23):
 The Area column is Proposed by the orchestrator from the skills; Icarus can change it.
 
 Division: senior (Icarus, 2026-11-22).
+
+Feature freeze: Proposed 25 Nov 18:59 WIB, one day before the deadline (advisor suggestion, not yet approved by Icarus).
 
 ## 5. What gets submitted
 

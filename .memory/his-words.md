@@ -59,3 +59,11 @@ Reading: He thinks the Instrument files do not exist yet. Not found in his publi
 ### 2026-11-23 09:23
 His words: "good first draft colours looks about right"
 Reading: The theme is accepted as a first draft that the page team can use. The colours (greys and the ok/warn/bad state colours) are approved. Does NOT settle: corner roundness, whether the dark grey is too flat, whether switched-off satellites fade or disappear. "First draft" means he may change the look later.
+
+### 2026-11-23 11:28
+His words: "ask a fable advisor what it thinks" (about the first-screen proposals)
+Reading: Get an independent second opinion before deciding. Done; the advisor's points were checked by the orchestrator and summarised to him.
+
+### 2026-11-23 11:32
+His words: "yes go ahead"
+Reading: Approves exactly the changes listed under "What changes if you say yes": (1) the first screen becomes the advisor's version (4 satellites, "make the phone's clock wrong" control, distance lines on a local ground map, "let the phone solve for its clock" button, refusal with 3 satellites, real computed error shown); (2) a new mechanism function computes the distance lines so the page does no GPS maths; (3) a first-screen goal for jstnstyad10 and Icarus; (4) the spec updated, with multipath the first rung to cut. Does NOT approve: the feature freeze date or any change to the relativity rung beyond testing it first.

@@ -31,6 +31,15 @@ Rules:
 |---|---|
 | `solve_position(satellites, pseudoranges_m, solve_clock=True)` | `{"x_m", "y_m", "z_m", "clock_error_s", "steps", "converged"}`. `steps` is the list of guesses in order, each `{"x_m", "y_m", "z_m", "clock_error_s"}`, starting from the centre of the Earth. With `solve_clock=False` the solver trusts the phone's clock (`clock_error_s` stays 0) and needs at least 3 satellites; with `True` it needs at least 4 |
 
+## mechanism/mapview.py (added 2026-11-23, design.md 2b)
+
+The local ground map is a flat square centred on the true receiver position: east and north in metres, up ignored for drawing.
+
+| Function | Returns |
+|---|---|
+| `to_local(receiver_lat_deg, receiver_lon_deg, point)` | `{"east_m", "north_m", "up_m"}`: where a point (for example the solved position) is relative to the true receiver |
+| `distance_lines(receiver_lat_deg, receiver_lon_deg, satellites, pseudoranges_m, assumed_clock_error_s, half_width_m=1000, samples=40)` | one entry per satellite, same order: `{"id", "points": [[east_m, north_m], ...], "inside": true/false}`. `points` traces where the satellite's distance sphere cuts the ground plane, inside the square of `half_width_m`. The distance used is `pseudorange - assumed_clock_error_s * SPEED_OF_LIGHT_M_PER_S`. `inside` is false and `points` empty when the line does not cross the square |
+
 ## The page side (web/bridge.js)
 
 | Function | Does |
@@ -38,4 +47,4 @@ Rules:
 | `await loadMechanism(onStatus)` | loads Pyodide, numpy and the mechanism files; calls `onStatus(text)` with progress messages |
 | `callPython("module.function", [arg1, arg2, ...])` | calls `mechanism.<module>.<function>` and returns its result as a plain JavaScript value |
 
-Later rungs add `mechanism/signal.py` and `mechanism/relativity.py`. Their functions are added here by the goal that builds them.
+Later rungs add `mechanism/signal.py` and `mechanism/relativity.py`. The bridge's file list must include `mapview.py`. Their functions are added here by the goal that builds them.
