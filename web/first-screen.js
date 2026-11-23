@@ -133,7 +133,12 @@ async function update(cause) {
   try {
     do {
       rerun = false;
-      await runOnce(cause);
+      try {
+        await runOnce(cause);
+      } catch (error) {
+        console.error(error);
+        el.msgSolve.textContent = "Something went wrong in the calculation. Press Reset to start again.";
+      }
     } while (rerun);
   } finally {
     running = false;
@@ -149,6 +154,7 @@ async function runOnce(cause) {
   if (solveClock && sats.length < 4) {
     // Do not call the solver: it cannot work, and the page says why. The last drawing stays.
     el.msgSwitch.textContent = "Four things are unknown (east, north, up and the clock), but three satellites give only three measurements.";
+    hideSwitchedOffLines(sats);
     return;
   }
 
@@ -250,6 +256,12 @@ function drawLines(lines) {
   }
   // A switched-off satellite is not in the list: fade its line out.
   for (const [id, node] of known) if (!wanted.has(id)) node.classList.add("is-hidden");
+}
+
+// Fade out the lines of satellites that are switched off, keeping the rest as they were.
+function hideSwitchedOffLines(sats) {
+  const onIds = new Set(sats.map((sat) => sat.id));
+  for (const node of el.lines.children) if (!onIds.has(node.dataset.id)) node.classList.add("is-hidden");
 }
 
 // The true position is always the middle of the map.
