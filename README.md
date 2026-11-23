@@ -4,6 +4,8 @@ An interactive web page that shows how a phone works out where it is from GPS sa
 
 ## How to try it
 
+> **Not ready yet:** the page itself (`index.html`, `web/bridge.js`) is still in open pull requests, so the steps below show only a file listing until they merge. The Python mechanism in `mechanism/` is on main and its tests run with `python -m pytest -q`.
+
 - Live link: `LIVE LINK TBA`
 - Locally, from the repository root: `python3 -m http.server 8000`, then open <http://localhost:8000/>. The page needs an internet connection to load Pyodide (see below).
 
