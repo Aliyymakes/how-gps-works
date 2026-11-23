@@ -5,3 +5,5 @@ SPEED_OF_LIGHT_M_PER_S = 299_792_458
 EARTH_RADIUS_M = 6_371_008.7714
 # GPS orbit radius from the Earth's centre: nominal semi-major axis 26,559.7 km (docs/facts.md row 3).
 GPS_ORBIT_RADIUS_M = 26_559_700.0
+# Satellite clocks gain about 38 microseconds a day from relativity (docs/facts.md row 27).
+RELATIVITY_DRIFT_S_PER_DAY = 38e-6
