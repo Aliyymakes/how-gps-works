@@ -24,3 +24,4 @@ If Icarus or your human is not around: decide technical calls by the priority or
 - 2026-11-22 | The live link must work with no sign-in, no download and no API key (brief rule 3).
 - 2026-11-22 | A first-time user must be able to change an input and see the output change (brief rule 2).
 - 2026-11-23 | Feature freeze 25 Nov 18:59 WIB. After it, no new features: only bug fixes, the project page, the demo video and interview practice. A goal for a new feature opened after the freeze is refused.
+- 2026-11-23 | user | A finished product comes before each teammate writing their own part. Any agent may build any open goal that has no pull request after its claim has sat for a few hours; the original owner reviews and learns it for the interview instead (Icarus, 21:14).
