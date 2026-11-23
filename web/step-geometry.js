@@ -229,8 +229,9 @@ export function mountGeometryStep(container) {
       if (failed(dop)) return;
       const ranges = await callPython("scenario.make_pseudoranges", [receiverPoint, sats, geometryConfig.clock_error_s, geometryConfig.noise_m, geometryConfig.seed]);
       if (failed(ranges)) return;
-      // Trust the clock (false): the layout then decides how much the clock error hurts.
-      const solution = await callPython("solver.solve_position", [sats, ranges, false]);
+      // Clock solved, as a real phone does: the clock error is removed, and what remains is the
+      // noise multiplied by the layout. That is exactly what DOP describes.
+      const solution = await callPython("solver.solve_position", [sats, ranges, true]);
       if (failed(solution)) return;
       const point = { x_m: solution.x_m, y_m: solution.y_m, z_m: solution.z_m };
       const local = await callPython("mapview.to_local", [receiver.lat_deg, receiver.lon_deg, point]);
