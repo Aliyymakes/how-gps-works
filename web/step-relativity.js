@@ -5,15 +5,17 @@ import { whenPythonReady } from "./startup.js";
 
 // Layout for this section only. Colours, fonts and radii come from theme.css.
 const STYLE = `
-.rel { display: grid; gap: var(--s-4); }
+.rel { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
+.rel-stack { grid-template-columns: minmax(0, 1fr); }
 .rel-note { font-size: var(--text-sm); color: var(--text-muted); min-height: 1.5em; }
-.rel-card { padding: var(--s-4); display: grid; gap: var(--s-3); }
+.rel-card { padding: var(--s-4); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-3); }
 .rel-table { width: 100%; border-collapse: collapse; }
 .rel-table th { text-align: left; font: 500 var(--text-xs) var(--font-mono); color: var(--text-muted); padding: var(--s-2) var(--s-2) var(--s-2) 0; }
 .rel-table td { padding: var(--s-2) var(--s-2) var(--s-2) 0; border-top: 1px solid var(--line); vertical-align: middle; }
-.rel-table .num { white-space: nowrap; }
-.rel-bar { height: 8px; background: var(--surface-2); border-radius: var(--r-pill); overflow: hidden; margin-top: var(--s-1); min-width: 60px; }
+.rel-table .num { overflow-wrap: anywhere; }
+.rel-bar { height: 8px; background: var(--surface-2); border-radius: var(--r-pill); overflow: hidden; margin-top: var(--s-1); min-width: 0; }
 .rel-bar > span { display: block; height: 100%; background: var(--text-muted); transform-origin: left center; }
+@media (max-width: 359px) { .rel-card { padding: var(--s-3); } .rel-table th, .rel-table td { padding-right: var(--s-1); overflow-wrap: anywhere; } .rel-table .badge { padding: 2px var(--s-2); } }
 `;
 
 const nf = new Intl.NumberFormat("en", { maximumFractionDigits: 1 });

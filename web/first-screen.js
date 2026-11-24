@@ -12,7 +12,7 @@ const $ = (id) => document.getElementById(id);
 const el = {
   status: $("status"), slider: $("clock"), sliderValue: $("clock-value"),
   errorValue: $("error-value"), badge: $("error-badge"), solve: $("solve"), reset: $("reset"),
-  switches: $("switches"), lines: $("map-lines"), dot: $("map-dot"), caption: $("map-caption"),
+  switches: $("switches"), lines: $("map-lines"), map: $("map"), dot: $("map-dot"), caption: $("map-caption"),
   msgSlider: $("msg-slider"), msgReadout: $("msg-readout"), msgSolve: $("msg-solve"), msgSwitch: $("msg-switch"), msgReset: $("msg-reset"),
 };
 
@@ -220,7 +220,7 @@ async function refuse(sats, solveClock, slot) {
     if (failed(lines, slot)) return;
   }
   el.caption.textContent = captionFor(true, lines);
-  requestAnimationFrame(() => drawLines(lines));
+  requestAnimationFrame(() => { drawLines(lines); describeMap(lines.length, null); });
 }
 
 // ---------- words ----------
@@ -274,6 +274,16 @@ function draw(lines, local, errorM) {
   el.badge.className = `badge is-${level}`;
   el.badge.textContent = levelWords[level];
   el.caption.textContent = captionFor(inside, lines);
+  const meaning = !inside ? "The phone's position is off the edge of this map" : level === "ok" ? "They meet at the dot" : "They miss each other";
+  describeMap(lines.length, meaning);
+}
+
+// The map's words for screen readers, rebuilt after every drawing. null means no position.
+function describeMap(count, meaning) {
+  const lines = `${count} distance line${count === 1 ? "" : "s"}`;
+  el.map.setAttribute("aria-label", meaning
+    ? `Ground map. ${lines}. ${meaning}. Position off by ${el.errorValue.textContent}.`
+    : `Ground map. ${lines}. No position.`);
 }
 
 // The map sentence, plus how many distance lines have left the map (design: the picture says what it hides).
@@ -316,7 +326,7 @@ function drawLines(lines) {
 
 // A picture must never outlive its numbers: hide every distance line.
 function hideAllLines() {
-  requestAnimationFrame(() => drawLines([]));
+  requestAnimationFrame(() => { drawLines([]); describeMap(0, null); });
 }
 
 // The true position is always the middle of the map.

@@ -32,20 +32,21 @@ export const geometryConfig = {
 const SVG = "http://www.w3.org/2000/svg";
 const SKY_SIZE = 240; // the sky SVG viewBox is 240 by 240
 const SKY_RADIUS = 110; // horizon circle radius in that box
+const SKY_LABEL = "Sky diagram. The edge is the horizon and the centre is straight overhead. Four dots are the satellites.";
 const LEVEL_WORDS = { ok: "Good fix", warn: "Fix is off", bad: "Fix is far off" };
 
 // Layout for this section only. Colours, fonts and radii come from theme.css.
 const STYLE = `
-.geo { display: grid; gap: var(--s-5); }
-.geo-grid { display: grid; grid-template-columns: 1fr; gap: var(--s-5); }
+.geo { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
+.geo-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
 @media (min-width: 760px) { .geo-grid { grid-template-columns: 1fr 1fr; align-items: start; } }
-.geo-stack { display: grid; gap: var(--s-4); }
+.geo-stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
 .geo-sky { width: 100%; max-width: 320px; aspect-ratio: 1; display: block; margin: 0 auto; }
 .geo-sky .sky-sat { transition: none; }
 .geo-sky text { fill: var(--text-muted); font: 500 var(--text-xs) var(--font-mono); }
 .geo-note { font-size: var(--text-sm); color: var(--text-muted); min-height: 1.5em; }
 .geo-highlight { border-color: var(--accent); padding: var(--s-4); }
-.geo-readout { padding: var(--s-4); display: grid; gap: var(--s-2); }
+.geo-readout { padding: var(--s-4); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-2); }
 .geo-big { font-size: var(--text-xl); }
 .geo .badge[hidden] { display: none; }
 .geo .btn { touch-action: manipulation; }
@@ -64,7 +65,7 @@ const PAGE = `
     <section class="card" aria-labelledby="geo-sky-title">
       <h3 class="label" id="geo-sky-title">Sky, seen from below</h3>
       <svg class="geo-sky" data-id="sky" viewBox="0 0 ${SKY_SIZE} ${SKY_SIZE}" role="img"
-           aria-label="Sky diagram. The edge is the horizon and the centre is straight overhead. Four dots are the satellites."></svg>
+           aria-label="${SKY_LABEL}"></svg>
       <p class="geo-note" style="margin-top: var(--s-3)">Edge is the horizon, centre is straight overhead.</p>
     </section>
     <section class="card geo-stack" aria-label="Controls and results">
@@ -170,6 +171,7 @@ export function mountGeometryStep(container) {
   function showSlider() {
     el.sliderValue.textContent = `${Math.round(bunchAmount() * 100)}\u00a0% bunched`;
     el.slider.setAttribute("aria-valuetext", el.sliderValue.textContent);
+    el.sky.setAttribute("aria-label", `${SKY_LABEL} ${el.sliderValue.textContent}.`);
     drawSky(currentSky()); // instant, no easing: the sky follows the slider every frame
   }
 

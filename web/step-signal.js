@@ -18,20 +18,22 @@ export const signalConfig = {
 };
 
 const SVG = "http://www.w3.org/2000/svg";
+const RECEIVED_LABEL = "The received signal: the satellite's pattern plus noise, one value per chip.";
+const SCORES_LABEL = "The match score at every shift. A tall peak means the phone found the signal's timing.";
 const PLOT_HEIGHT = 120; // the viewBox of both graphs is (number of chips) wide and 120 high
 
 // Layout for this section only. Colours, fonts and radii come from theme.css.
 const STYLE = `
-.signal-step { display: grid; gap: var(--s-5); }
+.signal-step { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
 .signal-step .intro { display: grid; gap: var(--s-2); }
-.signal-step .grid { display: grid; grid-template-columns: 1fr; gap: var(--s-5); }
+.signal-step .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
 @media (min-width: 760px) { .signal-step .grid { grid-template-columns: 1.4fr 1fr; align-items: start; } }
 .signal-step .stack { display: grid; gap: var(--s-4); }
 .signal-step .plot { width: 100%; height: 120px; display: block; margin-top: var(--s-2); }
 .signal-step .axis { display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--text-muted); }
 .signal-step .received { fill: none; stroke: var(--text); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .signal-step .scores { fill: none; stroke: var(--text-muted); stroke-width: 1; vector-effect: non-scaling-stroke; }
-.signal-step .mark-true { stroke: var(--text-faint); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.signal-step .mark-true { stroke: var(--text-muted); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
 .signal-step .mark-best { stroke: currentColor; stroke-width: 2; vector-effect: non-scaling-stroke; }
 .signal-step .key { font-size: var(--text-sm); }
 .signal-step .readout { padding: var(--s-4); display: grid; gap: var(--s-2); }
@@ -56,6 +58,7 @@ export function mountSignalStep(container) {
     reset: find("reset"), msgReset: find("msg-reset"), receivedLine: find("received-line"), scoresLine: find("scores-line"),
     trueMark: find("true-mark"), bestMark: find("best-mark"), bestGroup: find("best-group"),
     bestDelay: find("best-delay"), trueDelay: find("true-delay"), peak: find("peak"),
+    receivedPlot: find("received-plot"), scoresPlot: find("scores-plot"),
     badge: find("badge"), sentence: find("sentence"),
   };
 
@@ -114,6 +117,7 @@ export function mountSignalStep(container) {
     const words = noise === 0 ? "No noise" : `Noise is ${noise.toFixed(1)}× the signal`;
     el.sliderValue.textContent = words;
     el.slider.setAttribute("aria-valuetext", words);
+    el.receivedPlot.setAttribute("aria-label", `${RECEIVED_LABEL} ${words}.`);
   }
 
   // ---------- one run: ask Python, then draw ----------
@@ -186,6 +190,7 @@ export function mountSignalStep(container) {
     el.bestGroup.setAttribute("class", `is-${level}`);
     el.bestDelay.textContent = `${result.best_delay_chips} chips`;
     el.peak.textContent = formatPeak(result.peak_to_next);
+    el.scoresPlot.setAttribute("aria-label", `${SCORES_LABEL} Best delay found ${el.bestDelay.textContent}. Real delay ${el.trueDelay.textContent}. Peak stands out by ${el.peak.textContent}.`);
     el.badge.hidden = false;
     el.badge.className = `badge is-${level}`;
     el.badge.textContent = levelWords[level];
@@ -227,14 +232,14 @@ const PAGE_HTML = `
   <div class="grid">
     <div class="card">
       <h3 class="label">What the phone hears</h3>
-      <svg class="plot" viewBox="0 0 1023 120" preserveAspectRatio="none" role="img"
+      <svg class="plot" data-el="received-plot" viewBox="0 0 1023 120" preserveAspectRatio="none" role="img"
         aria-label="The received signal: the satellite's pattern plus noise, one value per chip.">
         <polyline class="received" data-el="received-line" points=""/>
       </svg>
       <div class="axis" aria-hidden="true"><span>chip 0</span><span>chip 1022</span></div>
 
       <h3 class="label" style="margin-top: var(--s-5)">How well the code matches at each shift</h3>
-      <svg class="plot" viewBox="0 0 1023 120" preserveAspectRatio="none" role="img"
+      <svg class="plot" data-el="scores-plot" viewBox="0 0 1023 120" preserveAspectRatio="none" role="img"
         aria-label="The match score at every shift. A tall peak means the phone found the signal's timing.">
         <line class="mark-true" data-el="true-mark"/>
         <polyline class="scores" data-el="scores-line" points=""/>
