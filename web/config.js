@@ -5,11 +5,12 @@
 export const receiver = { lat_deg: -6.2, lon_deg: 106.8 }; // placeholder, provisional
 
 // Four satellites spread around the sky. Elevation stays between 15 and 65 degrees.
+// Chosen so no two distance lines are parallel and PDOP stays under 4 (decisions.md, #43).
 export const satellites = [ // placeholder, provisional
-  { id: "1", azimuth_deg: 30, elevation_deg: 60 },
-  { id: "2", azimuth_deg: 120, elevation_deg: 35 },
-  { id: "3", azimuth_deg: 210, elevation_deg: 20 },
-  { id: "4", azimuth_deg: 300, elevation_deg: 45 },
+  { id: "1", azimuth_deg: 10, elevation_deg: 60 },
+  { id: "2", azimuth_deg: 100, elevation_deg: 35 },
+  { id: "3", azimuth_deg: 235, elevation_deg: 20 },
+  { id: "4", azimuth_deg: 325, elevation_deg: 20 },
 ];
 
 // Ground map: it shows a square from -half to +half metres, east and north.
