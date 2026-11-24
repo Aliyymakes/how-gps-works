@@ -113,23 +113,23 @@ Mechanism calls (all existing, `docs/interface.md`): `signal.ca_code(prn)` once 
 
 **What.** Files: `web/step-relativity.js` (rewrite of `PAGE`, `STYLE`, `showResult`), `web/config.js` (`relativitySlider`), `web/format.js` (one new formatter). Tests: `tests/ui/test_layers.py` and others that name `#step-relativity`.
 
-Config: `relativitySlider = { min_h: 0, max_h: 48, step_h: 1, start_h: 24 }` (was 0 to 24, start 0; starting at 24 is improvement 10). New `relativityMapHalfWidthM: 10000`.
+Config: `relativitySlider = { min_h: 0, max_h: 24, step_h: 1, start_h: 24 }` (the range stays 0 to 24 h; only the start changes from 0 to 24, which is improvement 10). New `relativityMapHalfWidthM: 20000`. Both numbers come from a run of `mapview.distance_lines` with the page's satellites: with the clock trusted at 24 h, a 40 km wide map keeps all four lines on it, a 20 km wide map loses two, and at 48 h even a 40 km map loses two. So the slider stops at 24 h and the maps are 40 km wide.
 
 New formatter in `web/format.js`, `formatRoughDistance(m)`: under 1000 m use `formatMetres`; from 1 km one decimal ("2.8 km"); from 10 km whole kilometres ("11 km"). The word "about" is in the labels, because gotchas says never to show these as exact.
 
 One heading for the rung, then two cards, one under the other, each with a small "First" / "Then" label (the existing `.label` class).
 
 - h2: "Do the satellites' own clocks matter?" (unchanged)
-- The one control sits above both cards and drives both: slider `id="rel-hours"`, `data-id="slider"`, label "Time since the satellite clocks were last corrected", value "1 day 0 h" style (`data-id="slider-value"`). Hint (`data-id="hint"`): "Drag this back to 0 and the two clocks agree. Drag it forward and watch the gap grow."
+- The one control sits above both cards and drives both: slider `id="rel-hours"`, `data-id="slider"`, label "Time since the satellite clocks were last corrected", value "24 h" (`data-id="slider-value"`, as today). Hint (`data-id="hint"`): "Drag this back to 0 and the two clocks agree. Drag it forward and watch the gap grow."
 
 **Card a, "Satellite clocks run fast."**
 1. "**What you're looking at:** two clocks that started together. One stayed on the ground. One is on a GPS satellite."
 2. The drawing (20:05): a curve for the ground with a small clock on it, a small satellite above with a clock, a short stroke by the satellite's clock that reads "ahead". Static sketch.
 3. Two rows of mono digits, the same width, one above the other:
-   - "Clock on the ground" `1 day 00:00:00.000 000 0`
-   - "Clock on the satellite" `1 day 00:00:00.000 038 0`
-   Digits that are the same in both rows are `--text-muted`; digits that differ are `--text`. The time of day comes from the slider's hours; the seven decimals of the satellite row are the gap from Python, written as digits. Small caption: "The last digits are millionths of a second (µs)."
-4. Two readouts side by side: "Satellite clock ahead by" `data-id="gap"`, "about 38 µs"; and "So every measured distance is wrong by" `data-id="range"`, "about 11 km". Under them one grey line: "A signal covers about 300 m in one millionth of a second." (facts row 32)
+   - "Clock on the ground" `24:00:00.000 000`
+   - "Clock on the satellite" `24:00:00.000 038`
+   Digits that are the same in both rows are `--text-muted`; digits that differ are `--text`. The hours come from the slider; the six decimals of the satellite row are the gap from Python rounded to whole millionths of a second, written as digits. No tenths: gotchas says 38 must never look exact to a decimal. Small caption: "The last digits are millionths of a second (µs)."
+4. Two readouts side by side: "Satellite clock ahead by" `data-id="gap"`, "about 38 µs" (always whole µs, the same rounding as the digit rows, so the two never disagree); and "So every measured distance is wrong by" `data-id="range"`, "about 11 km". Under them one grey line: "A signal covers about 300 m in one millionth of a second." (facts row 32)
 5. The why, three short rows, fixed text from `docs/facts.md` rows 25 to 27, not scaled by the slider:
    - "Weaker gravity up there: the clock runs faster, by 45 µs a day"
    - "It moves fast: the clock runs slower, by 7 µs a day"
@@ -138,12 +138,14 @@ One heading for the rung, then two cards, one under the other, each with a small
 6. Only if Icarus says yes (Question 5): "Real GPS satellites are built with their clocks set to tick slightly slow, so that in orbit they keep time with the ground."
 
 **Card b, "So why doesn't your position drift?"**
-1. "**What you're looking at:** the map from the top of the page, twice, with every satellite clock ahead by the same amount. Each map is 20 km wide."
+1. "**What you're looking at:** the map from the top of the page, twice, with every satellite clock ahead by the same amount. Each map is 40 km wide."
 2. Two square maps side by side (stacked under 420 px), drawn like the first screen: frame, cross at the true place, distance lines, dot.
-   - Left, title "The phone trusts its clock": lines miss, dot away from the cross. Readout `data-id="trusted"` with badge `data-id="trusted-badge"`: "about 20 km off". Small grey line: "Most of that is height, which a flat map cannot show. The dot shows the sideways part."
+   - Left, title "The phone trusts its clock": lines miss, dot away from the cross. Readout `data-id="trusted"` with badge `data-id="trusted-badge"`: "about 20 km off". Small grey line: "Most of that is height, which a flat map cannot show. The dot shows the sideways part." Under the map, the first screen's caption rule is reused: if `distance_lines` reports a line with `inside` false, the caption says "N of the 4 distance lines have moved off the edge of this map." (With the numbers above this should not happen; the rule is there so the picture never hides it.)
    - Right, title "The phone solves for its clock": lines meet on the cross. Readout `data-id="solved"` with badge `data-id="solved-badge"`: "0 m off".
 3. One sentence (`data-id="sentence"`, live region): "Every satellite is off by the same amount. To the phone that looks exactly like its own clock being wrong, and the fourth satellite already fixes that." At 0 h: "No gap yet. Both maps agree."
 4. Reset (`data-id="reset"`, `data-id="msg-reset"`): back to 24 h. Message: "Back to the start: one day."
+
+On a 40 km map the dot's sideways move at 24 h is about a quarter of the way from the centre to the edge, so each map must be at least 150 px wide at 390 px (two side by side fit) and the dot and cross must not overlap; the implementer checks this in the first screenshot.
 
 The closing paragraph under the old card is removed (it repeats the sentence).
 
@@ -153,7 +155,7 @@ Words to avoid in this section (there is a test, and a gotcha about the sign): "
 
 Mechanism calls (all existing): `coords.latlon_to_xyz`, `coords.satellite_from_sky` at start, as today. Per slider value:
 - `relativity.drift_over_time(receiver, satellites, 0, [hours])` → `range_added_m` (the "wrong by" readout), `solved_clock_error_s` (the gap in µs and the satellite row's digits), `error_clock_trusted_m`, `error_clock_solved_m` (the two "off" readouts and badges).
-- For the two maps: `scenario.make_pseudoranges(receiver, satellites, solved_clock_error_s)`, then `solver.solve_position(satellites, ranges, False)` and `(…, True)`, then `mapview.to_local` for each answer and `mapview.distance_lines(lat, lon, satellites, ranges, 0, 10000, 40)` and `(…, solved clock, 10000, 40)`. This is the chain the first screen already uses. The value passed as the clock error is a number Python returned; JavaScript does no arithmetic on it.
+- For the two maps: `scenario.make_pseudoranges(receiver, satellites, solved_clock_error_s)`, then `solver.solve_position(satellites, ranges, False)` and `(…, True)`, then `mapview.to_local` for each answer and `mapview.distance_lines(lat, lon, satellites, ranges, 0, 20000, 40)` and `(…, solved clock, 20000, 40)`. This is the chain the first screen already uses. The value passed as the clock error is a number Python returned; JavaScript does no arithmetic on it.
 
 Three flags, none of them planned work:
 - `drift_over_time` is not listed in `docs/interface.md` (the file only says later rungs add it). The contract should gain its row; that is a doc change to list in the PR, not a mechanism change.
@@ -171,15 +173,15 @@ If time: a "Play one day" button that moves the slider from 0 to 24 h over about
 - Playwright: on load assert `gap` contains "38", `range` contains "11 km", `trusted-badge` is "Fix is far off", `solved-badge` is "Good fix", and the two dots' positions differ by more than 20 px; fill the slider with 0 and assert the two digit rows have equal text and `sentence` starts "No gap yet"; Reset returns the slider to "24"; the section's words never contain gain, longer, shorter; no sideways scroll at 390 px.
 - Reader test passes when the answer contains: the satellite clock is ahead; that makes distances wrong by kilometres; trusting the clock moves the position; solving for the clock keeps it; because the error is the same for every satellite.
 
-**Taste call for Icarus:** yes, all of it. In particular: digits instead of clock faces, starting at one day, the 48 h range, the fixed-text breakdown, and the wording.
+**Taste call for Icarus:** yes, all of it. In particular: digits instead of clock faces, starting at one day, the 40 km maps, the fixed-text breakdown, and the wording.
 
 ---
 
 ### 3. "What you're looking at" line on every picture
 
-**What.** A shared class in `web/theme.css`: `.looking` (`--text-sm`, colour `--text`, margin below `--s-3`) with its lead-in words "What you're looking at:" in weight 600. It replaces the small grey capitals ("GROUND MAP", "SKY, SEEN FROM BELOW") as the first thing in each picture card; the old label text moves into the SVG's `aria-label` where it is not there already.
+**What.** A shared class, `.looking`, in `index.html`'s style block, where `.hint` already lives (ui-guide section 2 says additions to `theme.css` need their own issue; the section files are mounted into this page, so the rule reaches them). It is `--text-sm`, colour `--text`, margin below `--s-3`, with its lead-in words "What you're looking at:" in weight 600. It replaces the small grey capitals ("GROUND MAP", "SKY, SEEN FROM BELOW") as the first thing in each picture card; the old label text moves into the SVG's `aria-label` where it is not there already.
 
-- First screen (`index.html`): "**What you're looking at:** a map of the ground around the phone. Each line is one satellite's distance to you. Where the lines meet is where your phone thinks you are." (Icarus's own example sentence.)
+- First screen (`index.html`), placed directly above the map card and outside it, because on phones that card is sticky and must stay small (improvements 5 and 11): "**What you're looking at:** a map of the ground around the phone. Each line is one satellite's distance to you. Where the lines meet is where your phone thinks you are." (Icarus's own example sentence.)
 - Geometry (`web/step-geometry.js`): "**What you're looking at:** the sky above the phone, seen from below. Each dot is a satellite. The centre is straight overhead, the edge is the horizon." The separate line "Edge is the horizon, centre is straight overhead." is then removed.
 - Signal and relativity: written in improvements 1 and 2.
 
@@ -187,7 +189,7 @@ If time: a "Play one day" button that moves the slider from 0 to 24 h over about
 
 **Quality.** Prose that points at the figure and says what to look for (Distill, `explainers.md` 4; Red Blob Games, `explainers.md` 2). Words next to what they describe (ui-guide 1.6).
 
-**Check.** Testable: every picture card starts with a `.looking` line. Playwright: four sections each have a visible `.looking` whose box is above its picture's box and within 24 px of it; computed opacity 1. Reader test: for each section, the answer to "what does this picture show?" matches the line's content without the reader having seen the rest of the page.
+**Check.** Testable: every picture card starts with a `.looking` line. Playwright: every picture has a visible `.looking` whose box is above the picture's box and within 40 px of it; computed opacity 1. Reader test: for each section, the answer to "what does this picture show?" matches the line's content without the reader having seen the rest of the page.
 
 **Taste call:** the wording of each line.
 
@@ -195,7 +197,7 @@ If time: a "Play one day" button that moves the slider from 0 to 24 h over about
 
 ### 4. A small drawing for the first screen and for geometry
 
-**What.** New file `web/illustrations.js` exporting functions that return SVG markup strings; shared class `.figure` in `web/theme.css` (white and grey strokes 1.5 px, text `--text-xs`, no fill colour). Every drawing has `role="img"` and an `aria-label` that says the same thing as its labels. Drawings are sketches: no numbers, and the caption style makes that clear. (The signal and relativity drawings are built inside improvements 1 and 2 and may live in their own files, so those two can be built at the same time.)
+**What.** New file `web/illustrations.js` exporting functions that return SVG markup strings; shared class `.figure` in `index.html`'s style block (white and grey strokes 1.5 px, text `--text-xs`, no fill colour). Every drawing has `role="img"` and an `aria-label` that says the same thing as its labels. Drawings are sketches: no numbers, and the caption style makes that clear. (The signal and relativity drawings are built inside improvements 1 and 2 and may live in their own files, so those two can be built at the same time.)
 
 - First screen (Must): a strip above the map, 64 px tall on phones, about 96 px on desktop. Left: a small satellite. Right: a phone. Between them a dashed line with one short pulse on it. Under the line: "travel time × speed of light = distance". At the far right, after a small arrow: a short straight line labelled "one distance = one line on the map". It replaces the first intro paragraph, which says the same thing in more words. The second intro sentence moves into the step-1 hint (improvement 5).
 - Geometry (if time): two small circles side by side. Left, "Spread out": four dots around the circle and a small shaded patch in the middle, labelled "small zone of doubt". Right, "Bunched": four dots close together and a long thin shaded patch, labelled "large zone of doubt". Caption: "Sketch, not to scale." The patches are grey, not coloured.
@@ -294,6 +296,10 @@ After any change to `.link-line`, re-run `tests/ui/test_speed.py` in WebKit thre
 
 Built in improvement 1, point 10: "real delay" is a labelled white tick above the plots, "phone's best match" a labelled tick in the state colour below them, so they never hide each other; the full-width plot is joined by a close-up of the first 40 shifts. Closes 19:30 item 5 and audit P6 (the old dashed marker was 2.7 to 1 against the card; the new tick uses `--text`).
 
+**Why.** The proof that the search worked is that the phone's answer sits on the real delay. If one mark hides the other, the judge sees one line and no proof.
+
+**Quality.** Known truth drawn beside the result so the reader can judge it (Distill, `explainers.md` 4). Exact alignment and labels in place of a legend (Vercel, `layout.md` 1.6; Refactoring UI, `layout.md` 2).
+
 **Check.** Playwright: with no noise both labels are visible, their boxes do not overlap, and their x centres are within 2 px of each other. Contrast test: the tick colour against the card is at least 3 to 1.
 
 **Taste call:** covered by 1.
@@ -304,7 +310,7 @@ Built in improvement 2: the slider starts at 24 h, so the first thing seen is a 
 
 **Quality.** Start every picture in a state that already teaches (Red Blob Games, `explainers.md` 2).
 
-**Check.** Playwright: on load, before any input, `[data-id=range]` is not "0 m". Reader test: covered by 2.
+**Check.** Playwright: on load, before any input, `[data-id=range]` is not "0 m", and all four lines of the trusted-clock map are drawn (none has the hidden class). Reader test: covered by 2.
 
 **Taste call:** yes (Question 3): start at one day, or start at 0 with a stronger hint.
 
@@ -331,6 +337,10 @@ The ready-made closing line ("That is the main idea…") still scrolls into view
 ### 12. Phone: the step-1 hint is on the first screen (report question 5)
 
 Closed by improvement 5: the hint sits directly above the slider, and both are above the fold. No separate build.
+
+**Why.** The hint is the only thing that says "start here". Below the fold, a phone user has a control and no instruction.
+
+**Quality.** Text that tells the reader exactly what to try, next to the control (Red Blob Games, `explainers.md` 2; ui-guide 1.6).
 
 **Check.** The Playwright check in 5 (`#hint-1` inside the 390 × 844 viewport, computed opacity 1).
 
@@ -398,7 +408,7 @@ ui-guide section 3 allows springs only for drags with momentum, so this stays th
 | Relativity a: gap, distance | `relativity.drift_over_time` → `solved_clock_error_s`, `range_added_m` (function exists in `mechanism/relativity.py` but is missing from `docs/interface.md`; flagged) |
 | Relativity a: 45, 7, 38 µs a day | fixed text, `docs/facts.md` rows 26, 25, 27 |
 | Relativity b: the two "off" numbers and badges | `relativity.drift_over_time` → `error_clock_trusted_m`, `error_clock_solved_m` |
-| Relativity b: the two maps | `scenario.make_pseudoranges`, `solver.solve_position` (False and True), `mapview.to_local`, `mapview.distance_lines` with `half_width_m` 10000 |
+| Relativity b: the two maps | `scenario.make_pseudoranges`, `solver.solve_position` (False and True), `mapview.to_local`, `mapview.distance_lines` with `half_width_m` 20000 |
 | All drawings (illustrations) | no numbers; fixed sketches |
 
 Nothing in this plan needs a mechanism change.
@@ -409,7 +419,7 @@ One improvement at a time, each reviewed by the design lead with screenshots at 
 
 | Step | Improvement | Files | Lane |
 |---|---|---|---|
-| 0 | Shared classes only: `.looking`, `.figure`. No visible change. Not the `--text-h` token (that is step 5). | `web/theme.css` | first, alone |
+| 0 | Shared classes only: `.looking`, `.figure`. No visible change. | `index.html` (style block) | first, alone |
 | 1 | 1 Signal rebuild (with 9, its own label and drawing) | `web/step-signal.js`, `tests/ui/test_layers.py`, `test_accessibility.py`, `test_final_fixes.py` | A |
 | 2 | 2 Relativity split (with 10, its own label and drawing) | `web/step-relativity.js`, `web/config.js`, `web/format.js`, tests | B |
 | 3 | 5 + 11 + 12 Phone layout, with the first-screen label (part of 3) and the first-screen drawing (part of 4) | `index.html`, `web/first-screen.js`, `web/illustrations.js` (new), tests | C |
@@ -422,8 +432,8 @@ One improvement at a time, each reviewed by the design lead with screenshots at 
 | 10 | Reader tests, after-screenshots, PR | `docs/ux-audit/redesign/after/` | last |
 
 Files touched by more than one step, so never at the same time:
-- `index.html`: steps 3, 5, 6, 8 (15).
-- `web/theme.css`: steps 0, 5.
+- `index.html`: steps 0, 3, 5, 6, 8 (15).
+- `web/theme.css`: step 5 only (the `--text-h` token, if Icarus agrees).
 - `web/step-geometry.js`: steps 4, 6, 7.
 - `web/step-signal.js` and `web/step-relativity.js`: their own rebuild, then step 6.
 - `web/illustrations.js`: steps 3, 7, 8 (14).
@@ -460,7 +470,7 @@ Each is a taste call or a fact call. The recommendation is what gets built as th
 
 1. **Likeness to Ciechanowski's GPS article.** Our research note says his article slides a code copy and compares clocks; your 20:00 note asks for both ideas. We build them with our own pictures (section 3). Nobody on this run has seen his page. *Recommendation:* you or a teammate open it once and compare with our signal and relativity sections before merge. If either looks alike, say so and we change the picture, not the idea.
 2. **Phones: a compact sticky map** with the result beside it, and the intro paragraphs replaced by a drawing and a one-line label so the slider is on the first screen. *Recommendation:* yes. It is the only way the map and the control are seen together on a phone.
-3. **Relativity starts at one day**, with the gap already showing, and the slider runs to 2 days. *Recommendation:* yes. Starting at 0 shows a row of zeros, which is what testers saw.
+3. **Relativity starts at one day**, with the gap already showing (the slider still runs 0 to 24 h). *Recommendation:* yes. Starting at 0 shows a row of zeros, which is what testers saw.
 4. **One new type size, 24 px, for section headings** (`--text-h` in `theme.css`), and small "Part 2 of 4" labels. The bridges keep their size and go grey. *Recommendation:* yes to both. Without the token the fallback is headings at 20 px and bridges grey, which is a weaker fix.
 5. **The sentence about clocks being set slow before launch.** `docs/facts.md` rows 28 and 29 confirm the factory offset from IS-GPS-200N, but the sheet does not quote the words that say the offset is there to cancel relativity. *Recommendation:* someone adds that quote to `facts.md` first (same document, section 3.3.1.1), then the sentence goes in. If nobody has, leave it out.
 6. **Signal: the delay becomes 14 chips** (was 300) so it can be found by hand inside a 40-step picture, with a line on the page saying it is short on purpose. *Recommendation:* yes.
@@ -475,7 +485,7 @@ Each is a taste call or a fact call. The recommendation is what gets built as th
 
 Verified while writing this plan:
 - The numbers quoted for relativity (38 µs, 11.4 km, 19.8 km, about 4.6 km sideways at 24 h; solved-clock error 0 m at every hour tried up to 168 h) and for the signal (delay 14 found for noise 0 to 10, lost at 12; off-peak scores of about −0.06, 0.00, 0.06; ratio 16.2 with no noise) came from running `mechanism/` in Python with the page's config.
-- The call chain for the two relativity maps was run end to end in Python and gives positions.
+- The call chain for the two relativity maps was run in Python: `make_pseudoranges`, both `solve_position` calls, `to_local`, and `distance_lines` at half-widths of 10, 15, 20, 30 and 40 km for 6, 12, 24 and 48 h. Result: with the clock trusted at 24 h, lines on the map are 2 of 4 at 10 km, 3 of 4 at 15 km, 4 of 4 at 20 km; at 48 h, 0 of 4 at 10 and 15 km, 2 of 4 at 20 km. With the clock solved all four are on the map every time.
 - The current page was read in the "before" screenshots (Chromium and WebKit, 390 and 1200 px) and in the code.
 
 Not verified:
