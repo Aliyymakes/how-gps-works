@@ -4,7 +4,7 @@
 
 - **Python side** (`mechanism/`): all the GPS maths. Pure functions that take plain numbers, lists and dicts and return the same.
 - **JavaScript side** (`index.html`, `web/`): draws the page, reads sliders and buttons, and calls Python. The comment at the top of [web/first-screen.js](../../web/first-screen.js) says the only arithmetic there is `Math.hypot` for the position error and the map's metres-to-pixels scaling.
-- **Between them**: [web/bridge.js](../../web/bridge.js) loads Pyodide (Python compiled to run in a browser) and gives the page one function, `callPython`.
+- **Between them**: [web/bridge.js](../../web/bridge.js) loads Pyodide (Python compiled to run in a browser) and gives the page one function, `callPython`. [web/startup.js](../../web/startup.js) sits in front of it: all four sections ask it (`whenPythonReady`) for Python, and it shows the same progress words and one "Try again" button in each.
 
 ## How the pieces connect
 
@@ -18,7 +18,9 @@ flowchart TD
   cfg["web/config.js<br/>numbers to tune"]
   theme["web/theme.js"]
   css["web/theme.css"]
+  startup["web/startup.js<br/>shared start-up and Try again"]
   bridge["web/bridge.js<br/>loadMechanism and callPython"]
+  small["web/say.js and web/format.js<br/>flash a message, format metres"]
   pyo["Pyodide plus numpy<br/>from the jsDelivr CDN"]
   coords["mechanism/coords.py"]
   scen["mechanism/scenario.py"]
@@ -37,10 +39,15 @@ flowchart TD
   rel --> cfg
   index --> css
   first --> theme
-  first --> bridge
-  geo --> bridge
-  sig --> bridge
-  rel --> bridge
+  first --> startup
+  geo --> startup
+  sig --> startup
+  rel --> startup
+  startup --> bridge
+  first --> small
+  geo --> small
+  sig --> small
+  rel --> small
   bridge --> pyo
   pyo --> coords
   pyo --> scen
@@ -62,7 +69,8 @@ flowchart TD
 Notes on the diagram, each checked in the code:
 
 - `index.html` loads `web/first-screen.js` with `<script type="module" src=...>`, and a second inline module imports `mountGeometryStep`, `mountSignalStep` and `mountRelativityStep`.
-- `first-screen.js` reaches the bridge with a dynamic `import("./bridge.js")` inside `try/catch`, so the page still paints if the bridge fails. The step files do the same. They share one module instance, so Pyodide loads once (`loadMechanism` memoises its promise).
+- All four sections call `whenPythonReady` in `startup.js`. It imports `bridge.js` with a dynamic `import("./bridge.js")` inside `attempt()`, not at the top, so the page still paints if that file fails to download. Only the first call starts the load; the others wait for the same one, so Pyodide loads once (`loadMechanism` also memoises its promise, and a failed load is not remembered, so "Try again" works).
+- While it loads, `bridge.js` reports "Step 1 of 2: downloading Python and numpy. This is the slow step on a first visit…" and then "Step 2 of 2: loading our GPS code…"; numpy loads together with Pyodide and our `.py` files download in parallel.
 - `step-geometry.js` has its own `geometryConfig` and does not import `config.js`. `first-screen.js` and `step-relativity.js` import `config.js`.
 - `mapview.py` imports the private `_local_directions` from `coords.py` (gotchas.md, 2026-11-23: renaming it breaks `mapview`).
 - `geometry.py` and `signal.py` import no other mechanism module.
@@ -108,6 +116,7 @@ Taken from `git ls-files` on this branch.
 - [LICENSE](../../LICENSE): MIT licence.
 - [pytest.ini](../../pytest.ini): test config (`pythonpath = .`, `testpaths = tests`).
 - [requirements-dev.txt](../../requirements-dev.txt): `pytest` and `numpy`.
+- [requirements-ui.txt](../../requirements-ui.txt): Playwright, for the browser tests in `tests/ui/`.
 - [.gitattributes](../../.gitattributes), [.gitignore](../../.gitignore), [.nojekyll](../../.nojekyll): git settings; `.nojekyll` tells GitHub Pages not to run Jekyll.
 
 ### mechanism/ (Python, the maths)
@@ -124,12 +133,15 @@ Taken from `git ls-files` on this branch.
 
 ### web/ (JavaScript, CSS, test pages)
 
-- [bridge.js](../../web/bridge.js): loads Pyodide and the mechanism files; exports `loadMechanism`, `callPython`, and `evalPython` (debug helper for the test page).
-- [config.js](../../web/config.js): placeholder numbers for the first screen and rung 4: receiver, satellites, map size, slider range, error limits, relativity hours.
-- [first-screen.js](../../web/first-screen.js): the first screen: map, clock slider, solve button, satellite switches.
+- [bridge.js](../../web/bridge.js): loads Pyodide (with numpy) and the mechanism files; exports `loadMechanism`, `callPython`, and `evalPython` (debug helper for the test page).
+- [startup.js](../../web/startup.js): `whenPythonReady`, the one start-up path for all four sections: shared progress words, shared failure words, one "Try again".
+- [say.js](../../web/say.js): `say(node, text)` writes a message and flashes it, so a repeated message still looks like an answer.
+- [format.js](../../web/format.js): `formatMetres`, the one metres format for the whole page (one decimal under 100 m, whole metres from 100 m up, thousands separator).
+- [config.js](../../web/config.js): placeholder numbers for the first screen and rung 4: receiver, satellites, map size, slider range, error limits, relativity slider (0 to 24 h) and the phone clock error used there (0).
+- [first-screen.js](../../web/first-screen.js): the first screen: opening words, map and its key, clock slider, solve button, satellite switches, the three-step guide.
 - [step-geometry.js](../../web/step-geometry.js): rung 2, the "Bunch the satellites" slider and DOP readout.
 - [step-signal.js](../../web/step-signal.js): rung 3, the "Add noise" slider and the correlation graphs.
-- [step-relativity.js](../../web/step-relativity.js): rung 4, the drift-over-time table.
+- [step-relativity.js](../../web/step-relativity.js): rung 4, the "Hours without correcting the satellite clocks" slider (0 to 24 h) and its three readouts.
 - [theme.css](../../web/theme.css), [theme.js](../../web/theme.js): the Instrument look (colours, fonts, spacing) and two helpers (pointer light, light/dark switch).
 - [theme-preview.html](../../web/theme-preview.html): a page that previews the theme alone.
 - [bridge-test.html](../../web/bridge-test.html): a page that tests the bridge alone.
@@ -139,16 +151,23 @@ Taken from `git ls-files` on this branch.
 
 - [test_coords.py](../../tests/test_coords.py), [test_geometry.py](../../tests/test_geometry.py), [test_mapview.py](../../tests/test_mapview.py), [test_relativity.py](../../tests/test_relativity.py), [test_scenario.py](../../tests/test_scenario.py), [test_signal.py](../../tests/test_signal.py), [test_solver.py](../../tests/test_solver.py): one test file per mechanism module.
 - [test_smoke.py](../../tests/test_smoke.py): checks one microsecond is between 299 and 300 metres.
+- [test_annotations.py](../../tests/test_annotations.py): checks that every file in `docs/annotated/` quotes its source exactly and that every source file has one.
 
 ### docs/
 
 - [interface.md](../interface.md): the contract between Python and the page.
-- [facts.md](../facts.md): every number the page or documents use, with its source.
+- [facts.md](../facts.md): the GPS facts the page and documents use, with their sources. Numbers our code computes (such as 520.3 m) are not in it; they come from running the code.
 - [ui-guide.md](../ui-guide.md): layout, look and motion rules for the page.
 - [project-page.md](../project-page.md): a draft of the project page text (marked "Draft for Icarus").
 - [demo-script.md](../demo-script.md): the script for the demo video.
 - [interview-prep.md](../interview-prep.md): judge questions and answers; [self-check.md](self-check.md) draws on it.
 - [onboarding/](.): this folder.
+- [annotated/](../annotated/how-to-read-code.md): the code files with line-by-line notes, starting at [how-to-read-code.md](../annotated/how-to-read-code.md).
+- [ux-audit.md](../ux-audit.md): the audit of the live page and the polish screenshots (docs/ux-audit/).
+
+### tests/ui/ (Playwright, a real browser)
+
+- [conftest.py](../../tests/ui/conftest.py) and [test_*.py](../../tests/ui/): real-browser tests of the page (no silent actions, the first two minutes, layers, accessibility, polish, speed). They run only with `UI_TESTS=1` and Playwright installed (`requirements-ui.txt`), so plain `python -m pytest -q` never starts a browser. The workflow [ui-tests.yml](../../.github/workflows/ui-tests.yml) runs them by hand. The full suite takes about 3 minutes (gotchas.md, 2026-11-24).
 
 ### scripts/
 

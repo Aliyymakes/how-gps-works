@@ -3,7 +3,7 @@
 Alphabetical. Terms come from the page text ([index.html](../../index.html), `web/*.js`) and the code. "In code" names where to look. Where the code does not use a term, it says so.
 
 - **Azimuth**: the compass direction of a satellite in the sky. 0 is north, 90 is east (docs/interface.md). In code: `azimuth_deg` in `coords.satellite_from_sky` and [web/config.js](../../web/config.js).
-- **Bridge**: [web/bridge.js](../../web/bridge.js). It loads Pyodide and gives the page `callPython`.
+- **Bridge**: [web/bridge.js](../../web/bridge.js). It loads Pyodide and gives the page `callPython`. [web/startup.js](../../web/startup.js) is the shared start-up in front of it (progress words and "Try again").
 - **C/A code**: the repeating pattern of 1023 chips each GPS satellite sends, 1 ms long (docs/facts.md rows 11 and 13). In code: `signal.ca_code`.
 - **Chip**: one +1 or -1 value of the C/A code. One chip is about 977.5 ns, or about 293 m of travel (facts.md row 14, derived). In code: `CODE_LENGTH = 1023`, `delay_chips`.
 - **Clock bias / clock error**: how far the phone's clock is ahead of true time. A positive value makes every measured distance too long by `clock_error_s * SPEED_OF_LIGHT_M_PER_S` (interface.md). One microsecond is about 300 m (facts.md row 32). The page's slider is "Make the phone's clock wrong".
@@ -26,7 +26,7 @@ Alphabetical. Terms come from the page text ([index.html](../../index.html), `we
 - **Pyodide**: Python compiled to run in a web browser. Loaded from a CDN by `bridge.js`.
 - **Pythagoras**: the straight-line distance rule used in `make_pseudoranges` and `solve_position`; no special function, just squares and a square root.
 - **Receiver**: the phone. The true receiver position is Jakarta in config.js.
-- **Relativity (clock drift)**: satellite clocks would gain about 38 microseconds a day if uncorrected (facts.md row 27); real satellites are set slow before launch to cancel it (rows 28-29), and our table shows the uncorrected case. Every distance changes by the same amount, about 11 km of range a day (a satellite clock running ahead makes each distance read shorter; our model adds it as longer, which flips the sign of the solved clock but not the position result). In code: `RELATIVITY_DRIFT_S_PER_DAY`, `relativity.drift_over_time`.
+- **Relativity (clock drift)**: satellite clocks would gain about 38 microseconds a day if uncorrected (facts.md row 27); real satellites are set slow before launch to cancel it (rows 28-29), and our slider (0 to 24 hours) shows the uncorrected case. Every distance changes by the same amount, about 11 km of range a day (a satellite clock running ahead makes each distance read shorter; our model adds it as longer, which flips the sign of the solved clock but not the position result). In code: `RELATIVITY_DRIFT_S_PER_DAY`, `relativity.drift_over_time`.
 - **Seed**: a whole number that makes random noise repeat exactly. In code: `seed` in `make_pseudoranges` and `make_received`.
 - **Shift (delay)**: how many chips the code is moved. In code: `delay_chips`, `best_delay_chips`.
 - **Solver**: `solver.solve_position`. Guesses a position, measures how wrong it is, corrects, repeats.
