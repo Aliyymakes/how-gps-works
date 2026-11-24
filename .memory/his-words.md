@@ -100,3 +100,27 @@ Reading: Make the repo public now and turn on GitHub Pages. MIT licence, copyrig
 ### 2026-11-24 16:49
 His words: "it works, but i knwo it can be better. infinitely so, i want the next session to perfect teh ui/ux if something doesnt work tell the user why i dont want them to press a button and nothign happen and dont understand why. make it fabe grade wiht one condition it has to produce the perfect docs/documentation along with it, i want it so that no matter how incopetent the reader of it is they will understand the code line by line. no limitations, perfect the imperfect"
 Reading: The live page works. Next session runs on Fable and perfects the UI and UX. Hard rule: no silent actions; whenever something cannot happen, the page says why in plain words. The same session must produce documentation that explains every line of the code so that a reader with no programming background can follow it. No limits on model, effort or length. Does NOT override the feature freeze at 25 Nov 18:59 WIB, the Instrument look, or his rule that taste calls (wording, layout, look) come to him: they are built as drafts and shown to him with before/after pictures.
+
+### 2026-11-24 17:17
+His words: "actuallly why does fable do everything, i want it as fast as cheap as possible so how to do that and achive the same quality/desired effects"
+Reading: Do not run the main session on Fable. Keep the goals of plan-004 (perfect UX, line-by-line docs) but get there as fast and cheaply as possible: Opus medium as the main session, Fable only for three judgement calls, Sonnet for the bulk, Haiku for checks, and parallel subagents. Quality is held by the tests and reviewer checks. Supersedes the "no limitations" reading of 16:49 for model choice only.
+
+### 2026-11-24 19:22
+His words: "tell it to reaserch about good ui and let fable make it \"100x bettter\""
+Reading: A Fable-led UI overhaul, grounded in research on what makes great interactive explainers. He asked for Fable by name. It is a taste-level change, so it comes back to him as screenshots before it merges. Does NOT lift the feature freeze or the rule that the team's own work is not copied from others.
+
+### 2026-11-24 19:24
+His words: "let it be like a combiation of ow good vercel ui is, how fluid and reactiev apple ui is, and basically stuff like taht the best things for all good examples it cna find"
+Reading: The redesign's target feel: Vercel's clean, precise, high-quality interface plus Apple's fluid, responsive motion, drawing the best qualities from every strong example found. A direction for the design, not permission to copy any of them.
+
+### 2026-11-24 19:54
+His words: "i think the last illustration about how special relitivity affects , could be shown better i showed it to a bunch of people and they didnt understadn untill i explained it, along with the secodn to last illustration the part for what the phone hears looks unclear and can be intrepreted as a \"glitchy misstexture block\""
+Reading: Real user testing: people did not understand the relativity section until Icarus explained it, and the "what the phone hears" picture in the signal section looks like a glitchy texture. Both get redesigned in the UI overhaul as top priorities. Does NOT settle the new designs; they come back to him as screenshots.
+
+### 2026-11-24 19:56
+His words: "jsut make what each part is illustrating clearer, and idk jsut add illustration to depict it maybe"
+Reading: For every section, make it obvious what the section is showing, and add an explanatory illustration where it helps. Applies to all sections, not only the two that failed testing. The exact illustrations are not decided; they come back as screenshots.
+
+### 2026-11-24 21:14
+His words: "how is it"
+Reading: Status check. Plan-004 had finished at 20:54 without acting on the 19:30 to 20:05 overhaul notes; the orchestrator wrote plan-005 to carry them out.

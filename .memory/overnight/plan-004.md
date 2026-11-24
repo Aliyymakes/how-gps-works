@@ -6,14 +6,26 @@ Icarus: "perfect the imperfect". Two outcomes, both required:
 
 Log to `.memory/overnight/state-004.md`. Before each item re-read this plan and `.memory/review/inbox.md` (orchestrator notes; never commit the inbox).
 
-## Models
+## Models and speed (Icarus, 2026-11-24 17:17: as fast and cheap as possible, same quality)
 
-The main session runs on **Fable**. Icarus asked for it by name and removed limits on model, effort and length for this run.
-- Fable (you, or a Fable subagent): the UX audit judgement, every design decision, the final review of docs and page.
-- Opus subagent: maths review, page-and-Python debugging, checking that docs match code exactly.
-- Sonnet subagent: implementing fixes, writing doc drafts, tests.
-- Haiku subagent: running tests and checklists, and acting as the "least experienced reader" in item 10.
+The main session runs on **Opus, medium effort**. It plans, hands out work, reads results and merges. It writes very little itself and never pastes whole files into its own context: subagents read files, the main session reads their summaries.
+
+Quality comes from checks, not from the most expensive model: the UI tests in `tests/ui/`, the annotation coverage test (item 9), the least-experienced-reader test (item 10), and separate reviewers. Use the cheapest model that passes those checks.
+
+| Model | Use it for |
+|---|---|
+| **Fable** subagent | Three judgement calls only: turning the item 1 audit notes into the ranked list of findings; the final clarity review of docs/annotated/ (item 8, once, on the finished set); the final re-audit in item 12. Also a bug Opus and Sonnet both failed to fix. |
+| **Opus** (main) or Opus subagent | Deciding fixes for "blocks understanding" findings, page-and-Python debugging, checking that maths explanations match the code. |
+| **Sonnet** subagent | All implementing; all doc drafting, including every annotated file; writing tests; running the item 1 audit walk-throughs and taking screenshots. |
+| **Haiku** subagent | Running tests and checklists, link and Mermaid checks, the reader test in item 10, small fixes. |
+
 The subagent that built something never checks it.
+
+**Run in parallel.** Each subagent works in its own git worktree on its own branch, so they cannot collide.
+- Start item 8 for the `mechanism/*.py` files **at the same time as item 1**: those files will not change in this run. Annotate `web/` and `index.html` only after item 7 is merged.
+- Item 1: one Sonnet subagent per section (first screen, geometry, signal, relativity, loading and failure states) at the same time; Fable merges their notes into one ranked list.
+- Items 2 to 6: fixes that touch different files run at the same time; fixes to the same file run one after another.
+- Item 8: one Sonnet subagent per source file at the same time.
 
 ## Approved for this run (Icarus, 2026-11-24)
 
