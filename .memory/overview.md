@@ -34,3 +34,4 @@ What is built. One dated line per merged issue, added at the end: `- YYYY-MM-DD 
 - 2026-11-24 | #13 | docs/interview-prep.md re-checked against merged bridge, page, step files and config.js; answers use the new default satellites (520.3 m trusted, PDOP 3.37) and name the Hᵀ H step in dop.
 - 2026-11-24 | #12 | docs/demo-script.md: 8-shot demo video script, about 2:05, quoting the real page text of the first screen and rungs 2 and 3; timing is read from code, not recorded.
 - 2026-11-24 | #48 | accuracy pass: README, project page, interview prep and onboarding docs corrected (stale rung 4 and PR text, drift sign, exactness, noise thresholds).
+- 2026-11-24 | #52 | Live at https://aliyymakes.github.io/how-gps-works/ (repo public, GitHub Pages from main, root folder).
