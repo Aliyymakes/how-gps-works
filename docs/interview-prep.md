@@ -4,7 +4,7 @@
 
 How to use this file:
 - Answers marked "team to fill in" are team decisions or opinions that no code can answer. The owner says them in their own words. Nobody should invent how it works.
-- Answers about the mechanism (`solver.py`, `coords.py`, `scenario.py`, `mapview.py`, `geometry.py`, `signal.py`, `scripts/check_relativity.py`) are taken from the code on `main`. Answers about the bridge come from `web/bridge.js`, and answers about the page come from `index.html`, `web/first-screen.js`, `web/step-geometry.js`, `web/step-signal.js`, `web/step-relativity.js` and `web/config.js`. All of these are merged on `main`, and the answers were re-checked against them on 24 Nov 2026.
+- Answers about the mechanism (`solver.py`, `coords.py`, `scenario.py`, `mapview.py`, `geometry.py`, `signal.py`, `relativity.py`, `scripts/check_relativity.py`) are taken from the code on `main`. Answers about the bridge come from `web/bridge.js`, and answers about the page come from `index.html`, `web/first-screen.js`, `web/step-geometry.js`, `web/step-signal.js`, `web/step-relativity.js` and `web/config.js`. All of these are merged on `main`, and the answers were re-checked against them on 24 Nov 2026.
 - Numbers here are only ones that appear in docs/facts.md or that the code computed. The numbers computed by the code use the placeholder values in `web/config.js` and the step files, so they change if the placeholders change. Any number we show on the page must be checked against a source (design.md 2a).
 
 ---
@@ -33,11 +33,11 @@ Conceptual part from the spec: there are four unknowns (east, north, up and the 
 Answer for the code: at the top of `solve_position`, `needed = 4 if solve_clock else 3`. With fewer satellites it returns `{"error": "At least 4 satellites are needed."}` and does no maths. As a second safety check, if the table of directions is degenerate (`rank` below `needed`), it returns `{"error": "These satellites cannot give one clear position."}`. On the first screen (`runOnce` in `web/first-screen.js`), the page does not even call the solver for 3 satellites with the clock solved. It writes its own one sentence ("Four things are unknown (east, north, up and the clock), but three satellites give only three measurements.") and calls `showNoFix()`, which clears the metres readout, hides the badge and hides the dot, so no fix is shown.
 
 **1.6 Trap: With 4 satellites and the clock trusted, why do the distance lines visibly miss each other?**
-Conceptual part from the spec: there are more measurements than unknowns, so with a wrong clock they cannot all agree. With only 3 satellites the three spheres would still meet at one point, just the wrong one, so the picture could not show the problem (design.md 2b).
-Answer for what the solver then returns: with the clock trusted, it still runs, but no point fits all four distances, so `lstsq` returns the best compromise, the move that makes the gaps smallest overall. That compromise is not the true position. On the first screen, a 1 microsecond clock error that is trusted gives a fix about 520 m off (520.3 m, computed by the solver this run with the four default satellites). That is not 300 m: see 3.6. With the clock solved, the error is 0 m, because the solver finds the 1.00 microsecond itself.
+Conceptual part from the spec: there are more measurements than unknowns, so with a wrong clock they cannot all agree. With only 3 satellites the solver still lands on one point, just the wrong one, so the picture could not show the problem (design.md 2b).
+Answer for what the solver then returns: with the clock trusted, it still runs, but no point fits all four distances, so `lstsq` returns the best compromise, the move that makes the gaps smallest overall. That compromise is not the true position. On the first screen, a 1 microsecond clock error that is trusted gives a fix about 520 m off (520.3 m, computed by the solver this run with the four default satellites). Of that, about 506 m is height (below the true spot); the dot on the map moves about 120 m. That is not 300 m: see 3.6. With the clock solved, the error is 0 m, because the solver finds the 1.00 microsecond itself.
 
 **1.7 Where does the measured distance come from in the demo, and is it real data?**
-Conceptual part from the spec: `make_pseudoranges` builds each distance as true distance, plus the clock error effect, plus random noise (docs/interface.md). It is computed from the user's inputs, not prepared (design.md 1, point 5). The page says the satellites are simulated.
+Conceptual part from the spec: `make_pseudoranges` builds each distance as true distance, plus the clock error effect, plus random noise (docs/interface.md). It is computed from the user's inputs, not prepared (design.md 1, point 5). The README says the satellites are simulated; the page itself does not yet.
 Answer for the code: `scenario.make_pseudoranges(receiver, satellites, clock_error_s, noise_m, seed)` finds each true distance by Pythagoras in 3D, adds `clock_error_s` times the speed of light (299 792 458 m/s, docs/facts.md row 2), and adds a random number from numpy's `default_rng(seed).normal(0, noise_m)`. The same seed always gives the same noise, so a run can be repeated. (The first screen passes no noise, so its distances carry only the clock effect.) The receiver comes from `coords.latlon_to_xyz` and each satellite from `coords.satellite_from_sky`, so nothing is stored in advance (`mechanism/scenario.py`).
 
 ---
@@ -93,7 +93,7 @@ Contract: the line does not cross the square map, so `points` is empty (docs/int
 Answer for how it is decided (`mechanism/mapview.py`): `inside` is true only when at least 10 points of the circle land in the square (`_MIN_POINTS`). If too few land inside, the code samples the circle more densely, doubling each time up to 20 000 samples, and then gives up. A line that only clips a corner is too short to draw, so it gets `inside: false` and an empty `points`. If the distance is no bigger than the satellite's height above the ground plane, the sphere never reaches the plane and the line is also empty.
 
 **3.6 Trap: A clock that is 1 microsecond ahead adds about 300 m to every distance. Is the position error 300 m?**
-No. Spec: the distance error is about 300 m per microsecond, but the position error depends on where the satellites are, so the page always shows the error the solver computes, never a fixed 300 m (design.md 2b). With the four default satellites, 1 microsecond trusted gives 520.3 m (computed this run). The page measures it as the distance between the solved point and the true receiver (`Math.hypot` of east, north and up in `web/first-screen.js`).
+No. Spec: the distance error is about 300 m per microsecond, but the position error depends on where the satellites are, so the page always shows the error the solver computes, never a fixed 300 m (design.md 2b). With the four default satellites, 1 microsecond trusted gives 520.3 m (computed this run). Of that, about 506 m is height (below the true spot); the dot on the map moves about 120 m. The page measures it as the distance between the solved point and the true receiver (`Math.hypot` of east, north and up in `web/first-screen.js`).
 
 **3.7 Trap: Why is the map flat when the Earth is round?**
 See section 6, question 6.2.
@@ -112,7 +112,7 @@ For each satellite it takes the direction from the receiver to the satellite as 
 From the code: GDOP uses all four diagonal entries (position and clock together), PDOP uses the first three (position only), TDOP uses the last one (the clock) (`mechanism/geometry.py`).
 
 **4.4 Why does `dop` need at least 4 satellites?**
-The table has four columns (x, y, z and clock), so with fewer than four rows it cannot be inverted. The code returns an error sentence if there are fewer than 4 (`mechanism/geometry.py`, docs/interface.md).
+The table has four columns (x, y, z and clock), so with fewer than four rows the 4 by 4 product `table.T @ table` cannot be inverted. The code returns an error sentence if there are fewer than 4 (`mechanism/geometry.py`, docs/interface.md).
 
 **4.5 Does `dop` use the measured distances or the noise?**
 No. It uses only the directions to the satellites (docs/interface.md, `mechanism/geometry.py`). That is why it needs no local map frame.
@@ -146,7 +146,7 @@ The best score divided by the second best score. A big number means a clear winn
 Conceptual: one chip on its own is buried in noise. But the score adds up 1023 chip-by-chip products. At the right shift every product leans the same way, so they add up. Noise is random, so its products point both ways and mostly cancel. At the wrong shifts the code does not line up with itself, so those also stay small. (Reasoning from how `correlate` averages; check the explanation wording with Icarus.)
 
 **5.7 Trap: What happens when the noise gets too big, and how does the page show it?**
-The page has a noise slider and shows whether the best shift equals the true delay. When it does not, the page calls it lost; when the peak is only barely above the next score, it says "found but barely" (`web/step-signal.js`). Where exactly it fails depends on the noise and seed. With the page's placeholders (PRN 7, delay 300 chips, seed 1), the code computed this run: found at noise 0, 1, 4 and 8 times the signal (peak_to_next 16.2, 7.3, 2.3 and 1.2, so 8 is "barely"), and lost at 12 (best shift 713, not 300). Say these are for one seed, not a general limit.
+The page has a noise slider and shows whether the best shift equals the true delay. When it does not, the page calls it lost; when the peak is only barely above the next score, it says "found but barely" (`web/step-signal.js`). Where exactly it fails depends on the noise and seed. With the page's placeholders (PRN 7, delay 300 chips, seed 1), the code computed this run: found up to 6 times the signal, barely found from 6.5 times to 9.5 times, lost from 10 times upward (best shift 713, not 300), for this one seed (PRN 7, delay 300, seed 1). Say these are for one seed, not a general limit.
 
 **5.8 Trap: Your delays are whole chips. Real signals are not. Does that matter?**
 See section 6, question 6.4.
@@ -159,7 +159,7 @@ It is simulated: random numbers from a generator with a fixed seed, so a run can
 ## 6. The simplifications
 
 **6.1 Why is the Earth a sphere of one radius?**
-The real Earth is slightly flattened. We use a sphere because the conversions are a few lines anyone on the team can explain. The simulated truth and the solver use the same model, so results stay exact. The page must say this is a simplification (decisions.md 2026-11-23, marked provisional).
+The real Earth is slightly flattened. We use a sphere because the conversions are a few lines anyone on the team can explain. The simulated truth and the solver use the same model, so the solver recovers the simulated position to far below a millimetre. This is agreement with our own sphere model, not real-world accuracy. The README says this is a simplification; the page itself does not yet (decisions.md 2026-11-23, marked provisional).
 
 **6.2 Why a flat 2D ground map of about 2 km?**
 At that zoom the distance lines look almost straight, and the map ignores "up" when drawing (design.md 2b, docs/interface.md). The line is still where the satellite's distance sphere cuts the ground plane.
@@ -178,10 +178,9 @@ The slider range, noise and error limits are placeholders to be tuned in testing
 - The satellites do not move; each scenario is a fixed snapshot (`web/config.js` sets fixed azimuth and elevation).
 - Noise on distances is a plain random value with a chosen size (docs/interface.md).
 - Relativity (rung 4) is on the page as a table (`web/step-relativity.js`, from `relativity.drift_over_time`). It treats the drift as the same for every satellite, so solving for the clock absorbs it completely (see 6.7). The reflections step is not built; it is the first rung to cut (design.md 2b).
-- Team to confirm the list after merge.
 
 **6.7 Trap: What would happen if all the satellite clocks drifted the same way?**
-Tested with the team's solver (`scripts/check_relativity.py`, computed this run with its own five satellites): every satellite clock gains about 38 microseconds a day (docs/facts.md row 27), so every distance gets longer by the same amount. With the phone's clock solved, the position error stays 0 m after a day, and the solved clock grows by 38 microseconds instead, because the solver cannot tell a phone clock error from a shared satellite clock drift. With the clock trusted, the same drift gives about 17 km (17 296 m) of position error after a day, for the script's five satellites. After 24 hours the range grows by 11 392 m and the solved clock reads 39.0 microseconds (1 from the phone plus the drift). So in this model the page can show the range error growing, but not a position drift (decisions.md, gotchas.md 2026-11-23). Do not say the position would be 11 km off.
+Tested with the team's solver (`scripts/check_relativity.py`, computed this run with its own five satellites): the satellite clocks would gain about 38 microseconds a day if uncorrected; real satellites are set slow before launch to cancel it (docs/facts.md rows 28-29), and our table shows the uncorrected case (row 27). Every distance changes by the same amount (a satellite clock running ahead makes each distance read shorter; our model adds it as longer, which flips the sign of the solved clock but not the position result). With the phone's clock solved, the position error stays 0 m after a day, and the solved clock grows by 38 microseconds instead, because the solver cannot tell a phone clock error from a shared satellite clock drift. With the clock trusted, the same drift gives about 17 km (17 296 m) of position error after a day, for the script's five satellites. After 24 hours the range changes by about 11 km (11 392 m is 38 µs × c; the spec's exact offset gives about 11.6 km) and the solved clock reads 39.0 microseconds (1 from the phone plus the drift). So in this model the page can show the range error growing, but not a position drift (decisions.md, gotchas.md 2026-11-23). Do not say the position would be 11 km off.
 
 **6.8 Trap: What is the real accuracy of your demo compared with a phone?**
 Team to fill in. Do not quote a number we have not verified (design.md 2a).
@@ -206,7 +205,7 @@ See question 2.2.
 Every number and line comes from the mechanism functions (design.md 2b). The mechanism must be our own code that computes outputs from the inputs, with no prepared results (AGENTS.md rule 7, design.md 1 point 5). A judge can change a slider and see new values.
 
 **7.6 Trap: What did you use that you did not write?**
-Pyodide and numpy are open-source components. The brief allows them if the team can explain why it chose them (design.md 1, point 7). Why these two: Pyodide because the mechanism owners write Python (design.md 3). Numpy: the code uses it for the least-squares step in the solver (`np.linalg.lstsq`), the matrix inverse in `dop`, the seeded random noise in `scenario.py` and `signal.py`, and the shifting and averaging in `correlate`; why the team chose it: team to fill in. The C/A code taps come from the public IS-GPS-200 spec, cited in `mechanism/signal.py`.
+Pyodide and numpy are open-source components, and Google Fonts supplies the typefaces. The brief allows them if the team can explain why it chose them (design.md 1, point 7). Why these two: Pyodide because the mechanism owners write Python (design.md 3). Numpy: the code uses it for the least-squares step in the solver (`np.linalg.lstsq`), the matrix inverse in `dop`, the seeded random noise in `scenario.py` and `signal.py`, and the shifting and averaging in `correlate`; why the team chose it: team to fill in. The C/A code taps come from the public IS-GPS-200 spec, cited in `mechanism/signal.py`.
 
 ---
 

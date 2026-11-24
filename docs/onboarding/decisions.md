@@ -14,7 +14,7 @@ Each record: we chose X over Y because Z; the cost is W. Sources are mainly [.me
 
 - We chose: the Earth as a sphere of one radius.
 - Over: the real, slightly flattened shape.
-- Because: "the conversions are a few lines anyone on the team can explain, and the simulated truth and the solver use the same model so results stay exact" (decisions.md, 2026-11-23, `docs/interface.md`, `mechanism/coords.py`; marked provisional).
+- Because: "the conversions are a few lines anyone on the team can explain, and the simulated truth and the solver use the same model so results stay exact" (decisions.md, 2026-11-23, `docs/interface.md`, `mechanism/coords.py`; marked provisional). In plain terms: the solver recovers the simulated position to far below a millimetre. This is agreement with our own sphere model, not real-world accuracy.
 - The cost: the page must say this is a simplification (same entry). The sources do not give a size for the error.
 
 ## 3. The 2D ground map

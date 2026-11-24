@@ -13,7 +13,7 @@ GPS_ORBIT_RADIUS_M = 26_559_700.0
 RELATIVITY_DRIFT_S_PER_DAY = 38e-6
 ```
 
-The speed of light turns time into distance. The Earth is one sphere with this mean radius. The orbit radius is measured from the Earth's centre, so the satellites are about 20,189 km above the surface (facts.md row 35). The drift is "about 38" microseconds a day.
+The speed of light turns time into distance. The Earth is one sphere with this mean radius. The orbit radius is measured from the Earth's centre, so the satellites are about 20,200 km up (20,189 km above our sphere model; facts.md row 35). The drift is "about 38" microseconds a day. They would gain about 38 µs a day if uncorrected; real satellites are set slow before launch to cancel it (docs/facts.md rows 28-29). Our table shows the uncorrected case.
 
 **Judge asks:** where do these numbers come from? **Answer:** each has a source row in facts.md (rows 1, 33, 3, 27). The relativity figure is "about 38", not exact: 45 minus 7 rounded (facts.md notes).
 
@@ -38,7 +38,7 @@ t = -b + math.sqrt(b * b - c)
 
 Start at the receiver, walk `t` metres along the sky direction, and stop where you reach the orbit sphere. That is a quadratic in `t`; the code takes the positive root.
 
-**Judge asks:** why a sphere and not the real Earth shape? **Answer:** the conversions stay a few lines, and the simulated truth and the solver use the same model so results are exact; .memory/decisions.md (2026-11-23) says the page must call this a simplification; README.md ("What is simplified") says so; the page itself does not yet.
+**Judge asks:** why a sphere and not the real Earth shape? **Answer:** the conversions stay a few lines, and the simulated truth and the solver use the same model, so the solver recovers the simulated position to far below a millimetre. This is agreement with our own sphere model, not real-world accuracy; .memory/decisions.md (2026-11-23) says the page must call this a simplification; README.md ("What is simplified") says so; the page itself does not yet.
 
 ## 3. [mechanism/scenario.py](../../mechanism/scenario.py)
 
@@ -141,7 +141,7 @@ scores.append(float(np.dot(values, np.roll(code_array, shift)) / CODE_LENGTH))
 
 Try all 1023 shifts, multiply chip by chip, average. A perfect clean match scores 1.0. `best_delay_chips` is the shift with the top score.
 
-**Judge asks:** how can it find a signal buried in noise? **Answer:** `correlate` scores every one of the 1023 shifts and takes the best, and a clean match scores 1.0. Each score averages 1023 products, so the noise in a score is about noise divided by the square root of 1023 (about noise/32), while the true peak stays near 1. With seed 1 the page's "Add noise" slider holds at 8 times the signal ("Barely found") and is lost at 12 times.
+**Judge asks:** how can it find a signal buried in noise? **Answer:** `correlate` scores every one of the 1023 shifts and takes the best, and a clean match scores 1.0. Each score averages 1023 products, so the noise in a score is about noise divided by the square root of 1023 (about noise/32), while the true peak stays near 1. With the page's settings (PRN 7, delay 300, seed 1) it is "Found" up to 6 times the signal, "Barely found" from 6.5 to 9.5 times, and "Lost" from 10 times upward (best shift 713, not 300), for this one seed.
 
 ## 8. [mechanism/relativity.py](../../mechanism/relativity.py)
 
@@ -154,7 +154,7 @@ solved = solve_position(satellites, ranges, solve_clock=True)
 trusted = solve_position(satellites, ranges, solve_clock=False)
 ```
 
-The drift looks exactly like a phone clock error, because every satellite has the same one. `range_added_m` is `drift_s * SPEED_OF_LIGHT_M_PER_S`.
+The drift looks exactly like a phone clock error, because every satellite has the same one: every distance changes by the same amount (a satellite clock running ahead makes each distance read shorter; our model adds it as longer, which flips the sign of the solved clock but not the position result). `range_added_m` is `drift_s * SPEED_OF_LIGHT_M_PER_S`.
 
 **Judge asks:** so is GPS 11 km off per day without the correction? **Answer:** the shared drift adds about 11 km of range a day, but the position stays put when the clock is solved, because the clock solve absorbs it (decisions.md 2026-11-23; gotchas.md says never claim 11 km position error). With the clock trusted, the error does grow.
 
@@ -176,7 +176,7 @@ It loads a pinned Pyodide, fetches each file in `MECHANISM_FILES` and writes it 
 
 ## 10. [web/config.js](../../web/config.js)
 
-All first-screen placeholder numbers live here (a design.md rule: placeholder numbers live in one config file, never inline).
+All first-screen placeholder numbers live here (a design.md rule: placeholder numbers live in one config file, never inline). The step files keep their own `geometryConfig` and `signalConfig`.
 
 ```js
 export const receiver = { lat_deg: -6.2, lon_deg: 106.8 };
@@ -238,7 +238,7 @@ const result = await callPython("relativity.drift_over_time",
   [receiver, satellites, config.relativityPhoneClockErrorS, config.relativityHours]);
 ```
 
-Columns are hours, "Each distance gains" (`range_added_m`) and "Position off by (clock solved)" (`error_clock_solved_m`).
+Columns are hours, "Each distance gains" (`range_added_m`) and "Position off by (clock solved)" (`error_clock_solved_m`). "Each distance gains" follows our model, which adds the drift as longer distances; a real satellite clock running ahead would make them shorter by the same amount (see section 8). The position result is the same either way.
 
 **Judge asks:** why does the position not move? **Answer:** the page says it: the drift is the same for every satellite, so it looks like the phone's own clock error and solving for the clock absorbs it.
 

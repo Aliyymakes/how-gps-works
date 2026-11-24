@@ -26,7 +26,7 @@ Alphabetical. Terms come from the page text ([index.html](../../index.html), `we
 - **Pyodide**: Python compiled to run in a web browser. Loaded from a CDN by `bridge.js`.
 - **Pythagoras**: the straight-line distance rule used in `make_pseudoranges` and `solve_position`; no special function, just squares and a square root.
 - **Receiver**: the phone. The true receiver position is Jakarta in config.js.
-- **Relativity (clock drift)**: satellite clocks gain about 38 microseconds a day (facts.md row 27), which adds about 11 km of range a day. In code: `RELATIVITY_DRIFT_S_PER_DAY`, `relativity.drift_over_time`.
+- **Relativity (clock drift)**: satellite clocks would gain about 38 microseconds a day if uncorrected (facts.md row 27); real satellites are set slow before launch to cancel it (rows 28-29), and our table shows the uncorrected case. Every distance changes by the same amount, about 11 km of range a day (a satellite clock running ahead makes each distance read shorter; our model adds it as longer, which flips the sign of the solved clock but not the position result). In code: `RELATIVITY_DRIFT_S_PER_DAY`, `relativity.drift_over_time`.
 - **Seed**: a whole number that makes random noise repeat exactly. In code: `seed` in `make_pseudoranges` and `make_received`.
 - **Shift (delay)**: how many chips the code is moved. In code: `delay_chips`, `best_delay_chips`.
 - **Solver**: `solver.solve_position`. Guesses a position, measures how wrong it is, corrects, repeats.
