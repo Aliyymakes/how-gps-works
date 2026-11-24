@@ -37,6 +37,7 @@ loadSavedTheme();
 trackPointerLight();
 setupControls();
 drawTrueMark();
+keepStickyHeight();
 start();
 
 // ---------- start up ----------
@@ -410,6 +411,13 @@ function cancelGlide() {
   glideFrame = 0;
   if (glideFinish) glideFinish();
   glideFinish = null;
+}
+
+// On phones the map card sticks to the top. index.html keeps every focused control that far below the top (scroll-margin-top).
+function keepStickyHeight() {
+  const card = document.querySelector(".map-card");
+  const save = () => document.documentElement.style.setProperty("--sticky-h", `${card.offsetHeight}px`);
+  new ResizeObserver(save).observe(card); // also calls save() once at the start
 }
 
 // ---------- the guided path ----------
