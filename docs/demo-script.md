@@ -23,7 +23,7 @@ Rules for this file:
 
 ## What the page does at shot 8 (from `web/step-signal.js`)
 
-The sentence and the badge change by level: "Found", "Barely found", "Lost". The sentences are "The noise is bigger than the signal, yet the match still finds it.", "The match still points to the right place, but only just." and "The phone can no longer find where the signal starts." I could not run the page, so I do not know at which noise value, if any, "Lost" appears before the slider's end. The recorder should check this in a dry run and, if "Lost" never shows, change the last voice-over line.
+The sentence and the badge change by level: "Found", "Barely found", "Lost". The sentences are "The noise is bigger than the signal, yet the match still finds it.", "The match still points to the right place, but only just." and "The phone can no longer find where the signal starts." With the page's settings (PRN 7, real delay 300 chips, seed 1), a Python replay of `signal.make_received` and `signal.correlate` gives "Barely found" first at "Noise is 6.5× the signal" and "Lost" first at "Noise is 10.0× the signal", so "Lost" does show before the slider's end (12.0×). Pause at about 6.5× and at 10.0×. Not yet seen in a browser.
 
 ## Questions for Icarus
 
