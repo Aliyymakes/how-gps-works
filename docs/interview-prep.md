@@ -4,25 +4,25 @@
 
 How to use this file:
 - Answers marked "team to fill in" are team decisions or opinions that no code can answer. The owner says them in their own words. Nobody should invent how it works.
-- Answers about the mechanism (`solver.py`, `coords.py`, `scenario.py`, `mapview.py`, `geometry.py`, `signal.py`, `scripts/check_relativity.py`) are taken from the code on `main`. Answers about the bridge come from `web/bridge.js` on branch `3-bridge` (PR #26, not merged yet), and answers about the page come from `web/first-screen.js` on branch `5-first-screen` (PR #17, not merged yet), `web/step-geometry.js` and `web/step-signal.js` (open PRs). Check those again after they merge.
-- Numbers here are only ones that appear in the code or in design.md. Any number we show on the page must be checked against a source (design.md 2a).
+- Answers about the mechanism (`solver.py`, `coords.py`, `scenario.py`, `mapview.py`, `geometry.py`, `signal.py`, `scripts/check_relativity.py`) are taken from the code on `main`. Answers about the bridge come from `web/bridge.js`, and answers about the page come from `index.html`, `web/first-screen.js`, `web/step-geometry.js`, `web/step-signal.js`, `web/step-relativity.js` and `web/config.js`. All of these are merged on `main`, and the answers were re-checked against them on 24 Nov 2026.
+- Numbers here are only ones that appear in docs/facts.md or that the code computed. The numbers computed by the code use the placeholder values in `web/config.js` and the step files, so they change if the placeholders change. Any number we show on the page must be checked against a source (design.md 2a).
 
 ---
 
 ## 1. The solver loop (solver.py)
 
-Owner explains each answer in their own words. The code is on `main`. Step counts and error sizes below were computed by `solver.py` and `scenario.py` with the first screen's placeholder satellites (Jakarta, four satellites); they can change if the placeholders change.
+Owner explains each answer in their own words. The code is on `main`. Step counts and error sizes below were computed by `solver.py` and `scenario.py` with the first screen's placeholder satellites from `web/config.js` (Jakarta, four satellites at azimuths 10, 100, 235 and 325 degrees and elevations 60, 35, 20 and 20 degrees); they can change if the placeholders change.
 
 **1.1 What does `solve_position` do, in one minute?**
 Answer: It guesses where the phone is, checks the guess against the measured distances, and improves the guess until it stops moving. Each round it works out, for every satellite, the straight-line distance from the current guess (Pythagoras in 3D) and compares it with the measured distance. The gaps tell it which way to move. It solves all the gaps together for the best small move, with numpy's `lstsq` (a least-squares fit). Then it adds that move to the guess and saves it as one step. It stops when the move is under 1 mm, or after 20 guesses (`mechanism/solver.py`).
 (Contract: it takes the satellites and the measured distances and returns x, y, z, the clock error, the list of guesses (`steps`) and whether it `converged`. Source: docs/interface.md.)
 
 **1.2 Why does the solver start from the centre of the Earth, and why does it need several steps?**
-Answer: The solver knows nothing about where the phone is, so it starts at a fixed point that needs no outside information: the centre of the Earth, clock error 0 (`mechanism/solver.py`, comment "Start at the Earth's centre"). Each round it replaces the real curved problem with a flat, straight-line version of it, and that is only roughly right when the guess is far off. So one round gets close, not exact, and the next round, from the better guess, gets closer. On the first screen with a 1 microsecond clock error and the clock solved, it settles in 7 steps (computed by the solver this run). That "flat version" explanation is my reading of the code's `row` of directions, so check it with Icarus.
+Answer: The solver knows nothing about where the phone is, so it starts at a fixed point that needs no outside information: the centre of the Earth, clock error 0 (`mechanism/solver.py`, comment "Start at the Earth's centre"). Each round it replaces the real curved problem with a flat, straight-line version of it, and that is only roughly right when the guess is far off. So one round gets close, not exact, and the next round, from the better guess, gets closer. On the first screen with a 1 microsecond clock error and the clock solved, `steps` holds 6 guesses: the centre of the Earth, then 5 improved guesses (computed by the solver this run). That "flat version" explanation is my reading of the code's `row` of directions, so check it with Icarus.
 (Contract: the first guess in `steps` is the centre of the Earth. Source: docs/interface.md.)
 
 **1.3 What does `converged` mean, and what does the page do if it is false?**
-Answer: `converged` is true when the last move was smaller than 1 mm (0.001 m, `STOP_WHEN_CHANGE_IS_SMALLER_THAN`). It is false if the solver used all 20 guesses (`MAX_STEPS`) and was still moving. Separately, if the satellites cannot give one clear position, or a guess lands exactly on a satellite, the solver returns an `error` sentence instead. On the first screen (open PR #17, `web/first-screen.js`), when `converged` is false the page writes "The solver did not settle on an answer."
+Answer: `converged` is true when the last move was smaller than 1 mm (0.001 m, `STOP_WHEN_CHANGE_IS_SMALLER_THAN`). It is false if the solver used all 20 guesses (`MAX_STEPS`) and was still moving. Separately, if the satellites cannot give one clear position, or a guess lands exactly on a satellite, the solver returns an `error` sentence instead. On the first screen (`web/first-screen.js`, `showWords`), when `converged` is false the page writes "The solver did not settle on an answer."
 
 **1.4 What does the solver do differently with `solve_clock=False`?**
 Answer: It solves for three unknowns (x, y, z) instead of four. With `True`, each row of the table gets a fourth entry, 1.0, because a clock error adds the same extra distance to every satellite, and the solver moves the clock guess too. With `False` that fourth entry is left out and the clock stays at 0, so the result says `clock_error_s` is 0. It then needs only 3 satellites instead of 4 (`mechanism/solver.py`).
@@ -30,42 +30,42 @@ Answer: It solves for three unknowns (x, y, z) instead of four. With `True`, eac
 
 **1.5 Trap: Why do you need 4 satellites, not 3?**
 Conceptual part from the spec: there are four unknowns (east, north, up and the clock error), so at least four measurements are needed. The first screen refuses in one sentence when there are 3 satellites and the clock is solved (design.md 2b).
-Answer for the code: at the top of `solve_position`, `needed = 4 if solve_clock else 3`. With fewer satellites it returns `{"error": "At least 4 satellites are needed."}` and does no maths. As a second safety check, if the table of directions is degenerate (`rank` below `needed`), it returns `{"error": "These satellites cannot give one clear position."}`. On the first screen (open PR #17), the page does not even call the solver for 3 satellites with the clock solved: it shows the one-sentence refusal itself.
+Answer for the code: at the top of `solve_position`, `needed = 4 if solve_clock else 3`. With fewer satellites it returns `{"error": "At least 4 satellites are needed."}` and does no maths. As a second safety check, if the table of directions is degenerate (`rank` below `needed`), it returns `{"error": "These satellites cannot give one clear position."}`. On the first screen (`runOnce` in `web/first-screen.js`), the page does not even call the solver for 3 satellites with the clock solved. It writes its own one sentence ("Four things are unknown (east, north, up and the clock), but three satellites give only three measurements.") and calls `showNoFix()`, which clears the metres readout, hides the badge and hides the dot, so no fix is shown.
 
 **1.6 Trap: With 4 satellites and the clock trusted, why do the distance lines visibly miss each other?**
 Conceptual part from the spec: there are more measurements than unknowns, so with a wrong clock they cannot all agree. With only 3 satellites the three spheres would still meet at one point, just the wrong one, so the picture could not show the problem (design.md 2b).
-Answer for what the solver then returns: with the clock trusted, it still runs, but no point fits all four distances, so `lstsq` returns the best compromise, the move that makes the gaps smallest overall. That compromise is not the true position. On the first screen, a 1 microsecond clock error that is trusted gives a fix about 481 m off (computed by the solver this run). With the clock solved, the error is 0 m, because the solver finds the 1.00 microsecond itself.
+Answer for what the solver then returns: with the clock trusted, it still runs, but no point fits all four distances, so `lstsq` returns the best compromise, the move that makes the gaps smallest overall. That compromise is not the true position. On the first screen, a 1 microsecond clock error that is trusted gives a fix about 520 m off (520.3 m, computed by the solver this run with the four default satellites). That is not 300 m: see 3.6. With the clock solved, the error is 0 m, because the solver finds the 1.00 microsecond itself.
 
 **1.7 Where does the measured distance come from in the demo, and is it real data?**
 Conceptual part from the spec: `make_pseudoranges` builds each distance as true distance, plus the clock error effect, plus random noise (docs/interface.md). It is computed from the user's inputs, not prepared (design.md 1, point 5). The page says the satellites are simulated.
-Answer for the code: `scenario.make_pseudoranges(receiver, satellites, clock_error_s, noise_m, seed)` finds each true distance by Pythagoras in 3D, adds `clock_error_s` times the speed of light (299 792 458 m/s, docs/facts.md row 2), and adds a random number from numpy's `default_rng(seed).normal(0, noise_m)`. The same seed always gives the same noise, so a run can be repeated. The receiver comes from `coords.latlon_to_xyz` and each satellite from `coords.satellite_from_sky`, so nothing is stored in advance (`mechanism/scenario.py`).
+Answer for the code: `scenario.make_pseudoranges(receiver, satellites, clock_error_s, noise_m, seed)` finds each true distance by Pythagoras in 3D, adds `clock_error_s` times the speed of light (299 792 458 m/s, docs/facts.md row 2), and adds a random number from numpy's `default_rng(seed).normal(0, noise_m)`. The same seed always gives the same noise, so a run can be repeated. (The first screen passes no noise, so its distances carry only the clock effect.) The receiver comes from `coords.latlon_to_xyz` and each satellite from `coords.satellite_from_sky`, so nothing is stored in advance (`mechanism/scenario.py`).
 
 ---
 
 ## 2. The bridge (bridge.js, Pyodide)
 
-The bridge is `web/bridge.js` on branch `3-bridge` (PR #26). It is not merged into `main` yet, so these answers come from that branch. Check them again after it merges.
+The bridge is `web/bridge.js`, merged on `main`. These answers were checked against it.
 
 **2.1 What is Pyodide, and what does the bridge do?**
-Answer: Pyodide is Python that runs inside the browser, so our Python files can run on the user's own computer with no server. The bridge (`web/bridge.js`, PR #26, not merged yet) does the setup and the calling. `loadMechanism` loads a pinned Pyodide version (v314.0.8) from a public CDN (jsDelivr) and then numpy. It fetches each file of the `mechanism` folder and writes it into Pyodide's in-memory file system. Then `callPython("solver.solve_position", [args])` turns the arguments into JSON text, Python imports the module and calls the function, and the result comes back as JSON text that JavaScript turns into plain values. So the page needs internet to fetch Pyodide the first time.
+Answer: Pyodide is Python that runs inside the browser, so our Python files can run on the user's own computer with no server. The bridge (`web/bridge.js`) does the setup and the calling. `loadMechanism` loads a pinned Pyodide version (v314.0.8) from a public CDN (jsDelivr) and then numpy. It fetches each file of the `mechanism` folder and writes it into Pyodide's in-memory file system. Then `callPython("solver.solve_position", [args])` turns the arguments into JSON text, a small Python helper (`_bridge_call`) imports `mechanism.solver` and calls the function, and the result comes back as JSON text that JavaScript turns into plain values. The first screen and the three later steps (`index.html`) all use the same bridge, so Pyodide loads only once. The page needs internet to fetch Pyodide the first time.
 (Contract: `loadMechanism(onStatus)` loads Pyodide, numpy and the mechanism files and reports progress. `callPython("module.function", [args])` calls `mechanism.<module>.<function>` and returns a plain JavaScript value. Source: docs/interface.md.)
 
 **2.2 What is allowed to cross between Python and JavaScript, and why?**
 Only plain numbers, strings, booleans, lists and dicts. No numpy arrays and no custom classes. The reason recorded is that this is simple to convert in Pyodide and simple to explain (docs/interface.md, decisions.md 2026-11-22).
 
 **2.3 Does the page do any GPS maths?**
-No. The page calls Python and draws what comes back (docs/interface.md). The only arithmetic in the page files is turning metres into pixels, the slider to angle blend (geometry step), and `Math.hypot` to turn east, north and up differences into one error length in metres (`web/first-screen.js`, `web/step-geometry.js`, `web/step-signal.js` in the open PRs).
+No. The page calls Python and draws what comes back (docs/interface.md). The only arithmetic in the page files is turning metres or chips into pixels, the slider to angle blend and the sky drawing scale (geometry step), scaling a bar to the largest value (relativity step), and `Math.hypot` to turn east, north and up differences into one error length in metres (`web/first-screen.js`, `web/step-geometry.js`, `web/step-signal.js`, `web/step-relativity.js`).
 
 **2.4 What happens if Python fails or the engine cannot load?**
-From the open PRs: each step file loads `bridge.js` inside a try block. On failure it shows a plain message and leaves the controls off, instead of breaking the page (`web/first-screen.js`). For bad input, a Python function returns `{"error": "<plain message>"}` and the page shows that sentence (docs/interface.md).
-Answer for the bridge (`web/bridge.js`, PR #26, not merged yet): if you name a module or function that does not exist, Python raises "unknown module" or "unknown function". If any Python code crashes, the bridge throws a JavaScript `Error` carrying the last line of the Python message. If `callPython` is used before `loadMechanism` finished, it throws "call loadMechanism() first". A mechanism file that cannot be fetched is skipped with one `console.warn`. The `{"error": ...}` sentences that Python returns on purpose are not thrown; they come back as normal results for the page to show.
+Each step file loads `bridge.js` inside a try block. On failure it shows a plain message ("The calculation engine could not load, so the controls stay off. Reload the page to try again.") and leaves the controls off, instead of breaking the page (`web/first-screen.js`, `web/step-geometry.js`, `web/step-signal.js`; the relativity table stays empty). For bad input, a Python function returns `{"error": "<plain message>"}` and the page shows that sentence (docs/interface.md).
+Answer for the bridge (`web/bridge.js`): if you name a module or function that does not exist, Python raises "unknown module" or "unknown function". If any Python code crashes, the bridge throws a JavaScript `Error` carrying the last line of the Python message. If `callPython` is used before `loadMechanism` finished, it throws "call loadMechanism() first". A mechanism file that cannot be fetched is skipped with one `console.warn`. If a call throws on the first screen, `update` shows "Something went wrong in the calculation. Press Reset to start again." and calls `showNoFix()`. The `{"error": ...}` sentences that Python returns on purpose are not thrown; they come back as normal results for the page to show.
 
 **2.5 Trap: A Python call takes time. What stops the page showing a stale result while the user drags a slider?**
-From the open PRs: each step keeps a "running" flag. If a call is in progress, it remembers that a newer run is wanted and runs once more afterwards (`web/first-screen.js`, `web/step-geometry.js`, `web/step-signal.js`). The geometry and signal steps also copy the slider value at the start of a run, so a run draws the value it was started with.
-Answer for the bridge side (`web/bridge.js`, PR #26, not merged yet): the bridge does not protect against this. Its `callPython` is an `async` function, but the Python call inside it runs in one go and holds the page until it returns. `loadMechanism` keeps one loading promise, so calling it twice loads Pyodide only once. Keeping the screen current is the job of each step's running flag described above.
+Each step keeps a `running` flag and a `rerun` flag in its `update` function. If a call is in progress, it remembers that a newer run is wanted and runs once more afterwards (`web/first-screen.js`, `web/step-geometry.js`, `web/step-signal.js`). The geometry and signal steps also copy the slider value at the start of a run (`currentSky()`, `usedNoise`), so a run draws the value it was started with. The relativity step has no slider and runs once.
+Answer for the bridge side (`web/bridge.js`): the bridge does not protect against this. Its `callPython` is an `async` function, but the Python call inside it runs in one go and holds the page until it returns. `loadMechanism` keeps one loading promise, so calling it twice loads Pyodide only once. Keeping the screen current is the job of each step's running flag described above.
 
 **2.6 Trap: How do you know the numbers on screen were computed in the browser and not prepared?**
-Answer: The bridge (`web/bridge.js`, PR #26, not merged yet) fetches our `.py` files from the `mechanism/` folder when the page loads, so you can see them in the browser's network tab. Every call sends the current inputs, such as the slider value, into Python and gets a fresh result. The page has no table of answers to look up, and the first screen's error number is the `Math.hypot` of the east, north and up that Python returned (`web/first-screen.js`, PR #17). Move a slider and the numbers change.
+Answer: The bridge (`web/bridge.js`) fetches our `.py` files from the `mechanism/` folder when the page loads, so you can see them in the browser's network tab. Every call sends the current inputs, such as the slider value, into Python and gets a fresh result. The page has no table of answers to look up, and the first screen's error number is the `Math.hypot` of the east, north and up that Python returned (`web/first-screen.js`). Move a slider and the numbers change.
 (What the repo also says: every number and line comes from the mechanism functions (design.md 2b); the mechanism must compute its outputs from the user's inputs, with no prepared results and no hosted AI (AGENTS.md rule 7).)
 
 ---
@@ -93,7 +93,7 @@ Contract: the line does not cross the square map, so `points` is empty (docs/int
 Answer for how it is decided (`mechanism/mapview.py`): `inside` is true only when at least 10 points of the circle land in the square (`_MIN_POINTS`). If too few land inside, the code samples the circle more densely, doubling each time up to 20 000 samples, and then gives up. A line that only clips a corner is too short to draw, so it gets `inside: false` and an empty `points`. If the distance is no bigger than the satellite's height above the ground plane, the sphere never reaches the plane and the line is also empty.
 
 **3.6 Trap: A clock that is 1 microsecond ahead adds about 300 m to every distance. Is the position error 300 m?**
-No. Spec: the distance error is about 300 m per microsecond, but the position error depends on where the satellites are, so the page always shows the error the solver computes, never a fixed 300 m (design.md 2b). The page measures it as the distance between the solved point and the true receiver (`Math.hypot` of east, north and up in `web/first-screen.js`).
+No. Spec: the distance error is about 300 m per microsecond, but the position error depends on where the satellites are, so the page always shows the error the solver computes, never a fixed 300 m (design.md 2b). With the four default satellites, 1 microsecond trusted gives 520.3 m (computed this run). The page measures it as the distance between the solved point and the true receiver (`Math.hypot` of east, north and up in `web/first-screen.js`).
 
 **3.7 Trap: Why is the map flat when the Earth is round?**
 See section 6, question 6.2.
@@ -103,10 +103,10 @@ See section 6, question 6.2.
 ## 4. DOP (geometry.py)
 
 **4.1 What is DOP in plain words?**
-It tells you how much the layout of the satellites multiplies the measurement errors. Lower is better (docs/interface.md). The page shows PDOP (`web/step-geometry.js` reads `dop.pdop`).
+It tells you how much the layout of the satellites multiplies the measurement errors. Lower is better (docs/interface.md). The page shows PDOP (`web/step-geometry.js` reads `dop.pdop`). For the first screen's four default satellites it is 3.37 (computed by `geometry.dop` this run).
 
 **4.2 How does `dop` work?**
-For each satellite it takes the direction from the receiver to the satellite as an arrow of length 1, and adds a 1 for the clock. That gives one row per satellite. It then multiplies the transpose of the table by the table itself (a 4 by 4 result, one row and column per unknown: east, north, up, clock), inverts that, and takes square roots of sums of the diagonal (`mechanism/geometry.py`).
+For each satellite it takes the direction from the receiver to the satellite as an arrow of length 1, and adds a 1 for the clock. That gives one row per satellite. It then multiplies the transpose of the table by the table itself (Hᵀ H, where H is the table; in the code `table.T @ table`). The result is 4 by 4, one row and column per unknown: x, y, z (the Earth-centred axes) and the clock. It inverts that, (Hᵀ H)⁻¹, and takes square roots of sums of the diagonal (`mechanism/geometry.py`).
 
 **4.3 What is the difference between GDOP, PDOP and TDOP?**
 From the code: GDOP uses all four diagonal entries (position and clock together), PDOP uses the first three (position only), TDOP uses the last one (the clock) (`mechanism/geometry.py`).
@@ -118,10 +118,10 @@ The table has four columns (x, y, z and clock), so with fewer than four rows it 
 No. It uses only the directions to the satellites (docs/interface.md, `mechanism/geometry.py`). That is why it needs no local map frame.
 
 **4.6 Trap: What happens to DOP when the satellites are bunched into one patch of sky, and why?**
-Spec (design.md 2a rung 2): the same satellites and the same error give a far worse fix when they are bunched. Code reason: the rows of the table become almost the same, so the multiplied table is almost impossible to invert and the result gets very large. If it truly cannot be inverted, the code returns an error sentence ("These satellites are laid out so that DOP cannot be worked out.") (`mechanism/geometry.py`).
+Spec (design.md 2a rung 2): the same satellites and the same error give a far worse fix when they are bunched. Computed this run with the geometry step's placeholder sets (noise 3 m, seed 1, 1 microsecond clock, clock solved): spread out PDOP is 2.2 and the fix is 4.6 m off; bunched PDOP is 344.7 and the fix is 480.8 m off. Code reason: the rows of the table become almost the same, so the multiplied table is almost impossible to invert and the result gets very large. If it truly cannot be inverted, the code returns an error sentence ("These satellites are laid out so that DOP cannot be worked out.") (`mechanism/geometry.py`).
 
 **4.7 Trap: If DOP is only about layout, how does the geometry demo show the real position error?**
-From the open PR: the page runs the solver with the clock solved, on measurements with the same noise and seed every run, so only the layout changes between runs. The page shows PDOP and the error in metres between the solved and true positions (`web/step-geometry.js`).
+The page runs the solver with the clock solved, on measurements with the same noise (3 m) and seed (1) every run, so only the layout changes between runs. The page shows PDOP and the error in metres between the solved and true positions, the `Math.hypot` of east, north and up from `mapview.to_local` (`runOnce` in `web/step-geometry.js`).
 
 ---
 
@@ -146,7 +146,7 @@ The best score divided by the second best score. A big number means a clear winn
 Conceptual: one chip on its own is buried in noise. But the score adds up 1023 chip-by-chip products. At the right shift every product leans the same way, so they add up. Noise is random, so its products point both ways and mostly cancel. At the wrong shifts the code does not line up with itself, so those also stay small. (Reasoning from how `correlate` averages; check the explanation wording with Icarus.)
 
 **5.7 Trap: What happens when the noise gets too big, and how does the page show it?**
-The page has a noise slider and shows whether the best shift equals the true delay. When it does not, the page calls it lost; when the peak is only barely above the next score, it says "found but barely" (`web/step-signal.js`). Where exactly it fails depends on the noise and seed, so run the page and report what you see rather than quoting a number.
+The page has a noise slider and shows whether the best shift equals the true delay. When it does not, the page calls it lost; when the peak is only barely above the next score, it says "found but barely" (`web/step-signal.js`). Where exactly it fails depends on the noise and seed. With the page's placeholders (PRN 7, delay 300 chips, seed 1), the code computed this run: found at noise 0, 1, 4 and 8 times the signal (peak_to_next 16.2, 7.3, 2.3 and 1.2, so 8 is "barely"), and lost at 12 (best shift 713, not 300). Say these are for one seed, not a general limit.
 
 **5.8 Trap: Your delays are whole chips. Real signals are not. Does that matter?**
 See section 6, question 6.4.
@@ -175,13 +175,13 @@ In the code, `delay_chips` must be a whole number from 0 to 1022 (`mechanism/sig
 The slider range, noise and error limits are placeholders to be tuned in testing, and the page's own numbers are to be checked against a source before shipping (`web/config.js`, design.md 2a). Icarus decides which stay.
 
 **6.6 What other simplifications should we admit?**
-- The satellites do not move; each scenario is a fixed snapshot (code in open PRs sets fixed azimuth and elevation).
+- The satellites do not move; each scenario is a fixed snapshot (`web/config.js` sets fixed azimuth and elevation).
 - Noise on distances is a plain random value with a chosen size (docs/interface.md).
-- Relativity (rung 4) exists only in the mechanism so far (mechanism/relativity.py, `drift_over_time`), not on the page. It treats the drift as the same for every satellite, so solving for the clock absorbs it completely (see 6.7). The reflections step is not built; it is the first rung to cut (design.md 2b).
+- Relativity (rung 4) is on the page as a table (`web/step-relativity.js`, from `relativity.drift_over_time`). It treats the drift as the same for every satellite, so solving for the clock absorbs it completely (see 6.7). The reflections step is not built; it is the first rung to cut (design.md 2b).
 - Team to confirm the list after merge.
 
 **6.7 Trap: What would happen if all the satellite clocks drifted the same way?**
-Tested with the team's solver (`scripts/check_relativity.py`, computed this run): every satellite clock gains about 38 microseconds a day (docs/facts.md row 27), so every distance gets longer by the same amount. With the phone's clock solved, the position error stays 0 m after a day, and the solved clock grows by 38 microseconds instead, because the solver cannot tell a phone clock error from a shared satellite clock drift. With the clock trusted, the same drift gives about 17 km of position error after a day, for the script's five satellites. So in this model the page can show the range error growing, but not a position drift (decisions.md, gotchas.md 2026-11-23). Do not say the position would be 11 km off.
+Tested with the team's solver (`scripts/check_relativity.py`, computed this run with its own five satellites): every satellite clock gains about 38 microseconds a day (docs/facts.md row 27), so every distance gets longer by the same amount. With the phone's clock solved, the position error stays 0 m after a day, and the solved clock grows by 38 microseconds instead, because the solver cannot tell a phone clock error from a shared satellite clock drift. With the clock trusted, the same drift gives about 17 km (17 296 m) of position error after a day, for the script's five satellites. After 24 hours the range grows by 11 392 m and the solved clock reads 39.0 microseconds (1 from the phone plus the drift). So in this model the page can show the range error growing, but not a position drift (decisions.md, gotchas.md 2026-11-23). Do not say the position would be 11 km off.
 
 **6.8 Trap: What is the real accuracy of your demo compared with a phone?**
 Team to fill in. Do not quote a number we have not verified (design.md 2a).
@@ -194,7 +194,7 @@ Team to fill in. Do not quote a number we have not verified (design.md 2a).
 Two of the four teammates code only in Python, and they own the mechanism (design.md 3, Icarus, 2026-11-22).
 
 **7.2 How does Python run in a web browser?**
-Through Pyodide, which runs Python in the user's browser (design.md 3). The page loads it with numpy and the mechanism files (docs/interface.md). How the loading works (`web/bridge.js`, PR #26, not merged yet): see question 2.1.
+Through Pyodide, which runs Python in the user's browser (design.md 3). The page loads it with numpy and the mechanism files (docs/interface.md). How the loading works (`web/bridge.js`): see question 2.1.
 
 **7.3 Why not call a server?**
 The brief requires a public link with no sign-in, download or API key (design.md 1, point 3), and requires that outputs are computed by our code from the user's inputs (point 5). Running in the browser keeps it all in the page. Whether a server was ever considered: team to fill in.
@@ -238,5 +238,4 @@ The fairness page lists outside help in the interview as grounds for disqualific
 
 ## Still to fill in
 
-- Re-check group 2 against `web/bridge.js` once PR #26 merges, and the page answers (2.3 to 2.6, 1.3 to 1.5, 2.5) once PR #17, `web/step-geometry.js` and `web/step-signal.js` merge.
 - Groups 6, 7, 8: lines marked "team to fill in" (team decisions, not answerable from code): 6.4, 6.5, 6.8, 7.3, 7.6 (why numpy), and all of group 8.
