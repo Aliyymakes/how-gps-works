@@ -3,6 +3,7 @@
 // and the sky drawing scale.
 import { whenPythonReady } from "./startup.js";
 import { say } from "./say.js";
+import { formatMetres } from "./format.js";
 
 // Every tunable number for this step. All of these are provisional until Icarus confirms them.
 export const geometryConfig = {
@@ -45,6 +46,9 @@ const STYLE = `
 .geo-sky .sky-sat { transition: none; }
 .geo-sky text { fill: var(--text-muted); font: 500 var(--text-xs) var(--font-mono); }
 .geo-note { font-size: var(--text-sm); color: var(--text-muted); min-height: 1.5em; }
+.geo-note:empty { min-height: 0; }
+.geo-note[data-id="msg-slider"]:empty { min-height: 1.5em; }
+.geo h3.label { margin-bottom: var(--s-3); }
 .geo-highlight { border-color: var(--accent); padding: var(--s-4); }
 .geo-readout { padding: var(--s-4); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-2); }
 .geo-big { font-size: var(--text-xl); }
@@ -285,7 +289,7 @@ export function mountGeometryStep(container) {
     const percent = Math.round(position / geometryConfig.slider_steps * 100);
     el.sky.setAttribute("aria-label", `Sky diagram. Satellites ${percent} % bunched. DOP ${dopText}.`);
     el.dop.textContent = dopText;
-    el.error.textContent = `${new Intl.NumberFormat("en", { maximumFractionDigits: 1 }).format(errorM)}\u00a0m`;
+    el.error.textContent = formatMetres(errorM);
     el.badge.hidden = false;
     el.badge.className = `badge is-${level}`;
     el.badge.textContent = LEVEL_WORDS[level];

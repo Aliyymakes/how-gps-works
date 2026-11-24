@@ -46,6 +46,10 @@
   .readout { padding: var(--s-4); display: grid; gap: var(--s-2); }
   .big { font-size: var(--text-xl); }
   .note { font-size: var(--text-sm); color: var(--text-muted); min-height: 1.5em; }
+  /* An empty message line takes no room, except where a control sits below it: those keep their height so nothing moves when words appear. */
+  .note:empty { min-height: 0; }
+  #msg-slider:empty, #msg-readout:empty, #msg-solve:empty, #msg-switch:empty { min-height: 1.5em; }
+  h2.label, h3.label { margin-bottom: var(--s-3); }
   .switches { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--s-4); }
   @media (max-width: 359px) { .switches { grid-template-columns: minmax(0, 1fr); } }
   .actions { display: flex; flex-wrap: wrap; gap: var(--s-3); }
@@ -63,7 +67,10 @@
     .toggle-track::after { transition-property: background-color; }
     input[type="range"]::-webkit-slider-thumb { transition: none; }
   }
-  .link-line { font-size: var(--text-lg); text-wrap: balance; }
+  /* 18 px (0.9 of --text-lg), no max-width: WebKit reports no first paint while the CDN is slow with 16 px text or a capped width here (test_speed). */
+  .link-line { font-size: calc(var(--text-lg) * 0.9); color: var(--text-muted); text-wrap: balance; }
+  .link-line strong { color: var(--text); }
+  #step-geometry, #step-signal, #step-relativity { margin-top: var(--s-6); }
 </style>
 </head>
 <body>

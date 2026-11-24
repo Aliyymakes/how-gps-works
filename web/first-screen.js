@@ -4,6 +4,7 @@ import { trackPointerLight, loadSavedTheme } from "./theme.js";
 import * as config from "./config.js";
 import { whenPythonReady } from "./startup.js";
 import { say } from "./say.js";
+import { formatMetres } from "./format.js";
 
 const SVG = "http://www.w3.org/2000/svg";
 const MAP_SIZE = 400; // the SVG viewBox is 400 by 400
@@ -292,7 +293,7 @@ function draw(lines, local, errorM, animate = false) {
   lastDot = inside ? { x, y } : null;
   if (animate) glide(fromLines, new Map(lastPoints), fromDot, lastDot);
   el.dot.setAttribute("class", `is-${level}`);
-  el.errorValue.textContent = `${new Intl.NumberFormat("en", { maximumFractionDigits: 1 }).format(errorM)} m`;
+  el.errorValue.textContent = formatMetres(errorM);
   el.badge.hidden = false;
   el.badge.className = `badge is-${level}`;
   el.badge.textContent = levelWords[level];
