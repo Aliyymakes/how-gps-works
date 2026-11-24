@@ -57,7 +57,7 @@ Two paragraphs (`<p>`), each with an `id`. `result-line` starts with the text "W
 <script type="module">
 import { loadMechanism, callPython, evalPython } from './bridge.js';
 ```
-`<script type="module">` starts a block of JavaScript. `type="module"` makes it a module: code that is allowed to bring in other files with `import`, and that may use `await` at its top level. Line 14 imports the three functions from [`bridge.js`](bridge.js.md) (the `./` means "the same folder as this page"): `loadMechanism` downloads and starts Python, `callPython` calls a Python function and returns its answer, and `evalPython` runs one short Python expression (the bridge's comment says it is a debug helper for exactly this test page). Without the import, the page could not talk to Python.
+`<script type="module">` starts a block of JavaScript. `type="module"` makes it a module: code that is allowed to bring in other files with `import`, and that may use `await` at its top level. The `import` line brings in the three functions from [`bridge.js`](bridge.js.md) (the `./` means "the same folder as this page"): `loadMechanism` downloads and starts Python, `callPython` calls a Python function and returns its answer, and `evalPython` runs one short Python expression (the bridge's comment says it is a debug helper for exactly this test page). Without the import, the page could not talk to Python.
 
 ```html
 const t0 = performance.now();
@@ -83,20 +83,20 @@ Calls `onStatus` by hand once, with the text "Page opened.". It puts the first b
 try {
   await loadMechanism(onStatus);
 ```
-`try {` begins a safety net: if anything inside fails, the code jumps to the matching `catch` below instead of crashing. Line 26: `await loadMechanism(onStatus);` starts the download of Python and numpy and copies our mechanism files into it. `await` means "pause here until this slow job finishes" (the job returns a Promise, a note that says "the answer will come later"). The `onStatus` function is passed in, so every progress message the bridge announces becomes a bullet. Without `await`, the next lines would run before Python was ready and fail.
+`try {` begins a safety net: if anything inside fails, the code jumps to the matching `catch` below instead of crashing. The next line, `await loadMechanism(onStatus);`, starts the download of Python and numpy and copies our mechanism files into it. `await` means "pause here until this slow job finishes" (the job returns a Promise, a note that says "the answer will come later"). The `onStatus` function is passed in, so every progress message the bridge announces becomes a bullet. Without `await`, the next lines would run before Python was ready and fail.
 
 ```html
   const speed = evalPython('__import__("mechanism.constants", fromlist=["x"]).SPEED_OF_LIGHT_M_PER_S');
   const numpyVersion = evalPython('__import__("numpy").__version__');
 ```
-Asks Python two questions through `evalPython`. Line 27 runs a short Python expression, `__import__("mechanism.constants", fromlist=["x"]).SPEED_OF_LIGHT_M_PER_S`: Python's built-in way to import a module by name, then read one named number from it. The number is 299,792,458 (metres per second). Line 28 reads `numpy.__version__`, the version of the numpy library that Pyodide installed. The answers are stored in `speed` and `numpyVersion`. This checks that Python really started and that our [`constants.py`](../mechanism/constants.py.md) file was copied in correctly.
+Asks Python two questions through `evalPython`. The first line runs a short Python expression, `__import__("mechanism.constants", fromlist=["x"]).SPEED_OF_LIGHT_M_PER_S`: Python's built-in way to import a module by name, then read one named number from it. The number is 299,792,458 (metres per second). The second line reads `numpy.__version__`, the version of the numpy library that Pyodide installed. The answers are stored in `speed` and `numpyVersion`. This checks that Python really started and that our [`constants.py`](../mechanism/constants.py.md) file was copied in correctly.
 
 ```html
   const seconds = ((performance.now() - t0) / 1000).toFixed(2);
   document.getElementById('result-line').textContent =
     'speed of light ' + speed + ' m/s, numpy ' + numpyVersion + ', ready after ' + seconds + ' s';
 ```
-Line 29 works out the total time, with the same arithmetic as before: the stopwatch's milliseconds divided by 1000 and rounded to 2 decimal places (for example 14,230 ms gives "14.23"). Lines 30 and 31 find the `result-line` paragraph and set its words to one sentence joined with `+`: "speed of light 299792458 m/s, numpy <version>, ready after <seconds> s". (The speed shows without commas, because the number arrives from Python as a plain number.) A long statement can be split over two lines; it ends at the semicolon.
+The first line works out the total time, with the same arithmetic as before: the stopwatch's milliseconds divided by 1000 and rounded to 2 decimal places (for example 14,230 ms gives "14.23"). The other two lines find the `result-line` paragraph and set its words to one sentence joined with `+`: "speed of light 299792458 m/s, numpy <version>, ready after <seconds> s". (The speed shows without commas, because the number arrives from Python as a plain number.) A long statement can be split over two lines; it ends at the semicolon.
 
 ```html
 } catch (error) {

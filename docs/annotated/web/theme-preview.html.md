@@ -58,7 +58,7 @@ New to code? See [how to read code](../how-to-read-code.md).
   main { max-width: 960px; margin: 0 auto; padding: var(--s-7) var(--s-5); display: grid; gap: var(--s-5); }
   .grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--s-5); }
 ```
-The page's main block: `main { max-width: 960px; margin: 0 auto; padding: ... }` limits the content to 960 pixels wide, centres it (`margin: 0 auto` means no margin above or below and automatic equal margins left and right), adds padding (`var(--s-7)` is 48 px above and below and `var(--s-5)` is 24 px left and right, both taken from [`theme.css`](theme.css.md)), and `display: grid; gap: var(--s-5)` stacks its children with 24 px between them. Line 14, `.grid`, makes a two-column layout: `grid-template-columns: 1.2fr 1fr` splits the width into 1.2 parts and 1 part (an `fr` is a share of the free space), so at the full 960 px width less 48 px of side padding and 24 px of gap, 888 px is shared: about 484 px and 404 px. Without them the page would be a full-width single column.
+The page's main block: `main { max-width: 960px; margin: 0 auto; padding: ... }` limits the content to 960 pixels wide, centres it (`margin: 0 auto` means no margin above or below and automatic equal margins left and right), adds padding (`var(--s-7)` is 48 px above and below and `var(--s-5)` is 24 px left and right, both taken from [`theme.css`](theme.css.md)), and `display: grid; gap: var(--s-5)` stacks its children with 24 px between them. The second rule, `.grid`, makes a two-column layout: `grid-template-columns: 1.2fr 1fr` splits the width into 1.2 parts and 1 part (an `fr` is a share of the free space), so at the full 960 px width less 48 px of side padding and 24 px of gap, 888 px is shared: about 484 px and 404 px. Without them the page would be a full-width single column.
 
 ```html
   @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
@@ -100,7 +100,7 @@ Three lines in the header. A `<span>` is a small inline piece of text; with `cla
     <button class="btn" id="theme-switch" type="button">Light theme</button>
   </div>
 ```
-Line 30 closes the stack box. Line 31 is the theme button: `<button class="btn" id="theme-switch" type="button">`. `type="button"` says it does nothing by itself (a button inside a form would otherwise submit the form). Its words, "Light theme", are replaced by the script depending on the current theme. `id="theme-switch"` is the name the script uses to find it. Line 32 closes the row. Without the button there would be no way to try the light theme.
+The first line closes the stack box. The second is the theme button: `<button class="btn" id="theme-switch" type="button">`. `type="button"` says it does nothing by itself (a button inside a form would otherwise submit the form). Its words, "Light theme", are replaced by the script depending on the current theme. `id="theme-switch"` is the name the script uses to find it. The last line closes the row. Without the button there would be no way to try the light theme.
 
 ```html
   <div class="grid">
@@ -162,13 +162,13 @@ Three example "fix" marks, circles of radius 10 units that show a calculated pos
           <span class="num" id="clock-value">1.0 µs</span>
         </div>
 ```
-`<label for="clock">Phone clock error</label>` is the slider's name; `for="clock"` connects it to the control with `id="clock"`, so clicking the words works the slider and screen readers read the name when the slider is focused. `<span class="num" id="clock-value">1.0 µs</span>` is the number beside it, in the number font. "µs" is microseconds (millionths of a second), and the 1.0 is the slider's starting value; the script updates it. Line 60 closes the head row.
+`<label for="clock">Phone clock error</label>` is the slider's name; `for="clock"` connects it to the control with `id="clock"`, so clicking the words works the slider and screen readers read the name when the slider is focused. `<span class="num" id="clock-value">1.0 µs</span>` is the number beside it, in the number font. "µs" is microseconds (millionths of a second), and the 1.0 is the slider's starting value; the script updates it. The last line closes the head row.
 
 ```html
         <input id="clock" type="range" min="0" max="10" step="0.1" value="1">
       </div>
 ```
-`<input id="clock" type="range" min="0" max="10" step="0.1" value="1">` is the slider. `type="range"` makes it a slider, `min` and `max` set its ends (0 and 10), `step="0.1"` makes it move in tenths (so 101 positions from 0 to 10) and `value="1"` starts it at 1. Line 62 closes the slider's box. Without it there would be no slider.
+`<input id="clock" type="range" min="0" max="10" step="0.1" value="1">` is the slider. `type="range"` makes it a slider, `min` and `max` set its ends (0 and 10), `step="0.1"` makes it move in tenths (so 101 positions from 0 to 10) and `value="1"` starts it at 1. The last line closes the slider's box. Without it there would be no slider.
 
 ```html
       <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span>Satellite 1</label>
@@ -192,7 +192,7 @@ Three switches. Each `<label class="toggle">` contains a real checkbox (`<input 
         </div>
       </div>
 ```
-A row of three state badges. `<div class="row" style="justify-content: flex-start">` makes a row that packs to the left (the inline `style` overrides the row's usual spread-out setting). Each badge is a `<span class="badge ...">`: `is-ok` (green) says "within 5 m", `is-warn` (amber) "off by tens" and `is-bad` (red) "off by hundreds". Together they show the three colours the real page uses for errors. Lines 75 and 76 close the row and the readout box. (The "5 m" wording is only sample text; the real page uses the limits in [`web/config.js`](config.js.md), 10 m and 100 m.)
+A row of three state badges. `<div class="row" style="justify-content: flex-start">` makes a row that packs to the left (the inline `style` overrides the row's usual spread-out setting). Each badge is a `<span class="badge ...">`: `is-ok` (green) says "within 5 m", `is-warn` (amber) "off by tens" and `is-bad` (red) "off by hundreds". Together they show the three colours the real page uses for errors. The last two lines close the row and the readout box. (The "5 m" wording is only sample text; the real page uses the limits in [`web/config.js`](config.js.md), 10 m and 100 m.)
 
 ```html
       <div class="row" style="justify-content: flex-start">
@@ -201,7 +201,7 @@ A row of three state badges. `<div class="row" style="justify-content: flex-star
       </div>
     </section>
 ```
-The last row holds two buttons: a main one, `<button class="btn btn-primary" type="button">Add fourth satellite</button>` (white fill), and a plain one, `Reset`. They do nothing when pressed except show the hover and press effects from [`theme.css`](theme.css.md). Lines 81 and 82 close the row and the second card.
+The last row holds two buttons: a main one, `<button class="btn btn-primary" type="button">Add fourth satellite</button>` (white fill), and a plain one, `Reset`. They do nothing when pressed except show the hover and press effects from [`theme.css`](theme.css.md). The last two lines close the row and the second card.
 
 ```html
   </div>
@@ -215,14 +215,14 @@ The last row holds two buttons: a main one, `<button class="btn btn-primary" typ
   loadSavedTheme();
   trackPointerLight();
 ```
-Line 86 imports three helper functions from [`theme.js`](theme.js.md): `trackPointerLight` (moves the glow on cards with the pointer), `loadSavedTheme` (reads the remembered theme from the browser's storage and applies it) and `setTheme` (switches theme and remembers it). Line 87 calls `loadSavedTheme()`: if the visitor chose light last time, the page becomes light now; otherwise it stays dark. Line 88 calls `trackPointerLight()`: from now on, when the pointer moves over a card, the glow follows it. Without these the page would never use the saved theme and the glow would never move.
+The first line imports three helper functions from [`theme.js`](theme.js.md): `trackPointerLight` (moves the glow on cards with the pointer), `loadSavedTheme` (reads the remembered theme from the browser's storage and applies it) and `setTheme` (switches theme and remembers it). The second line calls `loadSavedTheme()`: if the visitor chose light last time, the page becomes light now; otherwise it stays dark. The third line calls `trackPointerLight()`: from now on, when the pointer moves over a card, the glow follows it. Without these the page would never use the saved theme and the glow would never move.
 
 ```html
   const button = document.getElementById("theme-switch");
   const label = () => { button.textContent = document.documentElement.dataset.theme === "dark" ? "Light theme" : "Dark theme"; };
   label();
 ```
-Line 89 finds the theme button by its `id`. Line 90 creates a tiny function called `label` that sets the button's words: if the current theme (`document.documentElement.dataset.theme`, the value of `data-theme` on the top `<html>` tag) is "dark" the button says "Light theme" (what pressing it would give you); otherwise it says "Dark theme". The `? :` is a short if-else: condition, then the value if true, then the value if false. Line 91 calls it once so the button's words are right when the page opens. Without it the button would keep its starting words even when a saved light theme is loaded.
+The first line finds the theme button by its `id`. The second line creates a tiny function called `label` that sets the button's words: if the current theme (`document.documentElement.dataset.theme`, the value of `data-theme` on the top `<html>` tag) is "dark" the button says "Light theme" (what pressing it would give you); otherwise it says "Dark theme". The `? :` is a short if-else: condition, then the value if true, then the value if false. The third line calls it once so the button's words are right when the page opens. Without it the button would keep its starting words even when a saved light theme is loaded.
 
 ```html
   button.addEventListener("click", () => {
@@ -230,14 +230,14 @@ Line 89 finds the theme button by its `id`. Line 90 creates a tiny function call
     label();
   });
 ```
-Lines 92 to 95 add an event listener to the button: a function that waits for something to happen (here a `click`) and then runs. When clicked it calls `setTheme(...)` with the opposite theme (if the current one is "dark" then "light", otherwise "dark"), which updates `data-theme` on the page and saves the choice in the browser, and then calls `label()` to update the button words. The `() => { ... }` is an arrow function, a short way to write a nameless function. Without it the button would not do anything.
+These lines add an event listener to the button: a function that waits for something to happen (here a `click`) and then runs. When clicked it calls `setTheme(...)` with the opposite theme (if the current one is "dark" then "light", otherwise "dark"), which updates `data-theme` on the page and saves the choice in the browser, and then calls `label()` to update the button words. The `() => { ... }` is an arrow function, a short way to write a nameless function. Without it the button would not do anything.
 
 ```html
   // Preview only: shows the slider value, does no GPS maths.
   const clock = document.getElementById("clock");
   clock.addEventListener("input", () => { document.getElementById("clock-value").textContent = `${Number(clock.value).toFixed(1)} µs`; });
 ```
-A comment (`//` makes the rest of the line a note) saying this part is preview only: it shows the slider value and does no GPS maths. Line 97 finds the slider by its `id`. Line 98 adds an `input` event listener: the `input` event fires continuously while the slider is dragged. Each time, it takes the slider's `value` (a piece of text like "2.5"), turns it into a number with `Number(...)`, rounds it to one decimal place with `.toFixed(1)` and writes it plus " µs" into the `clock-value` span using a template string (words in backticks with `${...}` holes for values). Worked example: dragging to 7 shows "7.0 µs"; dragging to 2.5 shows "2.5 µs". Without it the number beside the slider would stay at "1.0 µs".
+A comment (`//` makes the rest of the line a note) saying this part is preview only: it shows the slider value and does no GPS maths. The next line finds the slider by its `id`. The last line adds an `input` event listener: the `input` event fires continuously while the slider is dragged. Each time, it takes the slider's `value` (a piece of text like "2.5"), turns it into a number with `Number(...)`, rounds it to one decimal place with `.toFixed(1)` and writes it plus " µs" into the `clock-value` span using a template string (words in backticks with `${...}` holes for values). Worked example: dragging to 7 shows "7.0 µs"; dragging to 2.5 shows "2.5 µs". Without it the number beside the slider would stay at "1.0 µs".
 
 ```html
 </script>

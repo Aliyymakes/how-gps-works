@@ -337,7 +337,7 @@ A comment, then the on/off switch (a checkbox dressed as a switch). `.toggle` is
   transition: transform var(--dur-small) var(--ease-out), background-color var(--dur-small) ease;
 }
 ```
-`.toggle-track::after` is the knob, an extra part drawn inside the track (after its contents). `content: ""` creates it; `position: absolute` with `top: 3px; left: 3px` places it 3 px from the top-left of the track; the rest of line 168 gives it its size, 18 px by 18 px. It is round, grey (`--text-muted`) when off, and `transition` makes it slide and change colour smoothly (0.18 s). Check the fit: the track is 24 px tall, so 3 px + 18 px + 3 px = 24 px: the knob has equal gaps above and below. Without it there would be no knob.
+`.toggle-track::after` is the knob, an extra part drawn inside the track (after its contents). `content: ""` creates it; `position: absolute` with `top: 3px; left: 3px` places it 3 px from the top-left of the track; `width: 18px; height: 18px` gives it its size, 18 px by 18 px. It is round, grey (`--text-muted`) when off, and `transition` makes it slide and change colour smoothly (0.18 s). Check the fit: the track is 24 px tall, so 3 px + 18 px + 3 px = 24 px: the knob has equal gaps above and below. Without it there would be no knob.
 
 ```css
 .toggle input:checked + .toggle-track { background: var(--accent); }

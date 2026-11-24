@@ -3,13 +3,13 @@
 Source: `mechanism/mapview.py`
 
 ## What this file is for
-The page shows a small flat map of the ground around the phone, 2 kilometres wide by default. Each satellite gives the phone one measured distance, and that distance draws one circle on the ground. This file works out those circles, in metres east and north of the true phone position, ready for the page to draw. It also converts a single point into the same east, north, up metres.
+The page shows a small flat map of the ground around the phone, 2 kilometres wide by default. Each satellite gives the phone one measured distance, and that distance draws one circle on the ground (the page calls the part of a circle that crosses the map a "distance line"). This file works out those circles, in metres east and north of the true phone position, ready for the page to draw. It also converts a single point into the same east, north, up metres.
 
 ## Which files it talks to
 - `mechanism/constants.py`: gives the speed of light, used to turn a clock error in seconds into metres.
 - `mechanism/coords.py`: gives the phone's x, y, z position (`latlon_to_xyz`) and the east, north and up directions (`_local_directions`).
 - The page code in `web/` receives the output (see `docs/interface.md`: lists with `id`, `points` and `inside`).
-- Basics of reading code are in `docs/annotated/how-to-read-code.md`.
+- Basics of reading code are in [how to read code](../how-to-read-code.md).
 
 ## In three lines
 1. Every satellite position is turned into east, north, up metres around the true phone (`to_local`, `_local`).

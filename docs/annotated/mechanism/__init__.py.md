@@ -15,5 +15,7 @@ This file is empty on purpose. In Python, a folder that holds code files is trea
 2. It has no lines of code, so there is nothing to run.
 3. Deleting it could break `from mechanism.xxx import ...` lines in some setups, so it stays.
 
+New to code? See [how to read code](../how-to-read-code.md).
+
 ## The code, line by line
 The file has no lines, so there is nothing to explain here.

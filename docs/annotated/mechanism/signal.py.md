@@ -3,7 +3,7 @@
 Source: `mechanism/signal.py`
 
 ## What this file is for
-Every GPS satellite sends its own long repeating pattern of +1 and -1 values, called its C/A code. This file makes that pattern, makes a noisy copy of it that arrives late (like a phone would hear it), and then works out how late the copy is by trying every possible delay. That delay is what later turns into a distance. If you have never read code, start with `docs/annotated/how-to-read-code.md`.
+Every GPS satellite sends its own long repeating pattern of +1 and -1 values, called its C/A code. This file makes that pattern, makes a noisy copy of it that arrives late (like a phone would hear it), and then works out how late the copy is by trying every possible delay. That delay is what later turns into a distance. If you have never read code, start with [how to read code](../how-to-read-code.md).
 
 ## Which files it talks to
 - `numpy` (an add-on library for fast number lists): used for shifting lists, random noise and multiplying lists together.

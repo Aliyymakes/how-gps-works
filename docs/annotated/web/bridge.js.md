@@ -7,7 +7,7 @@ The page is written in JavaScript, but all the position maths is written in Pyth
 
 ## Which files it talks to
 - [`mechanism/__init__.py`](../mechanism/__init__.py.md), [`constants.py`](../mechanism/constants.py.md), [`coords.py`](../mechanism/coords.py.md), [`scenario.py`](../mechanism/scenario.py.md), [`solver.py`](../mechanism/solver.py.md), [`mapview.py`](../mechanism/mapview.py.md), [`geometry.py`](../mechanism/geometry.py.md), [`signal.py`](../mechanism/signal.py.md), [`relativity.py`](../mechanism/relativity.py.md): all nine are downloaded and copied into Python's file system (see the list at the top of the file). Which one runs is decided by the text the page passes to `callPython`.
-- [`web/startup.js`](startup.js.md): loads this file (inside `loadBridge()`, which `attempt()` runs) and hands the page its `callPython`. See the page-side contract in `docs/interface.md` ("The page side").
+- [`web/startup.js`](startup.js.md): loads this file (inside `loadBridge()`, which `attempt()` runs) and hands the page its `callPython`. The agreed rules for this (the "contract") are in `docs/interface.md` ("The page side").
 - [`web/first-screen.js`](first-screen.js.md), [`web/step-geometry.js`](step-geometry.js.md), [`web/step-signal.js`](step-signal.js.md), [`web/step-relativity.js`](step-relativity.js.md): every call from the page to Python goes through `callPython`, for example `solver.solve_position` ([solver.py explained](../mechanism/solver.py.md)), `coords.latlon_to_xyz` ([coords.py](../mechanism/coords.py.md)) and `mapview.distance_lines` ([mapview.py](../mechanism/mapview.py.md)).
 - [`web/bridge-test.html`](bridge-test.html.md): the test page that uses `evalPython`.
 - [`index.html`](../index.html.md): repeats the Pyodide web address in a `<link rel="modulepreload">` so the download can start early. See [index.html explained](../index.html.md).
@@ -35,7 +35,7 @@ New to code? See [how to read code](../how-to-read-code.md).
 // loadMechanism(onStatus) loads everything; callPython("module.function", [args]) calls it.
 // Contract: docs/interface.md ("The page side").
 ```
-A comment block (lines starting `//` are notes for people; the computer skips them). It says this file is the bridge between the page (JavaScript) and the Python mechanism (Pyodide), names the two functions the rest of the page uses, and points to the written contract in `docs/interface.md`. Nothing breaks if they are removed.
+A comment block (lines starting `//` are notes for people; the computer skips them). It says this file is the bridge between the page (JavaScript) and the Python mechanism (Pyodide), names the two functions the rest of the page uses, and points to `docs/interface.md`, the team's written agreement on what the page may ask Python for and what comes back (the "contract"). Nothing breaks if they are removed.
 
 ```js
 // Pinned Pyodide version (ships Python 3.14.2). index.html repeats this address in its
@@ -154,7 +154,7 @@ Starts `tell`, a helper that announces one progress sentence (`text`).
 ```js
   latestText = text;
 ```
-Stores the sentence in `latestText`, so later callers can be given it (see line 25).
+Stores the sentence in `latestText`, so later callers can be given it (`loadMechanism` above hands it to a caller who joins late).
 
 ```js
   for (const listener of listeners) listener(text);
@@ -239,7 +239,7 @@ Starts all nine downloads at once: `MECHANISM_FILES.map(fetchText)` calls `fetch
 ```js
   sources.catch(() => {}); // the failure is reported where the result is awaited below
 ```
-Adds a do-nothing failure handler `.catch(() => {})`. Reason (from the comment): if a file fails while Pyodide is still downloading, nobody is waiting on the promise yet, and the browser would print a stray "unhandled error" warning. This line quietens that. The real failure is still reported, at line 60 where `await sources` happens.
+Adds a do-nothing failure handler `.catch(() => {})`. Reason (from the comment): if a file fails while Pyodide is still downloading, nobody is waiting on the promise yet, and the browser would print a stray "unhandled error" warning. This line quietens that. The real failure is still reported, further down, where `await sources` happens.
 
 ```js
   const { loadPyodide } = await import(PYODIDE_BASE + 'pyodide.mjs');
@@ -264,7 +264,7 @@ Waits for the nine files to finish arriving (`await sources`). `texts` is a list
 ```js
   pyodide.FS.mkdirTree(MECHANISM_DIR);
 ```
-Creates the folder `/home/pyodide/mechanism` inside the pretend disk. `FS` is the file system. `mkdirTree` makes the folder and any missing folders above it, like `mkdir -p`. Without it, writing the files below would fail because the folder would not exist.
+Creates the folder `/home/pyodide/mechanism` inside the pretend disk. `FS` is the file system. `mkdirTree` makes the folder and any missing folders above it. Without it, writing the files below would fail because the folder would not exist.
 
 ```js
   MECHANISM_FILES.forEach((name, i) => pyodide.FS.writeFile(MECHANISM_DIR + '/' + name, texts[i]));
@@ -289,12 +289,12 @@ A comment saying what the next block of Python does: import the module, call the
 ```js
   pyodide.runPython(`
 ```
-`pyodide.runPython(` followed by a backtick starts the next piece of Python. The backtick quotes make a "template string": text that may span many lines. Everything until the closing backtick on line 80 is Python code, not JavaScript. It is run once, right now, and defines a Python function that stays available inside Pyodide for later.
+`pyodide.runPython(` followed by a backtick starts the next piece of Python. The backtick quotes make a "template string": text that may span many lines. Everything from here to the closing backtick, a few blocks further down, is Python code, not JavaScript. It is run once, right now, and defines a Python function that stays available inside Pyodide for later.
 
 ```js
 import importlib, json
 ```
-Python (inside the text). Line 68 is a Python statement that brings in two of Python's built-in toolboxes. `importlib` can import a module when we only know its name as text. `json` converts to and from JSON text. Without them the function below could not work.
+Python (inside the text). This statement brings in two of Python's built-in toolboxes. `importlib` can import a module when we only know its name as text. `json` converts to and from JSON text. Without them the function below could not work.
 
 ```js
 def _bridge_call(target, args_json):
@@ -349,7 +349,7 @@ Python. The real call, read from the inside out. `json.loads(args_json)` turns t
 ```js
 `);
 ```
-JavaScript again. The backtick closes the template string and `)` closes the `runPython` call. Python now has a function `_bridge_call` that stays in Python's global names for later.
+JavaScript again. The backtick closes the template string and `)` closes the `runPython` call. Python now has a function `_bridge_call` that stays available inside Python for every later call.
 
 ```js
   tell('Ready.');
@@ -374,7 +374,7 @@ Safety check: if `pyodide` is still `null`, loading has not finished, so stop wi
 ```js
   const bridgeCall = pyodide.globals.get('_bridge_call');
 ```
-`pyodide.globals.get('_bridge_call')` fetches the Python helper function (defined at lines 70 to 79) as an object JavaScript can call. It is called `bridgeCall`. This object is a handle (a "proxy") to something that lives in Python's memory.
+`pyodide.globals.get('_bridge_call')` fetches the Python helper function (`_bridge_call`, defined in the Python text above) as an object JavaScript can call. It is called `bridgeCall`. This object is a handle (a "proxy") to something that lives in Python's memory.
 
 ```js
   try {

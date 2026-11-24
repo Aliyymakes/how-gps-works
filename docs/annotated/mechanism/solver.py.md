@@ -8,13 +8,13 @@ This is the heart of the page: it works out where the phone is. It is given wher
 ## Which files it talks to
 - `mechanism/constants.py`: gives `SPEED_OF_LIGHT_M_PER_S`, used to turn the clock error from metres into seconds.
 - `mechanism/relativity.py`: calls `solve_position` twice, once trusting the clock and once solving for it.
-- `web/first-screen.js` and `web/step-geometry.js`: call `solve_position` (through the bridge) with the satellites and the measured distances from the page.
+- `web/first-screen.js` and `web/step-geometry.js`: call `solve_position` (through the bridge, [`web/bridge.js`](../web/bridge.js.md), the go-between that lets the page run Python) with the satellites and the measured distances from the page.
 - The numbers it receives come from `mechanism/scenario.py` (`make_pseudoranges`). The exact input and output shapes are in `docs/interface.md`.
 - It uses two outside tools: `math` (square root) and `numpy` (the "best fit" maths).
 
 ## In three lines
 1. Guess a position (start at the Earth's centre), and for each satellite compare the distance we would expect from the guess with the distance measured.
-2. Use least squares to find the one small move (and clock change) that best shrinks all those differences together.
+2. Use least squares (a way of finding the best fit) to find the one small move (and clock change) that best shrinks all those differences together.
 3. Move the guess, save it, and repeat until the move is under 1 mm or 20 guesses are saved.
 
 New to code? See [how to read code](../how-to-read-code.md).
@@ -64,7 +64,7 @@ A docstring explaining the helper: it makes a record using plain Python numbers 
 ```python
     return {
 ```
-Hands back a result and begins a "dictionary": a set of labelled values written with curly brackets. Each line inside is `label: value`.
+Hands back a result and begins a "dictionary": a set of labelled values written with curly brackets (the primer calls it a [dict](../how-to-read-code.md#a-dict-python-or-object-javascript)). Each line inside is `label: value`.
 
 ```python
         "x_m": float(x),
@@ -200,7 +200,9 @@ Adds this satellite's error to the `errors` list: what was measured minus what w
             # Find how changing x, y, and z would change the distance.
             row = [dx / distance, dy / distance, dz / distance]
 ```
-Builds one row of the "changes" table (what maths books call the Jacobian). Each number says how much this satellite's distance changes if we move the guess by 1 m in that direction. For a straight-line distance that is simply the gap divided by the distance, a number between -1 and 1. Worked example with the gaps above: -20,000,000 / 24,494,897.43 = -0.8165, -10,000,000 / 24,494,897.43 = -0.4082, and the same -0.4082 for z. So the row is [-0.8165, -0.4082, -0.4082]. Moving 1 m in the +x direction (towards the satellite) shortens the distance by about 0.8165 m, so the number is negative. Without this the solver would not know which way to move.
+Builds one row of the "changes" table (what maths books call the Jacobian). Each number says how much this satellite's distance changes if we move the guess by 1 m in that direction. For a straight-line distance that is simply the gap divided by the distance, a number between -1 and 1.
+
+Worked example with the gaps above: -20,000,000 / 24,494,897.43 = -0.8165, -10,000,000 / 24,494,897.43 = -0.4082, and the same -0.4082 for z. So the row is [-0.8165, -0.4082, -0.4082]. Moving 1 m in the +x direction (towards the satellite) shortens the distance by about 0.8165 m, so the number is negative. Without this the solver would not know which way to move.
 
 ```python
             if solve_clock:
@@ -222,7 +224,9 @@ Adds this satellite's row to the `changes` list. After the inner loop, `changes`
         # Find the small movement that best reduces all the errors.
         correction, _, rank, _ = np.linalg.lstsq(changes, errors, rcond=None)
 ```
-The key step: least squares. The idea: we want a move that fixes every satellite's error at once, but the errors disagree a little, so one perfect move may not exist. Least squares finds the move whose leftover errors, squared and added up, are as small as possible. `np.linalg.lstsq` hands back four things; we keep two (the `_` names mean "ignore this"): `correction` (the move) and `rank` (how many of the unknowns the satellites can actually pin down). `rcond=None` just asks numpy to use its normal default setting.
+The key step: least squares. The idea: we want a move that fixes every satellite's error at once, but the errors disagree a little, so one perfect move may not exist. Least squares finds the move whose leftover errors, squared and added up, are as small as possible.
+
+`np.linalg.lstsq` hands back four things; we keep two (the `_` names mean "ignore this"): `correction` (the move) and `rank` (how many of the unknowns the satellites can actually pin down). `rcond=None` just asks numpy to use its normal default setting.
 
 Small worked example with made-up numbers: two unknowns and three equations, `changes` = [[1, 0], [0, 1], [1, 1]] and `errors` = [1, 2, 2.9]. The first row says the first unknown should be 1, the second says the second should be 2, the third says they should sum to 2.9, and 1 + 2 = 3 does not quite match 2.9. Least squares gives [0.9667, 1.9667]: it spreads the 0.1 disagreement across the three equations. For the real case, there is one row per satellite and the unknowns are x, y, z (and the clock). Without this line there would be no way to turn the errors into a move.
 
@@ -260,7 +264,9 @@ Saves the improved guess at the end of the `steps` list, so the page can replay 
         # Stop if the position and clock corrections are tiny (under 1 mm).
         if np.linalg.norm(correction) < STOP_WHEN_CHANGE_IS_SMALLER_THAN:
 ```
-Checks whether the guess has settled. `np.linalg.norm` gives the overall size of the correction (every number squared, added, then square-rooted, like Pythagoras for a longer list of numbers). It is compared with 0.001 m. Note the size mixes the position moves and the clock move, all in metres. Worked example: a correction of [0.0003, 0.0004, 0, 0] has size sqrt(0.0003 squared + 0.0004 squared) = 0.0005 m, which is under 0.001, so we stop. A correction of [0.5, 0.4, 0.2, 0.1] has size 0.678 m, so we go round again. A correction of exactly 0.001 does not count, because the test is "smaller than".
+Checks whether the guess has settled. `np.linalg.norm` gives the overall size of the correction (every number squared, added, then square-rooted, like Pythagoras for a longer list of numbers). It is compared with 0.001 m. Note the size mixes the position moves and the clock move, all in metres.
+
+Worked example: a correction of [0.0003, 0.0004, 0, 0] has size sqrt(0.0003 squared + 0.0004 squared) = 0.0005 m, which is under 0.001, so we stop. A correction of [0.5, 0.4, 0.2, 0.1] has size 0.678 m, so we go round again. A correction of exactly 0.001 does not count, because the test is "smaller than".
 
 ```python
             converged = True

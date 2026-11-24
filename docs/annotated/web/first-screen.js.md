@@ -3,7 +3,7 @@
 Source: `web/first-screen.js`
 
 ## What this file is for
-This is the code behind the first screen of the page: a clock slider, a "solve" button, four satellite switches and a small ground map. It reads what the visitor does, asks the Python mechanism for the numbers, and draws the answer: lines on the map, a dot, a readout in metres and plain sentences. It does no satellite maths of its own.
+This is the code behind the first screen of the page: a clock slider, a "solve" button, four satellite switches and a small ground map. It reads what the visitor does, asks the Python mechanism for the numbers, and draws the answer: distance lines on the map, a dot, a readout in metres and plain sentences. A distance line is the line of places on the ground that fit one satellite's measured distance, and the dot is where the phone thinks it is. It does no satellite maths of its own.
 
 ## Which files it talks to
 - [`web/theme.js`](theme.js.md): gives `loadSavedTheme` (light or dark look) and `trackPointerLight` (a soft glow that follows the mouse over cards).
@@ -68,7 +68,7 @@ The map is drawn in a square that is 400 units wide and 400 units tall (the comm
 ```js
 const $ = (id) => document.getElementById(id);
 ```
-Makes a tiny shortcut named `$`. `$("clock")` means "find the element on the page whose `id` is `clock`". The DOM is the browser's live model of the page: every heading, button and slider is an element in it, and `document.getElementById` fetches one by its `id` (a unique name written in [`index.html`](../index.html.md)). The `(id) => ...` part is a short way to write a function: it takes `id` and hands back the element. Without it every lookup would be written out in full.
+Makes a tiny shortcut named `$`. `$("clock")` means "find the element on the page whose `id` is `clock`". Every heading, button and slider on the page is an element, and the browser keeps a live model of all of them (programmers call it the DOM). `document.getElementById` fetches one element from that model by its `id` (a unique name written in [`index.html`](../index.html.md)). The `(id) => ...` part is a short way to write a function: it takes `id` and hands back the element. Without it every lookup would be written out in full.
 
 ```js
 const el = {
@@ -78,7 +78,11 @@ const el = {
   msgSlider: $("msg-slider"), msgReadout: $("msg-readout"), msgSolve: $("msg-solve"), msgSwitch: $("msg-switch"), msgReset: $("msg-reset"),
 };
 ```
-One object named `el` (short for "elements") that collects every element this file needs, looked up once so the code can reuse it. An object is a set of labelled values, here `name: value` pairs. Reading the lines in order: the status line, the clock slider, the text that shows the slider value, the error number, the good/bad badge, the solve and reset buttons, the box holding the satellite switches, the box that will hold the distance lines, the whole map, the dot that marks the phone's position, and the line of words under the map. The last line holds the five message lines (under the slider, under the readout, under the solve button, under the switches, under reset). If an `id` is misspelled, the lookup gives `null` and the first use of that element would fail.
+One object named `el` (short for "elements") that collects every element this file needs, looked up once so the code can reuse it. An object is a set of labelled values, here `name: value` pairs.
+
+Reading the lines in order: the status line, the clock slider, the text that shows the slider value, the error number, the good/bad badge, the solve and reset buttons, the box holding the satellite switches, the box that will hold the distance lines, the whole map, the dot that marks the phone's position, and the line of words under the map. The last line holds the five message lines (under the slider, under the readout, under the solve button, under the switches, under reset).
+
+If an `id` is misspelled, the lookup gives `null` and the first use of that element would fail.
 
 ```js
 let callPython = null; // set when the bridge has loaded
@@ -128,7 +132,7 @@ Which hint is showing in the guided path: 1 for the slider, 2 for the solve butt
 ```js
 const lastPoints = new Map(); // pixel points last drawn for each distance line, by id
 ```
-A `Map`, which is like a dictionary: it stores a value under a key. Here the key is a satellite's id and the value is the list of map points that were last drawn for its distance line. It is kept so that the glide knows where each line was before. `new Map()` makes an empty one.
+A `Map` (with a capital M) is JavaScript's built-in lookup table: it stores a value under a key, much like the dict in the [primer](../how-to-read-code.md#a-dict-python-or-object-javascript). It has nothing to do with the ground map on the page, or with the `.map(...)` used above, which makes a new list from an old one. Here the key is a satellite's id and the value is the list of map points that were last drawn for its distance line. It is kept so that the glide knows where each line was before. `new Map()` makes an empty one.
 
 ```js
 let lastDot = null; // pixel position of the dot, or null while it is hidden
@@ -138,7 +142,7 @@ The map position of the dot as last drawn, `{ x, y }`, or `null` while the dot i
 ```js
 let glideFrame = 0;
 ```
-A number that remembers the id of the next animation frame the glide has asked for (0 means none). It is needed so the glide can be stopped half way.
+The browser redraws the screen many times a second, and each redraw is called a frame. The glide (the short animation in which the lines slide together) asks the browser for one frame at a time. This number remembers the ticket number of the frame it last asked for (0 means none). It is needed so the glide can be stopped half way.
 
 ```js
 let glideFinish = null; // draws the end of a running glide at once
@@ -273,7 +277,11 @@ Writes the slider's current clock value as text next to it (`showClockValue`, de
     label.innerHTML = '<input type="checkbox" checked disabled><span class="toggle-track"></span>';
     label.append(`Satellite ${sat.id}`);
 ```
-Makes one switch for each satellite. `forEach` runs the steps once per satellite, with its position number `index` (0 to 3). `document.createElement("label")` creates a new, empty `<label>` element in memory. `label.className = "toggle"` gives it a class, a name the stylesheet uses to style it. `label.innerHTML = ...` fills it with HTML text: a checkbox that starts `checked` and `disabled` (not usable until Python is ready), followed by an empty `<span>` that the stylesheet draws as the switch track. `label.append(...)` adds the text, such as `Satellite 1`, after them. The backticks `` ` `` make a template string: `${sat.id}` is replaced by the id.
+Makes one switch for each satellite. `forEach` runs the steps once per satellite, with its position number `index` (0 to 3).
+
+`document.createElement("label")` creates a new, empty `<label>` element in memory. `label.className = "toggle"` gives it a class, a name the stylesheet uses to style it. `label.innerHTML = ...` fills it with HTML text: a checkbox that starts `checked` and `disabled` (not usable until Python is ready), followed by an empty `<span>` that the stylesheet draws as the switch track. `label.append(...)` adds the text, such as `Satellite 1`, after them.
+
+The backticks `` ` `` make a template string: `${sat.id}` is replaced by the id.
 
 ```js
     label.querySelector("input").addEventListener("change", (event) => {
@@ -359,7 +367,7 @@ Then `showMode()` and `showClockValue()` refresh the button and the text, and `u
 // The solve button shows which mode the page is in (design: a state, not the next action, once solved).
 function showMode() {
 ```
-The comment says the solve button shows which mode the page is in, as a state rather than as the next action, once solved. Then `showMode` starts.
+The comment explains a design choice. Before it is pressed, the button's words invite an action. Once pressed, its words describe what the phone is now doing, so the button shows which mode the page is in. Then `showMode` starts.
 
 ```js
   const solved = state.mode === "solved";
@@ -471,7 +479,7 @@ Checks whether enough satellites are on. `solveClock ? 4 : 3` is 4 when solving 
   const ranges = await callPython("scenario.make_pseudoranges", [receiverPoint, sats, state.clockErrorS]);
   if (failed(ranges, slot)) return;
 ```
-Asks Python for the measured distances: `scenario.make_pseudoranges` gets the phone's true position, the satellites that are on, and the clock error in seconds, and returns one measured distance (in metres) per satellite. A pseudorange is a distance that includes the clock error. See [scenario.py](../mechanism/scenario.py.md). Then `failed(ranges, slot)` checks for an error answer. If so it shows the message and the code stops with `return`.
+Asks Python for the measured distances: `scenario.make_pseudoranges` gets the phone's true position, the satellites that are on, and the clock error in seconds, and returns one measured distance (in metres) per satellite. "Pseudorange" is the technical name for such a measured distance: it includes the clock error, so it is not the true distance. See [scenario.py](../mechanism/scenario.py.md). Then `failed(ranges, slot)` checks for an error answer. If so it shows the message and the code stops with `return`.
 
 ```js
   const solution = await callPython("solver.solve_position", [sats, ranges, solveClock]);
@@ -492,7 +500,11 @@ Takes the phone's latitude and longitude again, and picks the solved x, y, z out
   const lines = await callPython("mapview.distance_lines", [lat_deg, lon_deg, sats, ranges, assumedClockS, config.mapHalfWidthM, config.lineSamples]);
   if (failed(lines, slot)) return;
 ```
-`assumedClockS` is the clock error the page tells Python to subtract when drawing the lines: Python's solved clock error when solving, otherwise 0 (the phone trusts its clock). Then `mapview.distance_lines` is asked for the lines: for each satellite, the points on the ground where its measured distance would put the phone. Its inputs are the phone's latitude and longitude, the satellites, the distances, `assumedClockS`, the map half-width (1000 m) and the number of sample points (40). Python spreads those 40 points along the part of each line near the map and keeps only the ones that land inside it, so a line comes back with fewer points (with the page's numbers, 26 to 32) or none. It returns one entry per satellite with `id`, `points` and `inside`. See [mapview.py](../mechanism/mapview.py.md). Another error check follows.
+`assumedClockS` is the clock error the page tells Python to subtract when drawing the lines: Python's solved clock error when solving, otherwise 0 (the phone trusts its clock).
+
+Then `mapview.distance_lines` is asked for the distance lines: for each satellite, the points on the ground where its measured distance would put the phone. Its inputs are the phone's latitude and longitude, the satellites, the distances, `assumedClockS`, the map half-width (1000 m) and the number of sample points (40).
+
+Python spreads those 40 points along the part of each line near the map and keeps only the ones that land inside it, so a line comes back with fewer points (with the page's numbers, 26 to 32) or none. It returns one entry per satellite with `id`, `points` and `inside`. See [mapview.py](../mechanism/mapview.py.md). Another error check follows.
 
 ```js
   const errorM = Math.hypot(local.east_m, local.north_m, local.up_m);
@@ -500,7 +512,9 @@ Takes the phone's latitude and longitude again, and picks the solved x, y, z out
   requestAnimationFrame(() => draw(lines, local, errorM, animate));
   showWords(solution, errorM, solveClock);
 ```
-`Math.hypot(a, b, c)` gives the straight-line length sqrt(a squared + b squared + c squared), here the size of the position error. Worked example: east 3, north 4, up 12 gives sqrt(9 + 16 + 144) = sqrt(169) = 13 m. `animate` is `true` only when the cause is `"solve"` and the newest press was a real mouse or touch press with motion allowed. `requestAnimationFrame(callback)` asks the browser to run the callback just before it next paints the screen, which keeps drawing smooth and in step with the display. So `draw` runs in the next frame. `showWords` writes the sentences.
+`Math.hypot(a, b, c)` gives the straight-line length sqrt(a squared + b squared + c squared), here the size of the position error. Worked example: east 3, north 4, up 12 gives sqrt(9 + 16 + 144) = sqrt(169) = 13 m.
+
+`animate` is `true` only when the cause is `"solve"` and the newest press was a real mouse or touch press with motion allowed. `requestAnimationFrame(...)` is given a function and asks the browser to run it just before the next time it redraws the screen (the next frame), which keeps drawing smooth and in step with the display. So `draw` runs in the next frame. `showWords` writes the sentences.
 
 ```js
   if (guideStep === 1 && !solveClock && errorLevel(errorM) !== "ok") nextGuideStep();
@@ -616,7 +630,7 @@ function showWords(solution, errorM, solveClock) {
       : "The phone trusts its clock, so the distance lines miss each other.");
   }
 ```
-Otherwise (the phone trusts its clock) the readout line says `The distance lines meet at the dot.` when the error level is `"ok"`, or `The phone trusts its clock, so the distance lines miss each other.` otherwise. The nested `? :` picks one of two sentences.
+Otherwise (the phone trusts its clock) the readout line says `The distance lines meet at the dot.` when the error level is `"ok"`, or `The phone trusts its clock, so the distance lines miss each other.` otherwise. The `? :` picks one of two sentences.
 
 ```js
   if (solution.converged === false) say(el.msgReadout, "The solver did not settle on an answer.");
@@ -661,7 +675,7 @@ function errorLevel(errorM) {
 ```js
 const levelWords = { ok: "Good fix", warn: "Fix is off", bad: "Fix is far off" };
 ```
-A lookup table from each level word to the badge words shown to the visitor: `Good fix`, `Fix is off`, `Fix is far off`.
+A lookup table from each level word to the badge words shown to the visitor: `Good fix`, `Fix is off`, `Fix is far off`. A "fix" is the position the phone works out.
 
 ```js
 function toPixelX(east_m) { return (east_m + config.mapHalfWidthM) * MAP_SIZE / (2 * config.mapHalfWidthM); }
@@ -681,7 +695,7 @@ function draw(lines, local, errorM, animate = false) {
   const fromDot = lastDot;
   drawLines(lines);
 ```
-`new Map(lastPoints)` copies where each line was last drawn, and `lastDot` copies where the dot was, before they change, so a glide can start from there. Then `drawLines(lines)` draws the new lines. The next line names the error level.
+`new Map(lastPoints)` copies where each line was last drawn, and `lastDot` copies where the dot was, before they change, so a glide can start from there. Then `drawLines(lines)` draws the new lines.
 
 ```js
   const level = errorLevel(errorM);
@@ -689,7 +703,7 @@ function draw(lines, local, errorM, animate = false) {
   const y = toPixelY(local.north_m);
   const inside = x >= 0 && x <= MAP_SIZE && y >= 0 && y <= MAP_SIZE;
 ```
-Works out the dot's map pixel position with the two scaling functions, and `inside` is `true` when both are between 0 and 400 (`&&` is "and"), so the dot is on the map. Worked example: 3 m east and 4 m north gives x = 1003 x 400 / 2000 = 200.6 and y = 996 x 400 / 2000 = 199.2, so `inside` is `true`.
+`level` is the error level word (`ok`, `warn` or `bad`). The next two lines work out the dot's map pixel position with the two scaling functions, and `inside` is `true` when both are between 0 and 400 (`&&` is "and"), so the dot is on the map. Worked example: 3 m east and 4 m north gives x = 1003 x 400 / 2000 = 200.6 and y = 996 x 400 / 2000 = 199.2, so `inside` is `true`.
 
 ```js
   el.dot.style.display = inside ? "" : "none";
@@ -817,7 +831,7 @@ function glide(fromLines, toLines, fromDot, toDot) {
   const start = performance.now();
   const blend = (from, to, e) => from + (to - from) * e;
 ```
-A comment says the glide moves the lines and the dot from their old places to the new ones over 450 ms (ease-out), so the visitor sees the lines come together. `glide` takes the old and new lines and dots. `performance.now()` is the browser's clock in milliseconds, saved as `start`. `blend(from, to, e)` returns a point `e` of the way between two numbers: when `e` is 0 it is `from`, when 1 it is `to`. Worked example: `blend(200, 300, 0.5)` is 200 + (300 - 200) x 0.5 = 250.
+A comment says the glide moves the lines and the dot from their old places to the new ones over 450 ms (450 thousandths of a second), fast at first and slowing at the end (this is called ease-out), so the visitor sees the lines come together. `glide` takes the old and new lines and dots. `performance.now()` is the browser's clock in milliseconds, saved as `start`. `blend(from, to, e)` returns a point `e` of the way between two numbers: when `e` is 0 it is `from`, when 1 it is `to`. Worked example: `blend(200, 300, 0.5)` is 200 + (300 - 200) x 0.5 = 250.
 
 ```js
   function show(e) {
@@ -945,7 +959,7 @@ Goes through the four hints and the step each belongs to (`hint-1` is step 1, `h
   }
 }
 ```
-If this hint is to be shown, `void node.offsetWidth;` reads a layout value and throws it away. That forces the browser to notice the hint at opacity 0 first, so that adding `is-shown` (which makes it fully visible) then fades it in instead of showing it at once. Without it there would be no fade. The braces end the `if`, the loop and the function.
+If this hint is to be shown, `void node.offsetWidth;` asks the browser how wide the hint is and throws the answer away. Asking forces the browser to notice the hint while it is still fully see-through (opacity 0), so that adding `is-shown` (which makes it fully visible) then fades it in instead of showing it at once. Without it there would be no fade. The braces end the `if`, the loop and the function.
 
 ```js
 function nextGuideStep() {

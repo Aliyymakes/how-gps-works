@@ -7,14 +7,14 @@ This is the page itself, the one file a visitor opens. It holds the words, the m
 
 ## Which files it talks to
 - [`web/theme.css`](web/theme.css.md): the shared look (colours, fonts, cards, buttons, switches). This file only adds layout on top. See `docs/ui-guide.md`.
-- [`web/bridge.js`](web/bridge.js.md): the address of Pyodide is repeated here in a `modulepreload` line so the download can start early. See [bridge.js explained](web/bridge.js.md).
+- [`web/bridge.js`](web/bridge.js.md): the address of Pyodide (a copy of Python that runs inside the browser; `bridge.js` downloads it) is repeated here in a `modulepreload` line so the download can start early. See [bridge.js explained](web/bridge.js.md).
 - [`web/first-screen.js`](web/first-screen.js.md): finds the ids below (`map`, `clock`, `solve`, `switches` and so on) and drives the first screen. It calls Python through the bridge: `coords.latlon_to_xyz` and `coords.satellite_from_sky` ([coords.py](mechanism/coords.py.md)), `scenario.make_pseudoranges` ([scenario.py](mechanism/scenario.py.md)), `solver.solve_position` ([solver.py explained](mechanism/solver.py.md)), and `mapview.to_local` and `mapview.distance_lines` ([mapview.py](mechanism/mapview.py.md)).
 - [`web/step-geometry.js`](web/step-geometry.js.md), [`web/step-signal.js`](web/step-signal.js.md), [`web/step-relativity.js`](web/step-relativity.js.md): each fills the empty `<div>` placed for it near the bottom.
 - Outside the repo: Google Fonts (the two typefaces) and the Pyodide download address.
 
 ## In three lines
 1. The head asks the browser to start downloading fonts, Pyodide and the shared style sheet early, and adds a few layout rules.
-2. The body is the first screen: a heading, a ground map with a legend, then the controls (clock slider, error read-out, solve button, satellite switches, reset).
+2. The body is the first screen: a heading, a ground map with a legend, then the controls (clock slider, error readout, solve button, satellite switches, reset).
 3. Three more empty sections and three link sentences follow, and the scripts at the bottom fill the sections in.
 
 New to code? See [how to read code](how-to-read-code.md). A few web ideas used a lot below:
@@ -225,12 +225,12 @@ The `hidden` attribute normally hides an element. But `.badge` in [`theme.css`](
 ```html
   .highlight { border-color: var(--accent); }
 ```
-A second, general `.highlight` rule giving the accent border to anything with that class. It repeats line 36's effect for elements that are not `.guide-target`.
+A second, general `.highlight` rule giving the accent border to anything with that class. It repeats the effect of the `.guide-target.highlight` rule above for elements that are not `.guide-target`.
 
 ```html
   .readout { padding: var(--s-4); display: grid; gap: var(--s-2); }
 ```
-The error read-out box: 16 pixels of padding inside, laid out as a grid with 8 pixels between its parts.
+The error readout box: 16 pixels of padding inside, laid out as a grid with 8 pixels between its parts.
 
 ```html
   .big { font-size: var(--text-xl); }
@@ -251,7 +251,7 @@ A comment, then a rule. `.note:empty { min-height: 0; }`: a message line with no
 ```html
   #msg-slider:empty, #msg-readout:empty, #msg-solve:empty, #msg-switch:empty { min-height: 1.5em; }
 ```
-The exception. These ids (a `#` before a name means "the element with that id") are the message lines under the slider, the read-out, the solve button and the satellite switches. For them `min-height: 1.5em` (21 pixels) is set again even when empty. An id selector is more specific than the `:empty` rule above, so it wins.
+The exception. These ids (a `#` before a name means "the element with that id") are the message lines under the slider, the readout, the solve button and the satellite switches. For them `min-height: 1.5em` (21 pixels) is set again even when empty. An id selector is more specific than the `:empty` rule above, so it wins.
 
 ```html
   h2.label, h3.label { margin-bottom: var(--s-3); }
@@ -342,7 +342,7 @@ Closes the reduced-motion block.
 ```html
   /* 18 px (0.9 of --text-lg), no max-width: WebKit reports no first paint while the CDN is slow with 16 px text or a capped width here (test_speed). */
 ```
-A comment giving a reason for the next rule, taken from the team's speed test (`test_speed`): the link sentences are 18 pixels (0.9 of the large text size) and have no maximum width, because Safari-type browsers (WebKit) reported no first paint while the CDN was slow if the text was 16 pixels or capped in width.
+A comment giving a reason for the next rule, taken from the team's speed test (`test_speed`): the link sentences are 18 pixels (0.9 of the large text size) and have no maximum width, because of a problem the test found in Safari-type browsers (WebKit). With 16 pixel text or a capped width, those browsers did not report a "first paint" (the moment something is first drawn on screen) while the CDN (the public file server Pyodide is downloaded from) was slow.
 
 ```html
   .link-line { font-size: calc(var(--text-lg) * 0.9); color: var(--text-muted); text-wrap: balance; }
@@ -407,7 +407,7 @@ Closes the header.
 ```html
   <div class="grid">
 ```
-Opens `div class="grid"`, a generic box (`div`) that holds the two cards side by side, or stacked on a phone (see line 24).
+Opens `div class="grid"`, a generic box (`div`) that holds the two cards side by side, or stacked on a phone (see the two `.grid` rules in the style block above).
 
 ```html
     <section class="card" aria-labelledby="map-title">
@@ -547,7 +547,7 @@ Closes the slider block.
 ```html
       <div class="inset readout">
 ```
-Opens the error read-out box, an `inset` look with the `readout` layout rules.
+Opens the error readout box, an `inset` look with the `readout` layout rules.
 
 ```html
         <span class="label">Position off by</span>
@@ -567,12 +567,12 @@ A box holding the badge, a small pill. The `badge` look and `is-ok` colour come 
 ```html
         <p class="note" id="msg-readout" role="status" aria-live="polite"></p>
 ```
-A message line for the read-out.
+A message line for the readout.
 
 ```html
       </div>
 ```
-Closes the read-out.
+Closes the readout.
 
 ```html
       <div class="stack guide-target" id="block-solve" style="gap: var(--s-2)">
@@ -677,7 +677,7 @@ Closes the grid of two cards.
 ```html
   <!-- Rungs 2 to 4. Each step mounts into its own div. All of them share one bridge, so Pyodide loads once. -->
 ```
-A comment: three more sections follow (rungs 2 to 4 of the story). Each one is mounted into its own empty `div`, and all of them share the one bridge, so Python is loaded only once.
+A comment: three more sections follow ("rung" is the team's word for one part of the story; these are rungs 2 to 4). Each one is "mounted", which means put on the page, in its own empty `div`, and all of them share the one bridge, so Python is loaded only once.
 
 ```html
   <p class="link-line">Solving for the clock works, <strong>but</strong> only if the satellites are spread across the sky. <strong>Therefore</strong> where they sit matters as much as how many there are.</p>
@@ -736,7 +736,7 @@ Three `import` lines. Each brings one function from another file: `mountGeometry
   mountSignalStep(document.getElementById("step-signal"));
   mountRelativityStep(document.getElementById("step-relativity"));
 ```
-Each line finds one of the empty holders with `document.getElementById(...)` (look up the element with that `id` in the page: `document` is the page, as the program sees it) and passes it to the matching function, which fills it in with its own controls. The names (`step-geometry`, `step-signal`, `step-relativity`) must match the ids at lines 146, 148 and 150. If they did not, the function would be given nothing and could not draw its section.
+Each line finds one of the empty holders with `document.getElementById(...)` (look up the element with that `id` in the page: `document` is the page, as the program sees it) and passes it to the matching function, which fills it in with its own controls. The names (`step-geometry`, `step-signal`, `step-relativity`) must match the ids of the three empty `<div>` holders above. If they did not, the function would be given nothing and could not draw its section.
 
 ```html
 </script>

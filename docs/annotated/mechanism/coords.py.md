@@ -9,7 +9,7 @@ The Earth is a ball, and the page needs to put things on it: the phone on the gr
 - `mechanism/constants.py`: gives this file the Earth's radius and the GPS orbit radius.
 - `mechanism/mapview.py`: uses `latlon_to_xyz` and `_local_directions` to draw the flat local map.
 - No other mechanism file uses it. The page calls `latlon_to_xyz` and `satellite_from_sky` directly (from `web/first-screen.js`, `web/step-geometry.js` and `web/step-relativity.js`); see `docs/interface.md` for what the page receives. `xyz_to_latlon` is used only by the tests.
-- Basics of reading code (functions, `if`, lists) are in `docs/annotated/how-to-read-code.md`.
+- Basics of reading code (functions, `if`, lists) are in [how to read code](../how-to-read-code.md).
 
 ## In three lines
 1. `latlon_to_xyz` and `xyz_to_latlon` convert between "latitude, longitude, height" and "x, y, z metres from the centre of the Earth".
