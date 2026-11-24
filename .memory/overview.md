@@ -20,3 +20,4 @@ What is built. One dated line per merged issue, added at the end: `- YYYY-MM-DD 
 - 2026-11-23 | #27 | scripts/check_relativity.py: prints the position error with the clock solved and trusted when a shared relativity drift is added.
 - 2026-11-23 | #31 | README.md rewritten for judges: what it is, how to try it (LIVE LINK TBA), how it works, what is simplified, components we did not write, team.
 - 2026-11-23 | #30 | mechanism/relativity.py: drift_over_time gives, per number of hours, the range added by the shared relativity drift and the position error with the clock solved and trusted; scripts/check_relativity.py uses it.
+- 2026-11-24 | #41 | LICENSE: MIT, copyright 2026 aliyymakes, tw-2866, scoobertfan, jstnstyad10.
