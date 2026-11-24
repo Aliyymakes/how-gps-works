@@ -148,7 +148,7 @@ def test_blocked_download_fails_in_words_and_try_again_recovers(open_page):
     assert page.get_by_role("button", name="Try again").count() == 0
     assert page.locator("#step-geometry [data-id=slider]").is_enabled()
     assert page.locator("#step-signal [data-el=noise]").is_enabled()
-    assert page.locator("#step-relativity tbody tr").count() > 0
+    assert page.locator("#step-relativity [data-id=slider]").is_enabled()
 
 
 # 7
