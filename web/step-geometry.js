@@ -49,6 +49,9 @@ const STYLE = `
 .geo-readout { padding: var(--s-4); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-2); }
 .geo-big { font-size: var(--text-xl); }
 .geo .badge[hidden] { display: none; }
+.geo .hint { font-size: var(--text-sm); font-weight: 500; color: var(--text); }
+.geo .slider-head { flex-wrap: wrap; column-gap: var(--s-3); }
+.geo-closing { max-width: 60ch; }
 .geo .btn { touch-action: manipulation; }
 .geo input[type="range"] { touch-action: pan-y; }
 .geo .btn:disabled, .geo input[type="range"]:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -70,6 +73,7 @@ const PAGE = `
     </section>
     <section class="card geo-stack" aria-label="Controls and results">
       <p class="geo-note" data-id="status" role="status" aria-live="polite">Loading the maths…</p>
+      <p class="hint" data-id="hint" hidden>Drag this slider to push the four satellites into one patch of sky.</p>
       <div class="slider inset geo-highlight">
         <div class="slider-head">
           <label for="geo-bunch">Bunch the satellites</label>
@@ -81,7 +85,7 @@ const PAGE = `
       <div class="inset geo-readout">
         <span class="label">DOP</span>
         <span class="num geo-big" data-id="dop">–</span>
-        <p class="geo-note" style="min-height: 0">How much the satellites' layout multiplies measurement errors. Lower is better.</p>
+        <p class="geo-note" style="min-height: 0">DOP (dilution of precision): how much the satellites' layout multiplies measurement errors. Lower is better.</p>
         <p class="geo-note" data-id="msg-dop" role="status" aria-live="polite"></p>
       </div>
       <div class="inset geo-readout">
@@ -90,13 +94,13 @@ const PAGE = `
         <div><span class="badge is-ok" data-id="badge" hidden></span></div>
         <p class="geo-note" data-id="msg-error" role="status" aria-live="polite"></p>
       </div>
-      <p>Spread out, the same errors barely move the fix. Bunched, they multiply. But all of this error began with time, so next: how does the phone measure it at all?</p>
       <div>
         <button class="btn" data-id="reset" type="button" disabled>Reset</button>
         <p class="geo-note" style="margin-top: var(--s-2)" data-id="msg-reset" role="status" aria-live="polite"></p>
       </div>
     </section>
   </div>
+  <p class="geo-closing">Spread out, the same errors barely move the fix. Bunched, they multiply. But all of this error began with time, so next: how does the phone measure it at all?</p>
 </div>`;
 
 export function mountGeometryStep(container) {
@@ -109,7 +113,7 @@ export function mountGeometryStep(container) {
   container.innerHTML = PAGE;
   const $ = (id) => container.querySelector(`[data-id="${id}"]`);
   const el = {
-    status: $("status"), sky: $("sky"), slider: $("slider"), sliderValue: $("slider-value"),
+    status: $("status"), hint: $("hint"), sky: $("sky"), slider: $("slider"), sliderValue: $("slider-value"),
     msgSlider: $("msg-slider"), dop: $("dop"), msgDop: $("msg-dop"),
     error: $("error"), badge: $("badge"), msgError: $("msg-error"), reset: $("reset"), msgReset: $("msg-reset"),
   };
@@ -119,6 +123,7 @@ export function mountGeometryStep(container) {
   let receiverPoint = null; // true receiver position, from Python
   let running = false;
   let rerun = false;
+  let hintDone = false; // once the user has touched the slider, the hint stays hidden
 
   el.slider.min = 0;
   el.slider.max = geometryConfig.slider_steps;
@@ -126,7 +131,7 @@ export function mountGeometryStep(container) {
   el.slider.value = 0;
   buildSky();
   showSlider();
-  el.slider.addEventListener("input", () => { el.msgReset.textContent = ""; showSlider(); update(); });
+  el.slider.addEventListener("input", () => { el.hint.hidden = true; hintDone = true; el.msgReset.textContent = ""; showSlider(); update(); });
   el.reset.addEventListener("click", () => {
     el.slider.value = 0;
     showSlider();
@@ -150,6 +155,7 @@ export function mountGeometryStep(container) {
       }
       el.slider.disabled = false;
       el.reset.disabled = false;
+      el.hint.hidden = hintDone;
       update();
     });
   }
@@ -221,7 +227,8 @@ export function mountGeometryStep(container) {
   }
 
   async function runOnce() {
-    el.msgSlider.textContent = el.msgDop.textContent = el.msgError.textContent = "";
+    el.msgDop.textContent = el.msgError.textContent = "";
+    const position = Number(el.slider.value); // the slider position this run is about
     const sky = currentSky(); // the layout this run is about, even if the slider moves meanwhile
     try {
       const sats = [];
@@ -242,7 +249,7 @@ export function mountGeometryStep(container) {
       const local = await callPython("mapview.to_local", [receiver.lat_deg, receiver.lon_deg, point]);
       if (failed(local)) return;
       const errorM = Math.hypot(local.east_m, local.north_m, local.up_m);
-      requestAnimationFrame(() => showResult(dop.pdop, errorM));
+      requestAnimationFrame(() => showResult(dop.pdop, errorM, position));
     } catch (error) {
       console.error(error);
       say(el.msgSlider, "Something went wrong in the calculation, so the numbers below may be out of date.");
@@ -263,9 +270,21 @@ export function mountGeometryStep(container) {
     return "bad";
   }
 
-  function showResult(pdop, errorM) {
+  function stateSentence(level, position) {
+    if (position === 0) return "Spread across the sky: small measurement errors stay small.";
+    if (level === "ok") return "Still a good fix, but DOP is climbing. Keep dragging.";
+    if (level === "warn") return "The same small measurement errors now move the fix by tens of metres.";
+    return "Bunched together: the same small measurement errors now throw the fix far off.";
+  }
+
+  function showResult(pdop, errorM, position) {
     const level = errorLevel(errorM);
-    el.dop.textContent = new Intl.NumberFormat("en", { maximumFractionDigits: 1 }).format(pdop);
+    const dopText = new Intl.NumberFormat("en", { maximumFractionDigits: 1 }).format(pdop);
+    const sentence = stateSentence(level, position);
+    if (el.msgSlider.textContent !== sentence) say(el.msgSlider, sentence); // only when the words change
+    const percent = Math.round(position / geometryConfig.slider_steps * 100);
+    el.sky.setAttribute("aria-label", `Sky diagram. Satellites ${percent} % bunched. DOP ${dopText}.`);
+    el.dop.textContent = dopText;
     el.error.textContent = `${new Intl.NumberFormat("en", { maximumFractionDigits: 1 }).format(errorM)}\u00a0m`;
     el.badge.hidden = false;
     el.badge.className = `badge is-${level}`;

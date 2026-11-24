@@ -10,7 +10,6 @@ import json
 import mimetypes
 import os
 import pathlib
-import time
 
 import pytest
 
@@ -23,7 +22,8 @@ LIVE = "https://aliyymakes.github.io/how-gps-works/"
 
 
 class Site:
-    """One open page. `cdn` is "cache" (use the disk cache) or "block" (fail every CDN request)."""
+    """One open page. `cdn` is "cache" (use the disk cache), "live" (real network, no disk cache,
+    nothing written) or "block" (fail every CDN request)."""
 
     def __init__(self, page, cdn, delay_ms, missing):
         self.page = page
@@ -54,7 +54,10 @@ class Site:
         if self.cdn == "block":
             return route.abort()
         if self.delay_ms:
-            time.sleep(self.delay_ms / 1000)
+            # wait_for_timeout lets other requests be answered meanwhile; time.sleep froze them all
+            self.page.wait_for_timeout(self.delay_ms)
+        if self.cdn == "live":
+            return route.continue_()
         key = CDN_DIR / hashlib.sha1(url.encode()).hexdigest()
         meta = key.with_suffix(".json")
         if key.exists() and meta.exists():
@@ -103,4 +106,7 @@ def open_page(browser):
 
     yield open_it
     for context in contexts:
+        # Stop any delayed request still waiting, so it cannot fail inside the next test.
+        for page in context.pages:
+            page.unroute_all(behavior="ignoreErrors")
         context.close()
