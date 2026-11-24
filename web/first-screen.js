@@ -197,6 +197,8 @@ async function runOnce(cause) {
   showWords(solution, errorM, solveClock);
   if (guideStep === 1 && !solveClock && errorLevel(errorM) !== "ok") nextGuideStep();
   else if (guideStep === 2 && solveClock) nextGuideStep();
+  // Step 2's hint says "the lines no longer meet": if they meet again (slider back, or Reset), go back to step 1.
+  else if (guideStep === 2 && !solveClock && errorLevel(errorM) === "ok") { guideStep = 1; showGuide(); }
 }
 
 function failed(result, slot) {
@@ -408,7 +410,7 @@ function showGuide() {
 }
 
 function nextGuideStep() {
-  guideStep += 1; // steps only move forward; Reset does not bring a hint back
+  guideStep += 1; // Reset does not bring back a finished path
   showGuide();
 }
 

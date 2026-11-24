@@ -132,3 +132,14 @@ def test_the_lines_glide_together_unless_motion_is_reduced(open_page):
 def test_no_sideways_scroll_at_phone_width(open_page):
     page = open_page(width=390).page
     assert page.evaluate("document.scrollingElement.scrollWidth <= innerWidth")
+
+
+def test_step_two_hint_goes_back_when_lines_meet_again(open_page):
+    """Codex review on #63: hint 2 says the lines no longer meet, so it must not stay when they meet again."""
+    page = open_page().page
+    page.focus("#clock")
+    page.keyboard.press("End")
+    page.wait_for_function("!document.getElementById('hint-2').hidden")
+    page.click("#reset")
+    page.wait_for_function("!document.getElementById('hint-1').hidden")
+    assert page.locator("#hint-2").is_hidden()
