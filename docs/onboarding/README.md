@@ -20,7 +20,7 @@ Do these in order. Each one assumes the ones before it.
 4. [code-tour.md](code-tour.md): each code file, its key lines, and the question a judge will ask about it.
 5. [decisions.md](decisions.md): why we chose what we chose, and what each choice costs.
 6. [glossary.md](glossary.md): look terms up here at any point. Keep it open while you read the others.
-7. [self-check.md](self-check.md): questions with hidden answers, to test yourself. It is written after the other files, so it may be missing until that work merges.
+7. [self-check.md](self-check.md): questions with hidden answers, to test yourself.
 
 ## Run it locally
 
