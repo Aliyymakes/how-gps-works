@@ -80,9 +80,10 @@ A comment, then the two font stacks. A font stack is a list: the browser uses th
   --text-sm: 14px;
   --text-md: 16px;
   --text-lg: 20px;
+  --text-h: 24px;
   --text-xl: 32px;
 ```
-Five text sizes: `--text-xs` 12 px, `--text-sm` 14 px, `--text-md` 16 px, `--text-lg` 20 px and `--text-xl` 32 px. A px (pixel) is one dot of the screen at normal size. Keeping a short fixed list means every piece of text on the page is one of five sizes, which looks tidy. Without them the size rules below would have nothing to point at.
+Six text sizes: `--text-xs` 12 px, `--text-sm` 14 px, `--text-md` 16 px, `--text-lg` 20 px, `--text-h` 24 px and `--text-xl` 32 px. A px (pixel) is one dot of the screen at normal size. `--text-h` is new: it is the size of section headings (the `h2` rule below), so they stand out more than body text. Keeping a short fixed list means every piece of text on the page is one of six sizes, which looks tidy. Without them the size rules below would have nothing to point at.
 
 ```css
   /* Space (4 px grid) */
@@ -170,10 +171,10 @@ Headings. `h1, h2, h3` are three selectors sharing one set of settings (the comm
 
 ```css
 h1 { font-size: var(--text-xl); }
-h2 { font-size: var(--text-lg); }
+h2 { font-size: var(--text-h); color: var(--text); }
 p { margin: 0; }
 ```
-`h1` is 32 px (`--text-xl`), `h2` is 20 px (`--text-lg`), and `p` (a paragraph) loses its default top and bottom margin so spacing is controlled by the layout rules instead. Without these, headings would have the browser's default sizes and paragraphs would add unwanted gaps.
+`h1` is 32 px (`--text-xl`), `h2` is 24 px (`--text-h`) and is set to the main text colour (`--text`) so headings are never dimmed, and `p` (a paragraph) loses its default top and bottom margin so spacing is controlled by the layout rules instead. Without these, headings would have the browser's default sizes and paragraphs would add unwanted gaps.
 
 ```css
 .muted { color: var(--text-muted); }

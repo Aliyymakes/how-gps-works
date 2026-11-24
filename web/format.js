@@ -2,7 +2,7 @@
 // always with a thousands separator. The space before "m" cannot break across lines.
 export function formatMetres(m) {
   const digits = new Intl.NumberFormat("en", { maximumFractionDigits: m < 100 ? 1 : 0 }).format(m);
-  return `${digits} m`;
+  return `${digits} m`;
 }
 
 // Rough distances for numbers that must never look exact (gotchas: "about 11 km"). Under 1000 m the metres

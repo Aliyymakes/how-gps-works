@@ -164,9 +164,10 @@ loadSavedTheme();
 trackPointerLight();
 setupControls();
 drawTrueMark();
+keepStickyHeight();
 start();
 ```
-Five calls that run once, when the file loads, in this order. `loadSavedTheme()` sets light or dark. `trackPointerLight()` starts the card glow. `setupControls()` prepares the slider and switches and listens for clicks. `drawTrueMark()` draws the small cross that marks the phone's real position. `start()` begins waiting for Python. Calling a function means running its steps. These are the function names that are defined further down; JavaScript lets a function be used above the place it is written. Without these calls nothing would happen.
+Six calls that run once, when the file loads, in this order. `loadSavedTheme()` sets light or dark. `trackPointerLight()` starts the card glow. `setupControls()` prepares the slider and switches and listens for clicks. `drawTrueMark()` draws the small cross that marks the phone's real position. `keepStickyHeight()` starts keeping the page told how tall the map card is (explained where it is defined, just before the guided path). `start()` begins waiting for Python. Calling a function means running its steps. These are the function names that are defined further down; JavaScript lets a function be used above the place it is written. Without these calls nothing would happen.
 
 ```js
 // ---------- start up ----------
@@ -947,6 +948,24 @@ A comment says a new run or a refusal ends a glide by drawing its end at once. `
 Resets `glideFrame` to 0. If `glideFinish` holds a function, it runs it, which draws the end of the glide. Then `glideFinish` is cleared. Without this a half-finished glide could leave lines in the wrong place.
 
 ```js
+// On phones the map card sticks to the top. index.html keeps every focused control that far below the top (scroll-margin-top).
+function keepStickyHeight() {
+```
+On phones the map card stays stuck to the top of the window while the rest of the page scrolls under it. The comment says `index.html` uses this height so that a control the reader focuses (for example by keyboard) is scrolled to a place just below the card, not hidden behind it (`scroll-margin-top` is the CSS setting that does this). `keepStickyHeight` starts here.
+
+```js
+  const card = document.querySelector(".map-card");
+  const save = () => document.documentElement.style.setProperty("--sticky-h", `${card.offsetHeight}px`);
+```
+`card` is the map card element, found by its class `map-card`. `save` is a small function (written with an arrow `=>`) that measures the card's height in pixels (`card.offsetHeight`) and stores it as a CSS variable called `--sticky-h` on the whole page (`document.documentElement` is the top element). A CSS variable is a named value the page's style rules can use. The backticks build the text, for example `140px`. Nothing runs `save` yet; it is only defined.
+
+```js
+  new ResizeObserver(save).observe(card); // also calls save() once at the start
+}
+```
+A `ResizeObserver` is a browser tool that calls a function whenever an element changes size. Here it calls `save` whenever the card's size changes (a message line appears, the window turns, the text wraps differently), so `--sticky-h` is always the card's current height. As the comment says, it also calls `save` once when it begins watching, so the variable has a value from the start. Without this the page would not know how far below the top to keep focused controls.
+
+```js
 // ---------- the guided path ----------
 
 // Only the hint for the current step shows, and the white border sits on that step's control.
@@ -975,14 +994,25 @@ Goes through the four hints and the step each belongs to (`hint-1` is step 1, `h
       node.classList.add("is-shown");
     }
   }
-  const closing = $("hint-done");
-  if (guideStep === 4 && closing.getBoundingClientRect().bottom > window.innerHeight) {
-    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    closing.scrollIntoView({ block: "nearest", behavior: calm ? "auto" : "smooth" }); // only when the closing line appears below the window
-  }
+  // Check on the next frame: the action's own message line may still push the closing line down.
+  requestAnimationFrame(() => {
+    const closing = $("hint-done");
+    if (guideStep === 4 && closing.getBoundingClientRect().bottom > window.innerHeight) {
+      const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      closing.scrollIntoView({ block: "nearest", behavior: calm ? "auto" : "smooth" }); // only when the closing line appears below the window
+    }
+  });
 }
 ```
-If this hint is to be shown, `void node.offsetWidth;` asks the browser how wide the hint is and throws the answer away. Asking forces the browser to notice the hint while it is still fully see-through (opacity 0), so that adding `is-shown` (which makes it fully visible) then fades it in instead of showing it at once. Without it there would be no fade. The braces end the `if`, the loop and the function.
+If this hint is to be shown, `void node.offsetWidth;` asks the browser how wide the hint is and throws the answer away. Asking forces the browser to notice the hint while it is still fully see-through (opacity 0), so that adding `is-shown` (which makes it fully visible) then fades it in instead of showing it at once. Without it there would be no fade. The braces end the `if` and the loop.
+
+The rest of `showGuide` scrolls the closing line into view if it needs it:
+
+- The comment says the check waits for the next frame. `requestAnimationFrame(...)` asks the browser to run the small function inside it just before it draws the next picture. The reason is in the comment: the message line of the action the visitor just took may still be growing, and it can push the closing line further down. Checking at once could measure the old place; waiting one frame measures the final place.
+- `closing` is the closing hint's element. The `if` runs only when the guide is at step 4 and the bottom of that line (`getBoundingClientRect().bottom`) is lower than the window is tall (`window.innerHeight`), meaning it is cut off.
+- `calm` is `true` when the visitor has asked their device for less motion (`prefers-reduced-motion: reduce`).
+- `closing.scrollIntoView(...)` then scrolls the page just enough to show the line (`block: "nearest"`). It scrolls smoothly, or at once when `calm` is true. The trailing comment repeats that this happens only when the line is below the window.
+- The last braces and `});` end the `if`, the small function, the `requestAnimationFrame` call and `showGuide`.
 
 ```js
 function nextGuideStep() {
