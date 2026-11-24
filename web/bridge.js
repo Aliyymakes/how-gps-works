@@ -2,7 +2,8 @@
 // loadMechanism(onStatus) loads everything; callPython("module.function", [args]) calls it.
 // Contract: docs/interface.md ("The page side").
 
-// Pinned Pyodide version (ships Python 3.14.2).
+// Pinned Pyodide version (ships Python 3.14.2). index.html repeats this address in its
+// <link rel="modulepreload">: change both together.
 const PYODIDE_BASE = 'https://cdn.jsdelivr.net/pyodide/v314.0.8/full/';
 
 // Files of the `mechanism` package. A file that cannot be fetched makes the whole load fail.
@@ -36,27 +37,29 @@ function tell(text) {
   for (const listener of listeners) listener(text);
 }
 
-async function doLoad() {
-  tell('Step 1 of 3: downloading Python. This is the slow step on a first visit…');
-  const { loadPyodide } = await import(PYODIDE_BASE + 'pyodide.mjs');
-  pyodide = await loadPyodide({ indexURL: PYODIDE_BASE });
-
-  tell('Step 2 of 3: downloading numpy, the number library…');
-  await pyodide.loadPackage('numpy');
-
-  tell('Step 3 of 3: loading our GPS code…');
-  pyodide.FS.mkdirTree(MECHANISM_DIR);
-  for (const name of MECHANISM_FILES) {
-    const url = new URL('../mechanism/' + name, import.meta.url);
-    let response;
-    try {
-      response = await fetch(url);
-    } catch {
-      response = null;
-    }
-    if (!response || !response.ok) throw new Error('could not load mechanism/' + name);
-    pyodide.FS.writeFile(MECHANISM_DIR + '/' + name, await response.text());
+async function fetchText(name) {
+  let response;
+  try {
+    response = await fetch(new URL('../mechanism/' + name, import.meta.url));
+  } catch {
+    response = null;
   }
+  if (!response || !response.ok) throw new Error('could not load mechanism/' + name);
+  return response.text();
+}
+
+async function doLoad() {
+  tell('Step 1 of 2: downloading Python and numpy. This is the slow step on a first visit…');
+  // Our own files download while Pyodide does; they are written into Python's file system later.
+  const sources = Promise.all(MECHANISM_FILES.map(fetchText));
+  sources.catch(() => {}); // the failure is reported where the result is awaited below
+  const { loadPyodide } = await import(PYODIDE_BASE + 'pyodide.mjs');
+  pyodide = await loadPyodide({ indexURL: PYODIDE_BASE, packages: ['numpy'] });
+
+  tell('Step 2 of 2: loading our GPS code…');
+  const texts = await sources;
+  pyodide.FS.mkdirTree(MECHANISM_DIR);
+  MECHANISM_FILES.forEach((name, i) => pyodide.FS.writeFile(MECHANISM_DIR + '/' + name, texts[i]));
   // The folder holding the package must be on sys.path.
   pyodide.runPython('import sys\nif "/home/pyodide" not in sys.path: sys.path.insert(0, "/home/pyodide")');
 
