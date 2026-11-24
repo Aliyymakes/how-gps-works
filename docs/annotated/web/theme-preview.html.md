@@ -3,14 +3,14 @@
 Source: `web/theme-preview.html`
 
 ## What this file is for
-**This is a developer test page. It is not part of the page judges see.** It is a showroom for `web/theme.css`: one screen with a sample sky drawing, a slider, three switches, three state badges and two buttons, all filled with made-up sample content, plus a button that flips between the dark and light themes. A designer opens it to check the look without waiting for the real page. It does no GPS maths and never talks to Python.
+**This is a developer test page. It is not part of the page judges see.** It is a showroom for [`web/theme.css`](theme.css.md): one screen with a sample sky drawing, a slider, three switches, three state badges and two buttons, all filled with made-up sample content, plus a button that flips between the dark and light themes. A designer opens it to check the look without waiting for the real page. It does no GPS maths and never talks to Python.
 
-**Does it still work with today's code?** Yes, by reading it: `theme.css` is in the same folder (the link `theme.css` is correct), and `web/theme.js` still exports `trackPointerLight`, `loadSavedTheme` and `setTheme`, which is all the page imports. All the class names it uses (`card`, `btn`, `btn-primary`, `slider`, `toggle`, `toggle-track`, `inset`, `badge`, `is-ok`, `sky-ring`, and so on) still exist in `theme.css`. One thing is stale sample text only: the badge "within 5 m" does not match the real limit (`errorLimits.ok_m` is 10 m in `web/config.js`). I did not run it in a browser. To open any of these pages you must serve the project folder over `http://` (for example run `python3 -m http.server` in the project's top folder and visit `http://localhost:8000/web/...`) because the browser refuses to load code modules or fetch files from a plain `file://` address. Python and numpy come from an internet address (a CDN), so you also need to be online.
+**Does it still work with today's code?** Yes, by reading it: [`theme.css`](theme.css.md) is in the same folder (the link `theme.css` is correct), and [`web/theme.js`](theme.js.md) still exports `trackPointerLight`, `loadSavedTheme` and `setTheme`, which is all the page imports. All the class names it uses (`card`, `btn`, `btn-primary`, `slider`, `toggle`, `toggle-track`, `inset`, `badge`, `is-ok`, `sky-ring`, and so on) still exist in `theme.css`. One thing is stale sample text only: the badge "within 5 m" does not match the real limit (`errorLimits.ok_m` is 10 m in [`web/config.js`](config.js.md)). I did not run it in a browser. To open any of these pages you must serve the project folder over `http://` (for example run `python3 -m http.server` in the project's top folder and visit `http://localhost:8000/web/...`) because the browser refuses to load code modules or fetch files from a plain `file://` address. Python and numpy come from an internet address (a CDN), so you also need to be online.
 
 ## Which files it talks to
 - `web/theme.css`: provides the whole look; this page only adds a few layout rules of its own. See [theme.css, line by line](theme.css.md).
 - `web/theme.js`: switches the theme and moves the card glow. See [theme.js, line by line](theme.js.md).
-- Google Fonts: the page loads the two fonts from the internet. If you are offline it uses the fallback fonts named in `theme.css`.
+- Google Fonts: the page loads the two fonts from the internet. If you are offline it uses the fallback fonts named in [`theme.css`](theme.css.md).
 - Nothing else uses this page.
 
 ## In three lines
@@ -26,7 +26,7 @@ New to code? See [how to read code](../how-to-read-code.md).
 <!doctype html>
 <html lang="en" data-theme="dark">
 ```
-`<!doctype html>` says this is a modern web page; `<html lang="en" data-theme="dark">` opens the page, says the language is English, and adds the attribute `data-theme="dark"`. The attribute is the switch `theme.css` reads: with `dark` the default colours apply, with `light` the light colour set takes over. The script below changes it. Without the attribute the page would start with no theme mark (the dark colours would still show, because dark is the default).
+`<!doctype html>` says this is a modern web page; `<html lang="en" data-theme="dark">` opens the page, says the language is English, and adds the attribute `data-theme="dark"`. The attribute is the switch [`theme.css`](theme.css.md) reads: with `dark` the default colours apply, with `light` the light colour set takes over. The script below changes it. Without the attribute the page would start with no theme mark (the dark colours would still show, because dark is the default).
 
 ```html
 <head>
@@ -58,7 +58,7 @@ New to code? See [how to read code](../how-to-read-code.md).
   main { max-width: 960px; margin: 0 auto; padding: var(--s-7) var(--s-5); display: grid; gap: var(--s-5); }
   .grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--s-5); }
 ```
-The page's main block: `main { max-width: 960px; margin: 0 auto; padding: ... }` limits the content to 960 pixels wide, centres it (`margin: 0 auto` means no margin above or below and automatic equal margins left and right), adds padding (`var(--s-7)` is 48 px above and below and `var(--s-5)` is 24 px left and right, both taken from `theme.css`), and `display: grid; gap: var(--s-5)` stacks its children with 24 px between them. Line 14, `.grid`, makes a two-column layout: `grid-template-columns: 1.2fr 1fr` splits the width into 1.2 parts and 1 part (an `fr` is a share of the free space), so at the full 960 px width less 48 px of side padding and 24 px of gap, 888 px is shared: about 484 px and 404 px. Without them the page would be a full-width single column.
+The page's main block: `main { max-width: 960px; margin: 0 auto; padding: ... }` limits the content to 960 pixels wide, centres it (`margin: 0 auto` means no margin above or below and automatic equal margins left and right), adds padding (`var(--s-7)` is 48 px above and below and `var(--s-5)` is 24 px left and right, both taken from [`theme.css`](theme.css.md)), and `display: grid; gap: var(--s-5)` stacks its children with 24 px between them. Line 14, `.grid`, makes a two-column layout: `grid-template-columns: 1.2fr 1fr` splits the width into 1.2 parts and 1 part (an `fr` is a share of the free space), so at the full 960 px width less 48 px of side padding and 24 px of gap, 888 px is shared: about 484 px and 404 px. Without them the page would be a full-width single column.
 
 ```html
   @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
@@ -106,7 +106,7 @@ Line 30 closes the stack box. Line 31 is the theme button: `<button class="btn" 
   <div class="grid">
     <section class="card">
 ```
-`<div class="grid">` is the two-column layout from the CSS above. `<section class="card">` is the first column: a card (rounded box, border, pointer glow from `theme.css`). `<section>` is a tag for a themed part of the page.
+`<div class="grid">` is the two-column layout from the CSS above. `<section class="card">` is the first column: a card (rounded box, border, pointer glow from [`theme.css`](theme.css.md)). `<section>` is a tag for a themed part of the page.
 
 ```html
       <svg class="sky" viewBox="0 0 400 400" role="img" aria-label="Sample sky view with five satellites">
@@ -118,7 +118,7 @@ Line 30 closes the stack box. Line 31 is the theme button: `<button class="btn" 
         <circle class="sky-ring" cx="200" cy="200" r="120"/>
         <circle class="sky-ring" cx="200" cy="200" r="60"/>
 ```
-Three rings, drawn as `<circle>` tags. `cx` and `cy` are the centre (200, 200: the middle of the 400 by 400 box) and `r` is the radius: 180, 120 and 60 units. The class `sky-ring` from `theme.css` makes each an outline only, with no fill. So they are three circles inside each other, like the rings of a target, with the receiver at the middle. Without them the drawing would have no rings.
+Three rings, drawn as `<circle>` tags. `cx` and `cy` are the centre (200, 200: the middle of the 400 by 400 box) and `r` is the radius: 180, 120 and 60 units. The class `sky-ring` from [`theme.css`](theme.css.md) makes each an outline only, with no fill. So they are three circles inside each other, like the rings of a target, with the receiver at the middle. Without them the drawing would have no rings.
 
 ```html
         <line class="sky-signal" x1="200" y1="200" x2="120" y2="70"/>
@@ -126,7 +126,7 @@ Three rings, drawn as `<circle>` tags. `cx` and `cy` are the centre (200, 200: t
         <line class="sky-signal" x1="200" y1="200" x2="80" y2="260"/>
         <line class="sky-signal" x1="200" y1="200" x2="290" y2="300"/>
 ```
-Four straight dashed lines, `<line>` tags, from the centre (200, 200) to four points: (120, 70), (310, 110), (80, 260) and (290, 300). `x1`, `y1` are where the line starts and `x2`, `y2` where it ends. They stand for the signals from four satellites to the phone. The class `sky-signal` makes them dashed. Worked example, the first line: it runs from (200, 200) to (120, 70), which is 80 units left (200 - 120) and 130 units up (200 - 70) from the middle. They are sample positions, not the real satellite positions from `web/config.js`.
+Four straight dashed lines, `<line>` tags, from the centre (200, 200) to four points: (120, 70), (310, 110), (80, 260) and (290, 300). `x1`, `y1` are where the line starts and `x2`, `y2` where it ends. They stand for the signals from four satellites to the phone. The class `sky-signal` makes them dashed. Worked example, the first line: it runs from (200, 200) to (120, 70), which is 80 units left (200 - 120) and 130 units up (200 - 70) from the middle. They are sample positions, not the real satellite positions from [`web/config.js`](config.js.md).
 
 ```html
         <circle class="sky-sat" cx="120" cy="70" r="7"/>
@@ -155,7 +155,7 @@ Three example "fix" marks, circles of radius 10 units that show a calculated pos
       <div class="slider">
         <div class="slider-head">
 ```
-`<section class="card stack">` is the second column: a card whose children stack in a column. Inside is `<div class="slider">`, a stack made of a head row and the slider itself, and `<div class="slider-head">`, the row holding the label and the value, spread to opposite ends by `theme.css`.
+`<section class="card stack">` is the second column: a card whose children stack in a column. Inside is `<div class="slider">`, a stack made of a head row and the slider itself, and `<div class="slider-head">`, the row holding the label and the value, spread to opposite ends by [`theme.css`](theme.css.md).
 
 ```html
           <label for="clock">Phone clock error</label>
@@ -175,7 +175,7 @@ Three example "fix" marks, circles of radius 10 units that show a calculated pos
       <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span>Satellite 2</label>
       <label class="toggle"><input type="checkbox"><span class="toggle-track"></span>Satellite 5</label>
 ```
-Three switches. Each `<label class="toggle">` contains a real checkbox (`<input type="checkbox">`) and an empty `<span class="toggle-track">`, then the words. `theme.css` hides the checkbox and draws the track and knob in its place, so clicking either the switch or the words toggles it. The first two carry `checked` so they start on ("Satellite 1" and "Satellite 2"); the third, "Satellite 5", has no `checked` so it starts off. Without the real checkbox, keyboards and screen readers could not use the switch.
+Three switches. Each `<label class="toggle">` contains a real checkbox (`<input type="checkbox">`) and an empty `<span class="toggle-track">`, then the words. [`theme.css`](theme.css.md) hides the checkbox and draws the track and knob in its place, so clicking either the switch or the words toggles it. The first two carry `checked` so they start on ("Satellite 1" and "Satellite 2"); the third, "Satellite 5", has no `checked` so it starts off. Without the real checkbox, keyboards and screen readers could not use the switch.
 
 ```html
       <div class="inset readout">
@@ -192,7 +192,7 @@ Three switches. Each `<label class="toggle">` contains a real checkbox (`<input 
         </div>
       </div>
 ```
-A row of three state badges. `<div class="row" style="justify-content: flex-start">` makes a row that packs to the left (the inline `style` overrides the row's usual spread-out setting). Each badge is a `<span class="badge ...">`: `is-ok` (green) says "within 5 m", `is-warn` (amber) "off by tens" and `is-bad` (red) "off by hundreds". Together they show the three colours the real page uses for errors. Lines 75 and 76 close the row and the readout box. (The "5 m" wording is only sample text; the real page uses the limits in `web/config.js`, 10 m and 100 m.)
+A row of three state badges. `<div class="row" style="justify-content: flex-start">` makes a row that packs to the left (the inline `style` overrides the row's usual spread-out setting). Each badge is a `<span class="badge ...">`: `is-ok` (green) says "within 5 m", `is-warn` (amber) "off by tens" and `is-bad` (red) "off by hundreds". Together they show the three colours the real page uses for errors. Lines 75 and 76 close the row and the readout box. (The "5 m" wording is only sample text; the real page uses the limits in [`web/config.js`](config.js.md), 10 m and 100 m.)
 
 ```html
       <div class="row" style="justify-content: flex-start">
@@ -201,7 +201,7 @@ A row of three state badges. `<div class="row" style="justify-content: flex-star
       </div>
     </section>
 ```
-The last row holds two buttons: a main one, `<button class="btn btn-primary" type="button">Add fourth satellite</button>` (white fill), and a plain one, `Reset`. They do nothing when pressed except show the hover and press effects from `theme.css`. Lines 81 and 82 close the row and the second card.
+The last row holds two buttons: a main one, `<button class="btn btn-primary" type="button">Add fourth satellite</button>` (white fill), and a plain one, `Reset`. They do nothing when pressed except show the hover and press effects from [`theme.css`](theme.css.md). Lines 81 and 82 close the row and the second card.
 
 ```html
   </div>
@@ -215,7 +215,7 @@ The last row holds two buttons: a main one, `<button class="btn btn-primary" typ
   loadSavedTheme();
   trackPointerLight();
 ```
-Line 86 imports three helper functions from `theme.js`: `trackPointerLight` (moves the glow on cards with the pointer), `loadSavedTheme` (reads the remembered theme from the browser's storage and applies it) and `setTheme` (switches theme and remembers it). Line 87 calls `loadSavedTheme()`: if the visitor chose light last time, the page becomes light now; otherwise it stays dark. Line 88 calls `trackPointerLight()`: from now on, when the pointer moves over a card, the glow follows it. Without these the page would never use the saved theme and the glow would never move.
+Line 86 imports three helper functions from [`theme.js`](theme.js.md): `trackPointerLight` (moves the glow on cards with the pointer), `loadSavedTheme` (reads the remembered theme from the browser's storage and applies it) and `setTheme` (switches theme and remembers it). Line 87 calls `loadSavedTheme()`: if the visitor chose light last time, the page becomes light now; otherwise it stays dark. Line 88 calls `trackPointerLight()`: from now on, when the pointer moves over a card, the glow follows it. Without these the page would never use the saved theme and the glow would never move.
 
 ```html
   const button = document.getElementById("theme-switch");

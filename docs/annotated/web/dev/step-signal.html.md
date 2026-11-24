@@ -3,15 +3,15 @@
 Source: `web/dev/step-signal.html`
 
 ## What this file is for
-**This is a developer test page. It is not part of the page judges see.** It mounts one section of the real page (the third rung, "how does the phone measure the time?", the one with the noise slider and the matching of a satellite's code against the received signal) all by itself on an otherwise empty page, so a teammate can work on that section without loading all of `index.html`. It loads the same `theme.css` and fonts as the real page and calls `mountSignalStep`, which builds the section inside one empty box.
+**This is a developer test page. It is not part of the page judges see.** It mounts one section of the real page (the third rung, "how does the phone measure the time?", the one with the noise slider and the matching of a satellite's code against the received signal) all by itself on an otherwise empty page, so a teammate can work on that section without loading all of [`index.html`](../../index.html.md). It loads the same [`theme.css`](../theme.css.md) and fonts as the real page and calls `mountSignalStep`, which builds the section inside one empty box.
 
-**Does it still work with today's code?** Yes, by reading it: `../theme.css` and `../theme.js` are the right paths from `web/dev/`, `web/theme.js` still exports `trackPointerLight` and `loadSavedTheme`, and `web/step-signal.js` still exports `mountSignalStep(container)`, which is exactly how it is called. That function builds the section and, through `web/startup.js` and `web/bridge.js`, loads Python. In turn the section calls `signal.make_received` and `signal.correlate` through the bridge; both still exist in `mechanism/signal.py`. I did not run it in a browser. To open any of these pages you must serve the project folder over `http://` (for example run `python3 -m http.server` in the project's top folder and visit `http://localhost:8000/web/...`) because the browser refuses to load code modules or fetch files from a plain `file://` address. Python and numpy come from an internet address (a CDN), so you also need to be online. The address for this page is `http://localhost:8000/web/dev/step-signal.html`: the bridge looks for the `mechanism/` folder next to `web/`, so the server must start in the project's top folder, not in `web/`.
+**Does it still work with today's code?** Yes, by reading it: `../theme.css` and `../theme.js` are the right paths from `web/dev/`, [`web/theme.js`](../theme.js.md) still exports `trackPointerLight` and `loadSavedTheme`, and [`web/step-signal.js`](../step-signal.js.md) still exports `mountSignalStep(container)`, which is exactly how it is called. That function builds the section and, through [`web/startup.js`](../startup.js.md) and [`web/bridge.js`](../bridge.js.md), loads Python. In turn the section calls `signal.make_received` and `signal.correlate` through the bridge; both still exist in [`mechanism/signal.py`](../../mechanism/signal.py.md). I did not run it in a browser. To open any of these pages you must serve the project folder over `http://` (for example run `python3 -m http.server` in the project's top folder and visit `http://localhost:8000/web/...`) because the browser refuses to load code modules or fetch files from a plain `file://` address. Python and numpy come from an internet address (a CDN), so you also need to be online. The address for this page is `http://localhost:8000/web/dev/step-signal.html`: the bridge looks for the `mechanism/` folder next to `web/`, so the server must start in the project's top folder, not in `web/`.
 
 ## Which files it talks to
 - `web/theme.css` (as `../theme.css`): the look. See [theme.css, line by line](../theme.css.md).
 - `web/theme.js` (as `../theme.js`): remembered theme and pointer glow. See [theme.js, line by line](../theme.js.md).
 - `web/step-signal.js`: provides `mountSignalStep`, which builds the whole section. See [step-signal.js, line by line](../step-signal.js.md).
-- `index.html`: mounts the same section into the real page; this page does the same alone.
+- [`index.html`](../../index.html.md): mounts the same section into the real page; this page does the same alone.
 - Nothing else links to this page.
 
 ## In three lines
@@ -27,7 +27,7 @@ New to code? See [how to read code](../../how-to-read-code.md).
 <!doctype html>
 <html lang="en" data-theme="dark">
 ```
-`<!doctype html>` says this is a modern web page and `<html lang="en" data-theme="dark">` opens it: English, with the attribute `data-theme="dark"`, which `theme.css` reads to choose the dark colours. (An attribute is an extra label inside a tag.) `theme.js` may change it to `light` when the script runs, if the visitor chose light before.
+`<!doctype html>` says this is a modern web page and `<html lang="en" data-theme="dark">` opens it: English, with the attribute `data-theme="dark"`, which [`theme.css`](../theme.css.md) reads to choose the dark colours. (An attribute is an extra label inside a tag.) [`theme.js`](../theme.js.md) may change it to `light` when the script runs, if the visitor chose light before.
 
 ```html
 <head>
@@ -59,7 +59,7 @@ Two `<link rel="preconnect">` tags tell the browser to start connecting to Googl
   main { max-width: 1100px; margin: 0 auto; padding: var(--s-6) var(--s-4); }
 </style>
 ```
-`<style>` opens CSS written into the page itself. The rule `main { max-width: 1100px; margin: 0 auto; padding: var(--s-6) var(--s-4); }` limits the content to 1100 pixels wide, centres it (`margin: 0 auto`: nothing above and below, equal automatic space left and right), and pads it by `var(--s-6)` = 32 px above and below and `var(--s-4)` = 16 px left and right (variables from `theme.css`; a CSS variable is a named value). `</style>` closes the block. Without it the section would stretch across a wide screen edge to edge.
+`<style>` opens CSS written into the page itself. The rule `main { max-width: 1100px; margin: 0 auto; padding: var(--s-6) var(--s-4); }` limits the content to 1100 pixels wide, centres it (`margin: 0 auto`: nothing above and below, equal automatic space left and right), and pads it by `var(--s-6)` = 32 px above and below and `var(--s-4)` = 16 px left and right (variables from [`theme.css`](../theme.css.md); a CSS variable is a named value). `</style>` closes the block. Without it the section would stretch across a wide screen edge to edge.
 
 ```html
 </head>

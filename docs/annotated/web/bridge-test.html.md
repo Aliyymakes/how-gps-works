@@ -3,9 +3,9 @@
 Source: `web/bridge-test.html`
 
 ## What this file is for
-**This is a developer test page. It is not part of the page judges see.** `index.html` never links to it. It exists so a teammate can check, on its own, that the bridge (`web/bridge.js`) can download Python, load our `mechanism/` files into it, call a function and report an error. It has no styling, because it does not load `theme.css`; it looks like a plain unstyled page.
+**This is a developer test page. It is not part of the page judges see.** [`index.html`](../index.html.md) never links to it. It exists so a teammate can check, on its own, that the bridge ([`web/bridge.js`](bridge.js.md)) can download Python, load our `mechanism/` files into it, call a function and report an error. It has no styling, because it does not load [`theme.css`](theme.css.md); it looks like a plain unstyled page.
 
-**Does it still work with today's code?** Yes, by reading it against `web/bridge.js`: the three functions it imports (`loadMechanism`, `callPython`, `evalPython`) are all still exported, `constants.py` is still in the file list that the bridge copies into Python, and `constants.SPEED_OF_LIGHT_M_PER_S` still exists. The expected "unknown function" error text also still matches the bridge's wording. I did not run it in a browser. To open any of these pages you must serve the project folder over `http://` (for example run `python3 -m http.server` in the project's top folder and visit `http://localhost:8000/web/...`) because the browser refuses to load code modules or fetch files from a plain `file://` address. Python and numpy come from an internet address (a CDN), so you also need to be online.
+**Does it still work with today's code?** Yes, by reading it against [`web/bridge.js`](bridge.js.md): the three functions it imports (`loadMechanism`, `callPython`, `evalPython`) are all still exported, [`constants.py`](../mechanism/constants.py.md) is still in the file list that the bridge copies into Python, and `constants.SPEED_OF_LIGHT_M_PER_S` still exists. The expected "unknown function" error text also still matches the bridge's wording. I did not run it in a browser. To open any of these pages you must serve the project folder over `http://` (for example run `python3 -m http.server` in the project's top folder and visit `http://localhost:8000/web/...`) because the browser refuses to load code modules or fetch files from a plain `file://` address. Python and numpy come from an internet address (a CDN), so you also need to be online.
 
 ## Which files it talks to
 - `web/bridge.js`: this page imports `loadMechanism`, `callPython` and `evalPython` from it and tests all three. See [bridge.js, line by line](bridge.js.md).
@@ -57,7 +57,7 @@ Two paragraphs (`<p>`), each with an `id`. `result-line` starts with the text "W
 <script type="module">
 import { loadMechanism, callPython, evalPython } from './bridge.js';
 ```
-`<script type="module">` starts a block of JavaScript. `type="module"` makes it a module: code that is allowed to bring in other files with `import`, and that may use `await` at its top level. Line 14 imports the three functions from `bridge.js` (the `./` means "the same folder as this page"): `loadMechanism` downloads and starts Python, `callPython` calls a Python function and returns its answer, and `evalPython` runs one short Python expression (the bridge's comment says it is a debug helper for exactly this test page). Without the import, the page could not talk to Python.
+`<script type="module">` starts a block of JavaScript. `type="module"` makes it a module: code that is allowed to bring in other files with `import`, and that may use `await` at its top level. Line 14 imports the three functions from [`bridge.js`](bridge.js.md) (the `./` means "the same folder as this page"): `loadMechanism` downloads and starts Python, `callPython` calls a Python function and returns its answer, and `evalPython` runs one short Python expression (the bridge's comment says it is a debug helper for exactly this test page). Without the import, the page could not talk to Python.
 
 ```html
 const t0 = performance.now();
@@ -89,7 +89,7 @@ try {
   const speed = evalPython('__import__("mechanism.constants", fromlist=["x"]).SPEED_OF_LIGHT_M_PER_S');
   const numpyVersion = evalPython('__import__("numpy").__version__');
 ```
-Asks Python two questions through `evalPython`. Line 27 runs a short Python expression, `__import__("mechanism.constants", fromlist=["x"]).SPEED_OF_LIGHT_M_PER_S`: Python's built-in way to import a module by name, then read one named number from it. The number is 299,792,458 (metres per second). Line 28 reads `numpy.__version__`, the version of the numpy library that Pyodide installed. The answers are stored in `speed` and `numpyVersion`. This checks that Python really started and that our `constants.py` file was copied in correctly.
+Asks Python two questions through `evalPython`. Line 27 runs a short Python expression, `__import__("mechanism.constants", fromlist=["x"]).SPEED_OF_LIGHT_M_PER_S`: Python's built-in way to import a module by name, then read one named number from it. The number is 299,792,458 (metres per second). Line 28 reads `numpy.__version__`, the version of the numpy library that Pyodide installed. The answers are stored in `speed` and `numpyVersion`. This checks that Python really started and that our [`constants.py`](../mechanism/constants.py.md) file was copied in correctly.
 
 ```html
   const seconds = ((performance.now() - t0) / 1000).toFixed(2);
@@ -110,14 +110,14 @@ try {
   await callPython('constants.no_such_function', []);
   document.getElementById('error-line').textContent = 'ERROR: unknown function did not fail';
 ```
-A second safety net, for the second test. `await callPython('constants.no_such_function', [])` asks the bridge to call a function that is not in `constants.py`, with an empty list of arguments. If it somehow succeeded (it should not), the next line writes "ERROR: unknown function did not fail" into `error-line`, which would tell the developer the bridge was not rejecting bad names. Without this check there would be no proof that errors are reported.
+A second safety net, for the second test. `await callPython('constants.no_such_function', [])` asks the bridge to call a function that is not in [`constants.py`](../mechanism/constants.py.md), with an empty list of arguments. If it somehow succeeded (it should not), the next line writes "ERROR: unknown function did not fail" into `error-line`, which would tell the developer the bridge was not rejecting bad names. Without this check there would be no proof that errors are reported.
 
 ```html
 } catch (error) {
   document.getElementById('error-line').textContent = 'Unknown function rejected: ' + error.message;
 }
 ```
-The expected path. The bridge's Python helper raises an error ("unknown function: mechanism.constants.no_such_function"), `callPython` turns it into a normal JavaScript error carrying the last line of Python's message, and this `catch` writes "Unknown function rejected: " followed by that message into `error-line`. Seeing that sentence means the error path works. Without the `catch`, the failure would stop the script and nothing would show.
+The expected path. The bridge's Python helper raises an error ("unknown function: mechanism.constants.no_such_function"), `callPython` turns it into a normal JavaScript error carrying the last line of Python's message, and this `catch` writes "Unknown function rejected: " followed by that message into `error-line`. The last line of Python's message includes the error's kind, so the page should read "Unknown function rejected: ValueError: unknown function: mechanism.constants.no_such_function". Seeing that sentence means the error path works. Without the `catch`, the failure would stop the script and nothing would show.
 
 ```html
 </script>

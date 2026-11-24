@@ -7,10 +7,10 @@ This file builds the third section of the page, "How does the phone measure the 
 
 ## Which files it talks to
 - `mechanism/signal.py`: the page asks for two things through the bridge. `signal.make_received` builds the noisy signal the phone hears, and `signal.correlate` tries every shift and scores each one. See [signal.py](../mechanism/signal.py.md).
-- `web/startup.js`: `whenPythonReady` tells this file when Python has loaded, and shows the "Loading the maths…" progress and failure words.
-- `web/say.js`: `say` puts a message in a message line and flashes it briefly.
-- `web/theme.css`: gives the colours, fonts and the shared classes (`card`, `btn`, `badge`, `inset`, `num`, `label`, `muted`, `slider`). This file only adds layout.
-- `index.html`: imports `mountSignalStep` and calls it with the empty box `step-signal`.
+- `web/startup.js`: `whenPythonReady` tells this file when Python has loaded, and shows the "Loading the maths…" progress and failure words. See [startup.js](startup.js.md).
+- `web/say.js`: `say` puts a message in a message line and flashes it briefly. See [say.js](say.js.md).
+- `web/theme.css`: gives the colours, fonts and the shared classes (`card`, `btn`, `badge`, `inset`, `num`, `label`, `muted`, `slider`). This file only adds layout. See [theme.css](theme.css.md).
+- `index.html`: imports `mountSignalStep` and calls it with the empty box `step-signal`. See [index.html](../index.html.md).
 - The exact shapes of the numbers passed to and returned from Python are in `docs/interface.md`.
 
 ## In three lines
@@ -34,7 +34,7 @@ Three comments (lines starting with `//` are notes for people; the computer skip
 ```js
 import { whenPythonReady } from "./startup.js";
 ```
-Brings in one function, `whenPythonReady`, from `startup.js`. Python is downloaded into the browser when the page opens, which takes a few seconds. This function calls back when it is ready and shows the loading words in the meantime. Without it the file could not know when Python is ready, and the name would be unknown and the file would fail to load.
+Brings in one function, `whenPythonReady`, from [`startup.js`](startup.js.md). Python is downloaded into the browser when the page opens, which takes a few seconds. This function calls back when it is ready and shows the loading words in the meantime. Without it the file could not know when Python is ready, and the name would be unknown and the file would fail to load.
 
 ```js
 import { say } from "./say.js";
@@ -66,7 +66,7 @@ A chip is one step of the pattern (the pattern has 1023 chips). The real signal 
 ```js
   seed: 1, // placeholder, provisional: same noise every time, so a run can be repeated
 ```
-Noise is random. A seed is a starting number for the random numbers: the same seed gives the same noise every time. This makes a run repeatable, so a given slider position always draws the same picture. Without it the noise would change on every run (and Python's `make_received` expects a seed anyway).
+Noise is random. A seed is a starting number for the random numbers: the same seed gives the same noise every time. This makes a run repeatable, so a given slider position always draws the same picture. Without it the page would have no seed to send to Python's `make_received`, which only accepts a whole number of 0 or more.
 
 ```js
   signalSize: 1, // placeholder, provisional: the code has size 1 (interface.md)
@@ -86,7 +86,7 @@ The slider's range for noise, measured in multiples of the signal: from 0 to 12 
 ```js
   peakDisplayCap: 1000, // placeholder, provisional: above this the readout says "over 1000x"
 ```
-The biggest value shown exactly. Without noise the best score is far above the others, and the ratio can be huge (Python can return 1,000,000,000 for "extremely clear"). Above 1000 the readout says "over 1000×" instead of a giant number.
+The biggest value shown exactly. With the page's settings and no noise, the ratio is only about 16.2 (best score 1.0, second best about 0.06), so the cap is not reached. It is there for one special case: when the best score is above 0 and no other score is, Python returns 1,000,000,000 ("extremely clear"). At 1000 or more the readout says "over 1000×" instead of a giant number.
 
 ```js
   receivedLimit: 4, // placeholder, provisional: the top graph shows values from -4 to +4, bigger ones are cut off
@@ -125,7 +125,7 @@ Each graph is drawn on a canvas that is 1023 units wide (one per chip) and 120 u
 // Layout for this section only. Colours, fonts and radii come from theme.css.
 const STYLE = `
 ```
-A comment, then the start of one long piece of text, written between backticks (the backtick quotes allow text over many lines). It holds CSS: the rules for how things look. CSS is explained at "A CSS rule" in the primer. This text is later put in the page. Colours, fonts and rounded corners are left to `theme.css`; here only layout is set. A `var(--s-5)` means "use the value of the setting named `--s-5`", which `theme.css` defines (a CSS variable). The spacing ones are `--s-2` 8 px, `--s-3` 12 px, `--s-4` 16 px and `--s-5` 24 px. A pixel (px) is one dot on the screen.
+A comment, then the start of one long piece of text, written between backticks (the backtick quotes allow text over many lines). It holds CSS: the rules for how things look. CSS is explained at "A CSS rule" in [how to read code](../how-to-read-code.md). This text is later put in the page. Colours, fonts and rounded corners are left to [`theme.css`](theme.css.md); here only layout is set. A `var(--s-5)` means "use the value of the setting named `--s-5`", which `theme.css` defines (a CSS variable). The spacing ones are `--s-2` 8 px, `--s-3` 12 px, `--s-4` 16 px and `--s-5` 24 px. A pixel (px) is one dot on the screen.
 
 ```js
 .signal-step { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
@@ -205,7 +205,7 @@ The "Best delay found" number is large (32 px).
 ```js
 .signal-step .badge[hidden] { display: none; }
 ```
-`hidden` is an attribute (an extra setting on an HTML element) that means "do not show this". The shared `badge` style in `theme.css` sets how a badge is laid out, which would override `hidden`. This line makes sure that a badge with `hidden` really disappears. Without it an empty badge would show before the first result.
+`hidden` is an attribute (an extra setting on an HTML element) that means "do not show this". The shared `badge` style in [`theme.css`](theme.css.md) sets how a badge is laid out, which would override `hidden`. This line makes sure that a badge with `hidden` really disappears. Without it an empty badge would show before the first result.
 
 ```js
 .signal-step .note { font-size: var(--text-sm); color: var(--text-muted); min-height: 1.5em; }
@@ -272,7 +272,7 @@ Closes the long piece of text.
 ```js
 export function mountSignalStep(container) {
 ```
-Starts a function (a named recipe) called `mountSignalStep` and shares it. `container` is the empty page element the section goes into (`index.html` hands it `step-signal`). Everything below, up to the closing bracket just before `addStyleOnce`, is the inside of this function. "Mount" means "put onto the page". Without it `index.html` would have nothing to call.
+Starts a function (a named recipe) called `mountSignalStep` and shares it. `container` is the empty page element the section goes into ([`index.html`](../index.html.md) hands it `step-signal`). Everything below, up to the closing bracket just before `addStyleOnce`, is the inside of this function. "Mount" means "put onto the page". Without it `index.html` would have nothing to call.
 
 ```js
   addStyleOnce();
@@ -347,7 +347,7 @@ Starts a function called `start`.
 ```js
     whenPythonReady(el.status, (call) => {
 ```
-Asks `startup.js` to say when Python is ready. The first thing given is the status line, so `startup.js` can show "Loading the maths…" or a failure message there. The second is a function to run once Python is ready; it receives `call`, the function that sends requests to Python.
+Asks [`startup.js`](startup.js.md) to say when Python is ready. The first thing given is the status line, so `startup.js` can show "Loading the maths…" or a failure message there. The second is a function to run once Python is ready; it receives `call`, the function that sends requests to Python.
 
 ```js
       callPython = call;
@@ -681,7 +681,7 @@ If the best shift is not 300 (`!==` means "is not equal to"), the phone picked t
 ```js
     return result.peak_to_next < signalConfig.barelyHoldingBelow ? "warn" : "ok";
 ```
-Otherwise the phone found the right place, and the level depends on how clearly. Worked examples: `peak_to_next` 1.2 is under 1.5, so "warn"; 12.4 is not, so "ok".
+Otherwise the phone found the right place, and the level depends on how clearly. Worked examples: `peak_to_next` 1.2 is under 1.5, so "warn"; 12.4 is not, so "ok". With the page's settings (satellite 7, delay 300, seed 1), Python gives: no noise 16.2 (Found), noise 5 gives 1.9 (Found), noise 8 gives 1.2 (Barely found), and noise 10 picks shift 713 instead of 300 (Lost).
 
 ```js
   }
@@ -779,7 +779,7 @@ Draws the solid line at the shift Python found best (see `drawMark`).
 ```js
     el.bestGroup.setAttribute("class", `is-${level}`);
 ```
-Sets the `class` of the group around that line to `is-ok`, `is-warn` or `is-bad`. A class is a label that CSS rules can match. The shared rules in `theme.css` give those classes green, amber and red colours, and the solid line's `currentColor` follows. Without it the line would not change colour with the result.
+Sets the `class` of the group around that line to `is-ok`, `is-warn` or `is-bad`. A class is a label that CSS rules can match. The shared rules in [`theme.css`](theme.css.md) give those classes green, amber and red colours, and the solid line's `currentColor` follows. Without it the line would not change colour with the result.
 
 ```js
     el.bestDelay.textContent = `${result.best_delay_chips} chips`;
@@ -952,7 +952,7 @@ Closes `addStyleOnce`.
 ```js
 const PAGE_HTML = `
 ```
-Starts one long piece of text with the section's HTML (the tags that make up the page, see "An HTML tag" in the primer). It is a constant, used by `insertAdjacentHTML` above. It sits at the bottom, but it is only used when `mountSignalStep` is called, after the whole file has loaded, so it exists by then.
+Starts one long piece of text with the section's HTML (the tags that make up the page, see "An HTML tag" in [how to read code](../how-to-read-code.md)). It is a constant, used by `insertAdjacentHTML` above. It sits at the bottom, but it is only used when `mountSignalStep` is called, after the whole file has loaded, so it exists by then.
 
 ```js
 <section class="signal-step" aria-labelledby="signal-title">
@@ -1050,7 +1050,7 @@ The right card: the controls and results, stacked.
 ```js
       <p class="note" data-el="status" role="status" aria-live="polite">Loading the maths…</p>
 ```
-The status line. It starts with "Loading the maths…". `startup.js` changes it as Python loads, and clears it when ready.
+The status line. It starts with "Loading the maths…". [`startup.js`](startup.js.md) changes it as Python loads, and clears it when ready.
 
 ```js
       <p class="hint" data-el="hint" hidden>Drag this slider to bury the signal in noise, until the phone loses it.</p>

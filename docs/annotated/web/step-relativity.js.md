@@ -6,12 +6,12 @@ Source: `web/step-relativity.js`
 This builds the "Do the satellites' own clocks matter?" section of the page. It draws one slider (hours of clock drift, 0 to 24) and shows two results side by side: the position error if the phone trusted its own clock, and the position error when the phone solves for its clock. It calculates nothing itself. Every number comes from Python; the only thing decided here is which colour badge to show.
 
 ## Which files it talks to
-- `web/config.js`: gives the phone's place, the four satellite directions, the colour limits (`errorLimits`), the slider settings (`relativitySlider`) and the phone's own clock error (`relativityPhoneClockErrorS`).
+- `web/config.js` ([config.js](config.js.md)): gives the phone's place, the four satellite directions, the colour limits (`errorLimits`), the slider settings (`relativitySlider`) and the phone's own clock error (`relativityPhoneClockErrorS`).
 - `web/startup.js`: [`whenPythonReady`](startup.js.md) waits for Python to download and then runs this file's `start` function.
-- `web/say.js`: `say` writes a message into a line on the page and gives it a brief fade, so pressing something always gives a visible answer.
-- `web/format.js`: `formatMetres` turns a number of metres into text such as `11,392 m`.
-- `web/theme.css`: all colours, fonts and the classes `card`, `inset`, `badge`, `btn`, `slider`, `label`, `num` and `muted` come from here.
-- `index.html`: imports this file and calls `mountRelativityStep` with the empty box `step-relativity`.
+- `web/say.js` ([say.js](say.js.md)): `say` writes a message into a line on the page and gives it a brief fade, so pressing something always gives a visible answer.
+- `web/format.js` ([format.js](format.js.md)): `formatMetres` turns a number of metres into text such as `11,392 m`.
+- `web/theme.css` ([theme.css](theme.css.md)): all colours, fonts and the classes `card`, `inset`, `badge`, `btn`, `slider`, `label`, `num` and `muted` come from here.
+- `index.html` ([index.html](../index.html.md)): imports this file and calls `mountRelativityStep` with the empty box `step-relativity`.
 - Python, through the bridge (see [`startup.js`](startup.js.md)):
   - `coords.latlon_to_xyz` and `coords.satellite_from_sky`, in [`coords.py`](../mechanism/coords.py.md): place the phone and the satellites in space.
   - `relativity.drift_over_time`, in [`relativity.py`](../mechanism/relativity.py.md): adds the shared drift, solves twice and returns the errors. It uses `scenario.make_pseudoranges` and `solver.solve_position` (see [`solver.py`](../mechanism/solver.py.md)). The exact shapes are in `docs/interface.md`.
@@ -25,7 +25,7 @@ New to code? See [how to read code](../how-to-read-code.md). Browser words used 
 - The **DOM** is the browser's live model of the page. Each tag is an object (an **element**) that code can find and change.
 - An **attribute** is a labelled setting on a tag, such as `type="range"` or `hidden`.
 - An **event** is something that happens on the page (a click, a slider moving).
-- A **Promise** is a ticket for a result that has not arrived yet; `await` waits for it (see the `async and await` part of how-to-read-code).
+- A **Promise** is a ticket for a result that has not arrived yet; `await` waits for it (see the `async and await` part of [how to read code](../how-to-read-code.md)).
 - A **CSS variable** is a named value in the style sheet, written like `--s-4`, which a rule reads with `var(--s-4)`.
 - A **media query** is a style rule that only applies when a condition about the screen is true.
 - **aria-\* attributes** are extra labels for screen readers (software that reads the page aloud to people who cannot see it).
@@ -41,7 +41,7 @@ Two comments. "Rung 4" is this section's place on the page's ladder of steps. `d
 ```js
 import * as config from "./config.js";
 ```
-Brings in everything exported by `config.js` under the name `config`, so the code can write `config.receiver`. These are the page's tunable settings. Without this line every `config.` below would be unknown.
+Brings in everything exported by [`config.js`](config.js.md) under the name `config`, so the code can write `config.receiver`. These are the page's tunable settings. Without this line every `config.` below would be unknown.
 
 ```js
 import { whenPythonReady } from "./startup.js";
@@ -54,7 +54,7 @@ Three imports, each taking one named function from another file: `whenPythonRead
 // Layout for this section only. Colours, fonts and radii come from theme.css.
 const STYLE = `
 ```
-A comment, then the start of a piece of text called `STYLE` that holds this section's own style rules (CSS, the language that sets how things look). The backtick (`` ` ``) starts text that may run over many lines. Colours, fonts and corner shapes come from `theme.css` so they stay the same everywhere; only layout is here.
+A comment, then the start of a piece of text called `STYLE` that holds this section's own style rules (CSS, the language that sets how things look). The backtick (`` ` ``) starts text that may run over many lines. Colours, fonts and corner shapes come from [`theme.css`](theme.css.md) so they stay the same everywhere; only layout is here.
 
 ```js
 .rel { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
@@ -128,7 +128,7 @@ Starts a function called `errorLevel`. It is given an error in metres (`errorM`)
 ```js
   if (errorM < config.errorLimits.ok_m) return "ok";
 ```
-If the error is below the first limit, `ok_m`, the answer is `"ok"`, and `return` ends the function. In `config.js` that limit is 10 metres, so 5 m is `"ok"`.
+If the error is below the first limit, `ok_m`, the answer is `"ok"`, and `return` ends the function. In [`config.js`](config.js.md) that limit is 10 metres, so 5 m is `"ok"`.
 
 ```js
   if (errorM < config.errorLimits.warn_m) return "warn";
@@ -138,7 +138,7 @@ If it got past the first check, the error is 10 m or more. If it is under `warn_
 ```js
   return "bad";
 ```
-Anything else (100 m or more) is `"bad"`. Example: 11,392 m is `"bad"`. Without this line the function would return nothing for large errors.
+Anything else (100 m or more) is `"bad"`. Example: 19,767 m (the "trusted" error after 24 hours, see below) is `"bad"`. Without this line the function would return nothing for large errors.
 
 ```js
 }
@@ -196,7 +196,7 @@ The slider's box (classes `slider`, `inset` and `rel-highlight`) and its top lin
       <input id="rel-hours" data-id="slider" type="range" disabled>
     </div>
 ```
-The slider itself: an `<input>` of `type="range"`. Its `id` matches the label. It starts `disabled` (switched off) until Python is ready, because moving it before then could not do anything. Its minimum, maximum and step are set later from `config.js`. The `</div>` closes the slider's box.
+The slider itself: an `<input>` of `type="range"`. Its `id` matches the label. It starts `disabled` (switched off) until Python is ready, because moving it before then could not do anything. Its minimum, maximum and step are set later from [`config.js`](config.js.md). The `</div>` closes the slider's box.
 
 ```js
     <div class="inset rel-readout">
@@ -251,7 +251,7 @@ The Reset area. The `<button>` says "Reset", has the page's button style `btn`, 
 ```js
 export function mountRelativityStep(container) {
 ```
-The function `index.html` calls. `export` makes it available to other files. "Mount" means "put it on the page". `container` is the empty element it should fill.
+The function [`index.html`](../index.html.md) calls. `export` makes it available to other files. "Mount" means "put it on the page". `container` is the empty element it should fill.
 
 ```js
   if (!document.getElementById("rel-style")) {
@@ -295,7 +295,7 @@ Builds an object called `el` that gathers every element the code needs under an 
 ```js
   const { min_h, max_h, step_h, start_h } = config.relativitySlider;
 ```
-Pulls four named values out of `config.relativitySlider` in one go. In `config.js` they are: minimum 0 hours, maximum 24 hours, step 1 hour and start 0 hours.
+Pulls four named values out of `config.relativitySlider` in one go. In [`config.js`](config.js.md) they are: minimum 0 hours, maximum 24 hours, step 1 hour and start 0 hours.
 
 ```js
   let callPython = null; // set when the bridge has loaded
@@ -368,7 +368,7 @@ Writes "Back to the start: no drift." under the button using `say`, which also f
 ```js
   whenPythonReady(el.status, start);
 ```
-Tells `startup.js`: "show loading and failure words in `el.status`, and when Python is ready run `start`". Without it the controls would stay off for ever.
+Tells [`startup.js`](startup.js.md): "show loading and failure words in `el.status`, and when Python is ready run `start`". Without it the controls would stay off for ever.
 
 ```js
   async function start(call) {
@@ -400,7 +400,7 @@ If Python reports a problem, its answer has an `error` field with a plain senten
       satellites = [];
       for (const sat of config.satellites) {
 ```
-Starts with an empty list, then a **loop** over the four satellites in `config.js`. Each one has an `id`, a compass direction (`azimuth_deg`) and a height above the horizon (`elevation_deg`).
+Starts with an empty list, then a **loop** over the four satellites in [`config.js`](config.js.md). Each one has an `id`, a compass direction (`azimuth_deg`) and a height above the horizon (`elevation_deg`).
 
 ```js
         const point = await callPython("coords.satellite_from_sky", [lat_deg, lon_deg, sat.azimuth_deg, sat.elevation_deg]);
@@ -510,7 +510,7 @@ The function that does one calculation. First it reads the slider as a number an
       const result = await callPython("relativity.drift_over_time",
         [receiver, satellites, config.relativityPhoneClockErrorS, [hours]]);
 ```
-Asks Python's `drift_over_time` in `relativity.py` (see [`relativity.py`](../mechanism/relativity.py.md)). It is given the phone's position, the satellites, the phone's own clock error (0 seconds in `config.js`) and a list of hours with just one entry. In Python the drift is 38 millionths of a second per day, so for `hours` hours it is 38e-6 × hours / 24 seconds. It is added to every measured distance as a shared amount, in the same way a phone clock error would be (this is the model the page uses). The distance equivalent is that time times the speed of light. Worked example for 24 hours: 38e-6 × 299,792,458 = 11,392.1 metres. For 12 hours it is half of that, 5,696.1 metres. Python then solves the position twice, once solving for the clock and once trusting it, and returns a list with one row per hour.
+Asks Python's `drift_over_time` in `relativity.py` (see [`relativity.py`](../mechanism/relativity.py.md)). It is given the phone's position, the satellites, the phone's own clock error (0 seconds in [`config.js`](config.js.md)) and a list of hours with just one entry. In Python the drift is 38 millionths of a second per day, so for `hours` hours it is 38e-6 × hours / 24 seconds. It is added to every measured distance as a shared amount, in the same way a phone clock error would be (this is the model the page uses). The distance equivalent is that time times the speed of light. Worked example for 24 hours: 38e-6 × 299,792,458 = 11,392.1 metres. For 12 hours it is half of that, 5,696.1 metres. Python then solves the position twice, once solving for the clock and once trusting it, and returns a list with one row per hour.
 
 ```js
       if (result.error) { say(el.sentence, result.error); return; } // Python's own plain sentence
@@ -545,7 +545,7 @@ Shows how much the drift added to each distance. Example: `range_added_m` is 113
     showError(el.trusted, el.trustedBadge, row.error_clock_trusted_m);
     showError(el.solved, el.solvedBadge, row.error_clock_solved_m);
 ```
-Shows the two position errors, each with its number box and badge. The first is the error if the phone trusted its clock. The second is the error when the clock is solved. Python measures each as the straight-line distance between the found position and the true one.
+Shows the two position errors, each with its number box and badge. The first is the error if the phone trusted its clock. The second is the error when the clock is solved. Python measures each as the straight-line distance between the found position and the true one. With the page's settings (no noise, phone clock error 0): at 0 hours both are 0 m; at 1 hour the trusted error is about 824 m and the solved one 0 m; at 12 hours 9,885 m and 0 m; at 24 hours 19,767 m and 0 m. The trusted error is bigger than the 11,392 m added to each distance because the four distance errors are combined through the satellites' layout. The solved error stays 0 m because the solver takes the whole shared drift as clock error (38 microseconds after 24 hours), so none of it becomes a position error.
 
 ```js
     const sentence = hours === 0
@@ -569,7 +569,7 @@ A function that shows one error. It receives the number element, the badge eleme
 ```js
     valueNode.textContent = formatMetres(errorM);
 ```
-Shows the number as text such as "3.2 m" or "11,392 m".
+Shows the number as text such as "0 m" (the solved error) or "19,767 m" (the trusted error after 24 hours).
 
 ```js
     badgeNode.hidden = false;
@@ -579,7 +579,7 @@ Reveals the badge, which started `hidden`.
 ```js
     badgeNode.className = `badge is-${level}`;
 ```
-Sets the badge's classes to `badge` plus `is-ok`, `is-warn` or `is-bad`, which `theme.css` colours differently. Example: an error of 50 m gives `badge is-warn`. Without it the badge keeps its first colour.
+Sets the badge's classes to `badge` plus `is-ok`, `is-warn` or `is-bad`, which [`theme.css`](theme.css.md) colours differently. Example: an error of 50 m gives `badge is-warn`. Without it the badge keeps its first colour.
 
 ```js
     badgeNode.textContent = LEVEL_WORDS[level];

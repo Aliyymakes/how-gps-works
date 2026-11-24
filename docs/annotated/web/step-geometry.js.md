@@ -6,10 +6,10 @@ Source: `web/step-geometry.js`
 This builds the second section of the page, "Does it matter where the satellites are?". It shows a sky diagram with four satellites and a slider that pushes them from spread out to bunched together. Each time the slider moves, the page asks Python for the answers and shows two numbers: DOP (how much the layout multiplies errors) and how far off the position is. The page itself draws and takes input; every number comes from Python.
 
 ## Which files it talks to
-- `web/startup.js`: `whenPythonReady` waits until the Python engine has loaded, then hands over the function that calls Python.
+- `web/startup.js`: `whenPythonReady` waits until the Python engine has loaded, then hands over the function that calls Python. See [startup.js](startup.js.md).
 - `web/say.js`: `say` writes the message lines and flashes them. See [say.js](say.js.md).
 - `web/format.js`: `formatMetres` writes the "Position off by" number. See [format.js](format.js.md).
-- `web/theme.css`: provides the colours, fonts and spacing (the `var(--...)` names, and classes such as `card`, `inset`, `badge`).
+- `web/theme.css`: provides the colours, fonts and spacing (the `var(--...)` names, and classes such as `card`, `inset`, `badge`). See [theme.css](theme.css.md).
 - Python, through the bridge: [`coords.latlon_to_xyz`](../mechanism/coords.py.md) places the phone, [`coords.satellite_from_sky`](../mechanism/coords.py.md) places each satellite from its direction in the sky, [`geometry.dop`](../mechanism/geometry.py.md) gives the DOP, [`scenario.make_pseudoranges`](../mechanism/scenario.py.md) makes the measured distances with the clock error and noise, [`solver.solve_position`](../mechanism/solver.py.md) works out the position, and [`mapview.to_local`](../mechanism/mapview.py.md) turns that position into east, north and up metres from the true spot. The shapes of these calls are in `docs/interface.md`.
 - Whatever loads the page calls `mountGeometryStep` with the element that should hold this section.
 
@@ -32,7 +32,7 @@ Three comment lines (a comment starts with `//`; the computer ignores it). They 
 ```js
 import { whenPythonReady } from "./startup.js";
 ```
-An `import` brings a named tool from another file. This one takes `whenPythonReady` from `startup.js`. It is used to wait until the Python engine has loaded. Without it, the section could not call Python.
+An `import` brings a named tool from another file. This one takes `whenPythonReady` from [`startup.js`](startup.js.md). It is used to wait until the Python engine has loaded. Without it, the section could not call Python.
 
 ```js
 import { say } from "./say.js";
@@ -125,7 +125,7 @@ A table from a level name to the words shown on the badge: "Good fix", "Fix is o
 // Layout for this section only. Colours, fonts and radii come from theme.css.
 const STYLE = `
 ```
-A comment, then the start of a long piece of text in backticks called `STYLE`. It holds CSS: rules about how things look. A CSS rule has the form `selector { property: value; }`. Colours, fonts and the like are not set here; they come from the page's shared `theme.css`. A `var(--s-5)` is a CSS variable: a named value defined once in `theme.css` (here `--s-5` is 24 pixels, `--s-4` is 16, `--s-3` is 12, `--s-2` is 8 and `--s-1` is 4). Without the rules the section would look unstyled.
+A comment, then the start of a long piece of text in backticks called `STYLE`. It holds CSS: rules about how things look. A CSS rule has the form `selector { property: value; }`. Colours, fonts and the like are not set here; they come from the page's shared [`theme.css`](theme.css.md). A `var(--s-5)` is a CSS variable: a named value defined once in `theme.css` (here `--s-5` is 24 pixels, `--s-4` is 16, `--s-3` is 12, `--s-2` is 8 and `--s-1` is 4). Without the rules the section would look unstyled.
 
 ```js
 .geo { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
@@ -291,7 +291,7 @@ The second card, which holds the controls and numbers, laid out as a stack. `ari
 ```js
       <p class="geo-note" data-id="status" role="status" aria-live="polite">Loading the maths…</p>
 ```
-A message line that starts with "Loading the maths…". `role="status"` and `aria-live="polite"` mean a screen reader reads out changes to this line, but waits until it has finished what it is saying. `startup.js` changes this line while Python loads. Without the live attributes blind users would not hear progress.
+A message line that starts with "Loading the maths…". `role="status"` and `aria-live="polite"` mean a screen reader reads out changes to this line, but waits until it has finished what it is saying. [`startup.js`](startup.js.md) changes this line while Python loads. Without the live attributes blind users would not hear progress.
 
 ```js
       <p class="hint" data-id="hint" hidden>Drag this slider to push the four satellites into one patch of sky.</p>
@@ -480,7 +480,7 @@ Saves that function in the `callPython` box so every other function here can use
       try {
         receiverPoint = await callPython("coords.latlon_to_xyz", [receiver.lat_deg, receiver.lon_deg]);
 ```
-`try` means "attempt this; if something goes wrong, jump to `catch`". This asks Python's `latlon_to_xyz` (in `coords.py`) to turn the phone's latitude and longitude into x, y, z metres from the Earth's centre. `await` waits for the answer. Worked example: for latitude -6.2 and longitude 106.8 the answer is three numbers a little over 6 million metres in size. Without it the code would not know where the phone really is.
+`try` means "attempt this; if something goes wrong, jump to `catch`". This asks Python's `latlon_to_xyz` (in [`coords.py`](../mechanism/coords.py.md)) to turn the phone's latitude and longitude into x, y, z metres from the Earth's centre. `await` waits for the answer. Worked example: for latitude -6.2 and longitude 106.8 the answer is about x = -1,830,654, y = 6,063,417 and z = -688,065 metres, a point about 6.37 million metres from the Earth's centre. Without it the code would not know where the phone really is.
 
 ```js
         if (receiverPoint.error) throw new Error(receiverPoint.error);
@@ -561,7 +561,7 @@ A function that updates everything that depends on the slider position but not o
 ```js
     el.sliderValue.textContent = `${Math.round(bunchAmount() * 100)}\u00a0% bunched`;
 ```
-Writes the value text, for example "25 % bunched". `bunchAmount() * 100` makes a percentage and `Math.round` rounds it to a whole number (0.37 gives 37). ` ` is a special code for a space that cannot be split from the `%` across lines. Without it the user would not see how far the slider is.
+Writes the value text, for example "25 % bunched". `bunchAmount() * 100` makes a percentage and `Math.round` rounds it to a whole number (0.37 gives 37). `\u00a0` is a special code for a space that cannot be split from the `%` across lines. Without it the user would not see how far the slider is.
 
 ```js
     el.slider.setAttribute("aria-valuetext", el.sliderValue.textContent);
@@ -750,7 +750,7 @@ Takes a snapshot of the slider position and the satellite layout when the run st
       for (const sat of sky) {
         const point = await callPython("coords.satellite_from_sky", [receiver.lat_deg, receiver.lon_deg, sat.azimuth_deg, sat.elevation_deg]);
 ```
-For each satellite, ask Python's `satellite_from_sky` (in `coords.py`) for its x, y, z position in metres, given the phone's latitude and longitude and the satellite's compass direction and elevation. `await` waits for each answer.
+For each satellite, ask Python's `satellite_from_sky` (in [`coords.py`](../mechanism/coords.py.md)) for its x, y, z position in metres, given the phone's latitude and longitude and the satellite's compass direction and elevation. `await` waits for each answer.
 
 ```js
         if (failed(point)) return;
@@ -767,13 +767,13 @@ Adds an entry to the list: the satellite's `id`, plus all of what Python returne
       const dop = await callPython("geometry.dop", [receiverPoint, sats]);
       if (failed(dop)) return;
 ```
-Asks Python's `dop` (in `geometry.py`) for the DOP numbers, given the phone's position and the satellites, then stops if there was an error.
+Asks Python's `dop` (in [`geometry.py`](../mechanism/geometry.py.md)) for the DOP numbers, given the phone's position and the satellites, then stops if there was an error.
 
 ```js
       const ranges = await callPython("scenario.make_pseudoranges", [receiverPoint, sats, geometryConfig.clock_error_s, geometryConfig.noise_m, geometryConfig.seed]);
       if (failed(ranges)) return;
 ```
-Asks Python's `make_pseudoranges` (in `scenario.py`) for the measured distances: the true distance to each satellite, plus the clock error and the noise. It is given the receiver, the satellites, the clock error (1e-6 s), the noise (3 m) and the seed (1). Worked example: 1e-6 s * 299,792,458 m/s is about 300 m of extra distance on every measurement. Then stop if it failed.
+Asks Python's `make_pseudoranges` (in [`scenario.py`](../mechanism/scenario.py.md)) for the measured distances: the true distance to each satellite, plus the clock error and the noise. It is given the receiver, the satellites, the clock error (1e-6 s), the noise (3 m) and the seed (1). Worked example: 1e-6 s * 299,792,458 m/s is about 300 m of extra distance on every measurement. Then stop if it failed.
 
 ```js
       // Clock solved, as a real phone does: the clock error is removed, and what remains is the
@@ -781,7 +781,7 @@ Asks Python's `make_pseudoranges` (in `scenario.py`) for the measured distances:
       const solution = await callPython("solver.solve_position", [sats, ranges, true]);
       if (failed(solution)) return;
 ```
-A comment, then the key call: Python's `solve_position` (in `solver.py`) works out where the phone is from the satellites and the measured distances. The final `true` means "also solve for the clock error", as a real phone does. What is left over is the noise multiplied by the layout, which DOP describes. Then stop if it failed.
+A comment, then the key call: Python's `solve_position` (in [`solver.py`](../mechanism/solver.py.md)) works out where the phone is from the satellites and the measured distances. The final `true` means "also solve for the clock error", as a real phone does. What is left over is the noise multiplied by the layout, which DOP describes. Then stop if it failed.
 
 ```js
       const point = { x_m: solution.x_m, y_m: solution.y_m, z_m: solution.z_m };
@@ -792,7 +792,7 @@ Picks out just the three position numbers of the answer into a small object. (Th
       const local = await callPython("mapview.to_local", [receiver.lat_deg, receiver.lon_deg, point]);
       if (failed(local)) return;
 ```
-Asks Python's `to_local` (in `mapview.py`) to say where that position is compared with the true phone spot, as `east_m`, `north_m` and `up_m` metres. Then stop if it failed.
+Asks Python's `to_local` (in [`mapview.py`](../mechanism/mapview.py.md)) to say where that position is compared with the true phone spot, as `east_m`, `north_m` and `up_m` metres. Then stop if it failed.
 
 ```js
       const errorM = Math.hypot(local.east_m, local.north_m, local.up_m);

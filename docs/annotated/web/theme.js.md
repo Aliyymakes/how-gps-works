@@ -6,9 +6,9 @@ Source: `web/theme.js`
 This small file holds three helpers for how the page looks. One makes a soft patch of light follow the mouse across a card. The other two switch the page between a dark look and a light look, and remember the choice for the next visit. It does no maths and never asks Python for anything.
 
 ## Which files it talks to
-- `web/theme.css`: holds the actual colours. It has a rule for `[data-theme="light"]`, and the card glow reads two variables named `--px` and `--py`. This file only sets those variables and the `data-theme` label; `theme.css` decides what they look like.
+- `web/theme.css` ([theme.css](theme.css.md)): holds the actual colours. It has a rule for `[data-theme="light"]`, and the card glow reads two variables named `--px` and `--py`. This file only sets those variables and the `data-theme` label; `theme.css` decides what they look like.
 - `docs/ui-guide.md` (section 2): the rules for the page's look. This file follows them.
-- [`first-screen.js`](first-screen.js.md) calls `loadSavedTheme` and `trackPointerLight` when the page opens. `setTheme` is called by `loadSavedTheme`, and by the light/dark button on the design preview page `web/theme-preview.html`.
+- [`first-screen.js`](first-screen.js.md) calls `loadSavedTheme` and `trackPointerLight` when the page opens; the two test pages [dev/step-geometry.html](dev/step-geometry.html.md) and [dev/step-signal.html](dev/step-signal.html.md) do the same. `setTheme` is called by `loadSavedTheme`, and by the light/dark button on the design preview page [theme-preview.html](theme-preview.html.md). The main page has no light/dark button, so there the look is "light" only if "light" was saved earlier.
 
 ## In three lines
 1. While the mouse moves over a card, work out where the mouse is inside that card and store it in two CSS variables so the glow can follow.
@@ -56,7 +56,7 @@ Asks the browser for the card's rectangle on screen: its left edge, top edge, wi
 ```js
     card.style.setProperty("--px", `${event.clientX - box.left}px`);
 ```
-`event.clientX` is how far the pointer is from the window's left edge. Subtracting `box.left` (the card's left edge) gives how far the pointer is from the card's own left edge. The backticks build a piece of text, and `${...}` drops the number into it, then adds `px` (pixels). `setProperty` writes it into the card's `--px` variable. Worked example: the card's left edge is at 100 pixels and the pointer is at 160, so `--px` becomes `60px`. The glow in `theme.css` is centred on `--px` and `--py`, so without this line it would stay at its starting spot (50%).
+`event.clientX` is how far the pointer is from the window's left edge. Subtracting `box.left` (the card's left edge) gives how far the pointer is from the card's own left edge. The backticks build a piece of text, and `${...}` drops the number into it, then adds `px` (pixels). `setProperty` writes it into the card's `--px` variable. Worked example: the card's left edge is at 100 pixels and the pointer is at 160, so `--px` becomes `60px`. The glow in [`theme.css`](theme.css.md) is centred on `--px` and `--py`, so without this line it would stay at its starting spot (50%).
 
 ```js
     card.style.setProperty("--py", `${event.clientY - box.top}px`);
@@ -77,7 +77,7 @@ Starts a function called `setTheme` that other files can use. `name` is the look
 ```js
   document.documentElement.dataset.theme = name;
 ```
-`document.documentElement` is the very top tag of the page (`<html>`). `dataset.theme` is its `data-theme` attribute. Setting it to `"light"` makes the tag `data-theme="light"`, which switches on the `[data-theme="light"]` colour rules in `theme.css`. Without this line, nothing on screen would change.
+`document.documentElement` is the very top tag of the page (`<html>`). `dataset.theme` is its `data-theme` attribute. Setting it to `"light"` makes the tag `data-theme="light"`, which switches on the `[data-theme="light"]` colour rules in [`theme.css`](theme.css.md). Without this line, nothing on screen would change.
 
 ```js
   try { localStorage.setItem("theme", name); } catch (_) { /* storage can be blocked; the switch still works */ }

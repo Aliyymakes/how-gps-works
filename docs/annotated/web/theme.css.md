@@ -6,9 +6,9 @@ Source: `web/theme.css`
 This is the page's look, written once. CSS ("cascading style sheets") is a list of rules that say how things on a web page should look: colours, sizes, spacing, fonts. This file holds the dark and light colour sets, the type sizes, the spacing steps, the shapes of cards, buttons, sliders, switches and badges, and the little drawing of the sky. Every page that wants the same look links this one file instead of repeating the rules.
 
 ## Which files it talks to
-- `index.html`, `web/theme-preview.html`, `web/dev/step-geometry.html` and `web/dev/step-signal.html`: each loads this file with a `<link rel="stylesheet">` tag, so they all look the same.
-- `web/theme.js`: sets the `data-theme="light"` or `data-theme="dark"` mark on the page (which picks the colour set below) and sets the `--px` and `--py` numbers that place the glow on cards. It does not edit this file.
-- `web/step-geometry.js` and `web/step-signal.js`: add a few style rules of their own, but they reuse the names (`--s-4`, `--line`, `.btn`, and so on) defined here.
+- [`index.html`](../index.html.md), [`web/theme-preview.html`](theme-preview.html.md), [`web/dev/step-geometry.html`](dev/step-geometry.html.md) and [`web/dev/step-signal.html`](dev/step-signal.html.md): each loads this file with a `<link rel="stylesheet">` tag, so they all look the same.
+- [`web/theme.js`](theme.js.md): sets the `data-theme="light"` or `data-theme="dark"` mark on the page (which picks the colour set below) and sets the `--px` and `--py` numbers that place the glow on cards. It does not edit this file.
+- [`web/step-geometry.js`](step-geometry.js.md), [`web/step-signal.js`](step-signal.js.md) and [`web/step-relativity.js`](step-relativity.js.md): add a few style rules of their own, but they reuse the names (`--s-4`, `--line`, `.btn`, and so on) defined here.
 - `docs/ui-guide.md`: the written rules this file follows (white means "you can use this", colour only for a state).
 - Fonts are not loaded here. Each page loads them from Google Fonts (the comment on the first lines shows the address) and this file only names them.
 
@@ -66,7 +66,7 @@ Two variables for the "interactive" colour. `--accent` is pure white (`#ffffff`)
   --warn: #f2a93b;
   --bad: #f0524f;
 ```
-Three variables for state, the only places colour is allowed. `--ok` is green (`#3ccf8e`), `--warn` is amber (`#f2a93b`) and `--bad` is red (`#f0524f`). They show how far off a position is. Without them, the badges and the fix marks (further down) would have no colour for each state.
+Three variables for state, the only places colour is allowed. `--ok` is green (`#3ccf8e`), `--warn` is amber (`#f2a93b`) and `--bad` is red (`#f0524f`). They show a state, such as how far off a position is or whether the signal was found. Without them, the badges and the fix marks (further down) would have no colour for each state.
 
 ```css
   /* Type */
@@ -115,13 +115,13 @@ A comment, then the motion settings. `--ease-out` and `--ease-in-out` are `cubic
   --py: 50%;
 }
 ```
-A comment, then the starting place of the pointer glow: `--px` and `--py` begin at `50%`, the middle of the card. `web/theme.js` replaces them with the real pointer position (in pixels from the card's top-left corner) every time the mouse moves over a card; for example a pointer 100 px across and 40 px down sets `--px: 100px` and `--py: 40px`. The closing `}` ends the `:root` rule. Without the starting values, the glow would have no position before the first mouse move.
+A comment, then the starting place of the pointer glow: `--px` and `--py` begin at `50%`, the middle of the card. [`web/theme.js`](theme.js.md) replaces them with the real pointer position (in pixels from the card's top-left corner) every time the mouse moves over a card; for example a pointer 100 px across and 40 px down sets `--px: 100px` and `--py: 40px`. The closing `}` ends the `:root` rule. Without the starting values, the glow would have no position before the first mouse move.
 
 ```css
 [data-theme="light"] {
   color-scheme: light;
 ```
-The light theme. `[data-theme="light"]` is a selector for any element that carries the attribute `data-theme` with the value `light`. An attribute is an extra label written inside an HTML tag, like `data-theme="light"` on the top `<html>` tag; `web/theme.js` writes it when the visitor presses the theme switch. `color-scheme: light;` tells the browser to draw its own parts light as well.
+The light theme. `[data-theme="light"]` is a selector for any element that carries the attribute `data-theme` with the value `light`. An attribute is an extra label written inside an HTML tag, like `data-theme="light"` on the top `<html>` tag; [`web/theme.js`](theme.js.md) writes it when a page opens (from the choice saved earlier, "dark" if none) and when the visitor presses the light/dark button on the preview page. `color-scheme: light;` tells the browser to draw its own parts light as well.
 
 ```css
   --bg: #fafafa;
@@ -211,7 +211,7 @@ A comment, then the card, the main box of the page. `position: relative` makes t
   pointer-events: none;
 }
 ```
-This is the glow. `radial-gradient(360px circle at var(--px) var(--py), rgba(255, 255, 255, 0.06), transparent 60%)` paints a circle of light 360 px across, centred on the pointer position from `--px` and `--py`, that is white at 6% opacity in the middle and fades to fully see-through at 60% of the way out (0.6 x 360 = 216 px). `opacity: 0` hides it for now. `transition: opacity var(--dur-small) ease` means a change in opacity takes 0.18 s instead of snapping. `pointer-events: none` lets mouse clicks pass straight through the glow to whatever is underneath. Without `pointer-events: none` the glow layer would swallow clicks on buttons inside the card.
+This is the glow. `radial-gradient(360px circle at var(--px) var(--py), rgba(255, 255, 255, 0.06), transparent 60%)` paints a circle of light with a radius of 360 px (for a circle, the size given is the radius), centred on the pointer position from `--px` and `--py`. It is white at 6% opacity in the middle and fades to fully see-through at 60% of the way out (0.6 x 360 = 216 px from the centre). `opacity: 0` hides it for now. `transition: opacity var(--dur-small) ease` means a change in opacity takes 0.18 s instead of snapping. `pointer-events: none` lets mouse clicks pass straight through the glow to whatever is underneath. Without `pointer-events: none` the glow layer would swallow clicks on buttons inside the card.
 
 ```css
 .card:hover::before { opacity: 1; }
@@ -307,7 +307,7 @@ The slider's thumb, the round handle you drag (Chrome and Safari version). It is
 ```css
 input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--accent); border: 0; }
 ```
-The same thumb for Firefox (`-moz-range-thumb`): 20 px, round, white, no border. Firefox centres the thumb on the track itself, so it needs no negative margin or transition here. Without it Firefox would show the default thumb.
+The same thumb for Firefox (`-moz-range-thumb`): 20 px, round, white, no border. Firefox centres the thumb on the track itself, so it needs no negative margin. There is no grow-on-press rule for Firefox, so no transition is set either. Without it Firefox would show the default thumb.
 
 ```css
 input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.15); }
@@ -368,7 +368,7 @@ A comment, then the badge, a small pill showing a state such as "within 5 m". `d
 ```css
 .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 ```
-`.badge::before` is a small dot drawn before the words: an empty, 6 px by 6 px, round shape (the rest of the line, cut here, sets the round corners and `background: currentColor`), so the dot is the same colour as the text. Without it, the badge would have no dot.
+`.badge::before` is a small dot drawn before the words: an empty (`content: ""`), 6 px by 6 px shape, made round by `border-radius: 50%` and filled with `background: currentColor`, so the dot is the same colour as the text. Without it, the badge would have no dot.
 
 ```css
 .is-ok { color: var(--ok); }
@@ -405,4 +405,4 @@ A media query: a block of rules that apply only when a condition is true. `prefe
   .btn:active { transform: none; }
 }
 ```
-Inside the media query. For every element (`*`), `transition-property` is cut down to `opacity, color, background-color, border-color`, so only fades can animate and slides and size changes (such as a button shrinking) become instant. `!important` makes this win over any other rule. `.btn:active { transform: none; }` also cancels the button's shrink when pressed. The last `}` ends the media query. Note: the `*` rule does not reach the `::before` and `::after` extra parts, so the toggle knob (`::after`) and the slider thumb (a built-in inner part) still slide and grow; `index.html` adds its own rule for those. Without these lines the reduced-motion request would be ignored.
+Inside the media query. For every element (`*`), `transition-property` is cut down to `opacity, color, background-color, border-color`, so only fades can animate and slides and size changes (such as a button shrinking) become instant. `!important` makes this win over any other rule. `.btn:active { transform: none; }` also cancels the button's shrink when pressed. The last `}` ends the media query. Note: the `*` rule does not reach the `::before` and `::after` extra parts, so the toggle knob (`::after`) and the slider thumb (a built-in inner part) still slide and grow; [`index.html`](../index.html.md) adds its own rule for those. Without these lines the reduced-motion request would be ignored.
