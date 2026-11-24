@@ -7,7 +7,7 @@ Each record: we chose X over Y because Z; the cost is W. Sources are mainly [.me
 - We chose: the mechanism in Python, run in the user's browser through Pyodide.
 - Over: not named in the sources.
 - Because: "two of the four teammates code only in Python, and they own the mechanism" (design.md section 3, Icarus, 2026-11-22).
-- The cost: Pyodide downloads when the page first opens and takes a few seconds, so a loading message is needed (.memory/gotchas.md, 2026-11-22: "unverified how many"). `bridge.js` shows "Loading Python (a few seconds the first time)...". Not in design.md or decisions.md: this cost line comes from gotchas.md.
+- The cost: Pyodide downloads when the page first opens and takes a few seconds, so a loading message is needed (.memory/gotchas.md, 2026-11-22). A first visit downloads about 9 MB and took 9.7 s to 44.8 s to be ready in the audit (gotchas.md, 2026-11-24). So every section shows the same progress words, "Step 1 of 2: downloading Python and numpy. This is the slow step on a first visit…" then "Step 2 of 2: loading our GPS code…", and one "Try again" if the download fails (`web/startup.js`; decisions.md, 2026-11-24). To make it faster, numpy loads with Pyodide and our files download in parallel; there is no Web Worker because no interaction took over 100 ms (decisions.md, 2026-11-24, `web/bridge.js`).
 - Also recorded: Pyodide pinned to v314.0.8 from jsDelivr, and CI moved to Python 3.14 to match (decisions.md, 2026-11-23, `web/bridge.js`).
 
 ## 2. A sphere Earth
@@ -28,8 +28,8 @@ Each record: we chose X over Y because Z; the cost is W. Sources are mainly [.me
 
 - We chose: the solver can solve for the phone's clock as well as the position (`solve_clock`), and the first screen contrasts "clock trusted" with "clock solved".
 - Over: trusting the phone's clock.
-- Because: with 4 satellites and the clock trusted there are more measurements than unknowns, "the distance lines visibly miss each other"; with the clock solved they meet (design.md section 2b). With 3 satellites and a wrong clock the spheres still meet at one point, "just the wrong one", so that picture could not show the failure (same section).
-- The cost: four unknowns need four satellites. With three the page refuses in one sentence: four unknowns (east, north, up, clock), three measurements (design.md section 2b item 5). Also design.md section 2b: the position error depends on where the satellites are, so the page shows the solver's error and never a fixed 300 m.
+- Because: with 4 satellites and the clock trusted there are more measurements than unknowns, "the distance lines visibly miss each other"; with the clock solved they meet (design.md section 2b). With 3 satellites and a wrong clock the spheres still meet at one point, "just the wrong one", so that picture could not show the failure (same section). The page decides refusals by counting the switched-on satellites: fewer than 4 with the clock solved, fewer than 3 with the clock trusted (decisions.md, 2026-11-24, `web/first-screen.js`).
+- The cost: four unknowns need four satellites. With three the page refuses in words, with the true count: four unknowns (east, north, up, clock), and only as many measurements as satellites that are on (design.md section 2b item 5; the sentence is in `refuse()` in first-screen.js), and it still draws the lines of the satellites that are on. Also design.md section 2b: the position error depends on where the satellites are, so the page shows the solver's error and never a fixed 300 m.
 
 ## 5. Whole-chip code delays
 
@@ -40,9 +40,9 @@ Each record: we chose X over Y because Z; the cost is W. Sources are mainly [.me
 
 ## 6. The relativity result
 
-- We chose: rung 4 shows the range error growing and the clock-solved position error (which stays at 0), not a drifting position.
+- We chose: rung 4 shows, for a slider of 0 to 24 hours, the range error growing, the position error if the phone trusted its clock, and the position error when the phone solves for its clock (which stays at 0), not a drifting position.
 - Over: a position that drifts.
-- Because: design.md section 2b says rung 4 "is tested before it is promised": a drift shared by all satellites may be absorbed by the clock solve. The test (decisions.md, 2026-11-23, `scripts/check_relativity.py`) found a shared drift of 38 µs a day is absorbed completely: position error 0.0000 m after 1 h, 6 h and 1 day, while the solved clock error grows by the drift. With the clock trusted, the error grows from 444 m to 17.3 km (these are the script's five satellites; with the page's four the trusted error is 520 m at 0 h and about 20.3 km at 24 h, which the page does not show).
+- Because: design.md section 2b says rung 4 "is tested before it is promised": a drift shared by all satellites may be absorbed by the clock solve. The test (decisions.md, 2026-11-23, `scripts/check_relativity.py`) found a shared drift of 38 µs a day is absorbed completely: position error 0.0000 m after 1 h, 6 h and 1 day, while the solved clock error grows by the drift. With the clock trusted, the error grows from 444 m to 17.3 km (these are the script's five satellites; with the page's four satellites and a phone clock error of 0 the trusted error is 0 m at 0 h and 19,767 m at 24 h, which the page now shows as "If the phone trusted its clock"; the phone clock error is 0 on purpose, so that at 0 h "No drift yet. Both ways of solving agree." is true, decisions.md 2026-11-24).
 - The cost: the page cannot say "your position would be 11 km off per day". The drift adds about 11 km of range a day, but the position stays put when the clock is solved (.memory/gotchas.md, 2026-11-23). decisions.md marks the entry provisional, and design.md section 2a says the 38 µs figure is "from memory, unverified" (later confirmed as "about 38" in docs/facts.md row 27).
 
 ## 7. No frameworks

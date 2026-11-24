@@ -42,7 +42,7 @@ The table of directions has no fourth column, so the solver finds three unknowns
 
 <details><summary>Answer</summary>
 
-Four unknowns: x, y, z (Earth-centred) and the clock error (the page words the first three as east, north, up), so four measurements. `solve_position` returns `{"error": "At least 4 satellites are needed."}` for fewer when `solve_clock` is true. The page does not even call it: `runOnce` in first-screen.js writes "Four things are unknown (east, north, up and the clock), but three satellites give only three measurements." and calls `showNoFix()`.
+Four unknowns: x, y, z (Earth-centred) and the clock error (the page words the first three as east, north, up), so four measurements. `solve_position` returns `{"error": "At least 4 satellites are needed."}` for fewer when `solve_clock` is true. The page does not even call it: `runOnce` in first-screen.js calls `refuse()`, which writes (with three on) "Can't solve: four things are unknown (east, north, up and the clock), but only 3 satellites are on, and each satellite gives one measurement. Turn a satellite back on." under the switches, "No position: see the message under the satellite switches." under the readout, and calls `showNoFix()`. It still draws the lines of the satellites that are on.
 
 </details>
 
@@ -50,7 +50,7 @@ Four unknowns: x, y, z (Earth-centred) and the clock error (the page words the f
 
 <details><summary>Answer</summary>
 
-There are more measurements than unknowns, so with a wrong clock no point fits all four distances and `lstsq` returns the best compromise, which is not the true position. With 3 satellites the three spheres would still meet at one point, just the wrong one (design.md 2b). On the first screen, 1 µs trusted gives 520.3 m; with the clock solved the error is 0 m and the clock is found as 1.00 µs.
+There are more measurements than unknowns, so with a wrong clock no point fits all four distances and `lstsq` returns the best compromise, which is not the true position. With 3 satellites the three spheres would still meet at one point, just the wrong one (design.md 2b). On the first screen, 1 µs trusted gives 520.3 m (the page shows "520 m", `formatMetres` in format.js); with the clock solved the error is 0 m and the clock is found as 1.00 µs.
 
 </details>
 
@@ -58,7 +58,7 @@ There are more measurements than unknowns, so with a wrong clock no point fits a
 
 <details><summary>Answer</summary>
 
-No. 1 µs adds about 300 m to each distance (docs/facts.md row 32), but the position error depends on where the satellites are. The page always shows the error the solver computed (`Math.hypot` of east, north, up in `runOnce`), 520.3 m with the default satellites. That is a 3D distance, about 506 m of it "up"; the dot on the map uses only east and north, so it sits about 120 m from the centre.
+No. 1 µs adds about 300 m to each distance (docs/facts.md row 32), but the position error depends on where the satellites are. The page always shows the error the solver computed (`Math.hypot` of east, north, up in `runOnce`), 520.3 m with the default satellites (shown as "520 m"). That is a 3D distance, about 506 m of it "up"; the dot on the map uses only east and north, so it sits about 120 m from the centre.
 
 </details>
 
@@ -218,7 +218,7 @@ No. Only the directions to the satellites (docs/interface.md), so it needs no lo
 
 <details><summary>Answer</summary>
 
-It explodes. With the geometry step's placeholder sets (noise 3 m, seed 1, 1 µs clock, clock solved): spread PDOP 2.2 and the fix 4.6 m off; bunched PDOP 344.7 and 480.8 m off. The rows of the table become almost the same, so the multiplied table is almost impossible to invert. If it truly cannot be inverted, `dop` returns "These satellites are laid out so that DOP cannot be worked out."
+It explodes. With the geometry step's placeholder sets (noise 3 m, seed 1, 1 µs clock, clock solved): spread PDOP 2.2 and the fix 4.6 m off; bunched PDOP 344.7 and 480.8 m off (the page shows "4.6 m" and "481 m"). The rows of the table become almost the same, so the multiplied table is almost impossible to invert. If it truly cannot be inverted, `dop` returns "These satellites are laid out so that DOP cannot be worked out."
 
 </details>
 
@@ -346,7 +346,7 @@ Code: [mechanism/relativity.py](../../mechanism/relativity.py), [scripts/check_r
 
 <details><summary>Answer</summary>
 
-Tested with `scripts/check_relativity.py` (its own five satellites, computed in interview-prep 6.7): with the phone's clock solved, the position error stays 0 m after a day and the solved clock grows by the drift instead, because the solver cannot tell a phone clock error from a shared satellite clock drift (every distance changes by the same amount; a satellite clock running ahead makes each distance read shorter, our model adds it as longer, which flips the sign of the solved clock but not the position result). The satellite clocks would gain about 38 µs a day if uncorrected; real satellites are set slow before launch to cancel it (docs/facts.md rows 28-29), and our table shows the uncorrected case. With the clock trusted, the same drift gives about 17 km (17 296 m) of position error after a day for that script's five satellites (with the page's four satellites: about 20.3 km, which the page does not show). Do not say the position would be 11 km off.
+Tested with `scripts/check_relativity.py` (its own five satellites, computed in interview-prep 6.7): with the phone's clock solved, the position error stays 0 m after a day and the solved clock grows by the drift instead, because the solver cannot tell a phone clock error from a shared satellite clock drift (every distance changes by the same amount; a satellite clock running ahead makes each distance read shorter, our model adds it as longer, which flips the sign of the solved clock but not the position result). The satellite clocks would gain about 38 µs a day if uncorrected; real satellites are set slow before launch to cancel it (docs/facts.md rows 28-29), and our slider (0 to 24 hours) shows the uncorrected case. With the clock trusted, the same drift gives about 17 km (17 296 m) of position error after a day for that script's five satellites (with the page's four satellites and a phone clock error of 0: 19,767 m, which the page shows as "If the phone trusted its clock"). Do not say the position would be 11 km off.
 
 </details>
 
@@ -394,7 +394,7 @@ Every satellite's distance changes by the same number of metres (a satellite clo
 
 <details><summary>Answer</summary>
 
-Not with the clock solved. decisions.md (2026-11-23, `scripts/check_relativity.py`): position error 0.0000 m after 1 h, 6 h and 1 day. With the clock trusted, the error grows from 444 m to 17.3 km (these come from `scripts/check_relativity.py`'s five satellites; with the page's four satellites the trusted error is 520 m at 0 h and about 20.3 km at 24 h, which the page does not show). The page can show the range error growing, not a position drift (gotchas.md).
+Not with the clock solved. decisions.md (2026-11-23, `scripts/check_relativity.py`): position error 0.0000 m after 1 h, 6 h and 1 day. With the clock trusted, the error grows from 444 m to 17.3 km (these come from `scripts/check_relativity.py`'s five satellites; with the page's four satellites and the page's phone clock error of 0 the trusted error is 0 m at 0 h and 19,767 m at 24 h, which the page shows next to the clock-solved 0 m). The page shows the range error growing and the trusted-versus-solved position error, never a position drift with the clock solved (gotchas.md).
 
 </details>
 
@@ -406,11 +406,11 @@ Because it solves with the clock solved, which needs four (`_check_input` return
 
 </details>
 
-**5.9 What does the relativity table on the page show?**
+**5.9 What does the relativity section on the page show?**
 
 <details><summary>Answer</summary>
 
-[web/step-relativity.js](../../web/step-relativity.js) calls `relativity.drift_over_time` once with `config.relativityHours` (0, 1, 6, 24) and a phone clock error of 1 µs. Columns: Hours, "Each distance gains" (`range_added_m`) and "Position off by (clock solved)" (`error_clock_solved_m`). The text under it says the position stays put.
+[web/step-relativity.js](../../web/step-relativity.js) has one slider, "Hours without correcting the satellite clocks" (0 to 24 h, `config.relativitySlider`). On each change it calls `relativity.drift_over_time` with a one-element hours list and `config.relativityPhoneClockErrorS`, which is 0 (so at 0 h both ways agree and the page says "No drift yet. Both ways of solving agree."). Three readouts: "Each measured distance is wrong by" (`range_added_m`), "If the phone trusted its clock" (`error_clock_trusted_m`) and "Because the phone solves for its clock" (`error_clock_solved_m`). At 24 h they read 11,392 m, 19,767 m and 0 m (computed by running the mechanism with the default satellites). The sentence under them says every distance is wrong by the same amount, so solving for the clock absorbs it.
 
 </details>
 
@@ -430,7 +430,7 @@ Code: [web/bridge.js](../../web/bridge.js), [web/first-screen.js](../../web/firs
 
 <details><summary>Answer</summary>
 
-Pyodide is Python running inside the browser, so our Python runs on the user's own computer with no server. `loadMechanism` in bridge.js loads Pyodide v314.0.8 from the jsDelivr CDN, then numpy, then fetches each file in `MECHANISM_FILES` into Pyodide's in-memory file system. `callPython("solver.solve_position", [args])` sends the arguments as JSON, the helper `_bridge_call` imports `mechanism.solver` and calls the function, and the result comes back as JSON. The page needs internet the first time.
+Pyodide is Python running inside the browser, so our Python runs on the user's own computer with no server. `loadMechanism` in bridge.js loads Pyodide v314.0.8 from the jsDelivr CDN, with numpy (`packages: ['numpy']`), while our files in `MECHANISM_FILES` download in parallel and are then written into Pyodide's in-memory file system. It reports "Step 1 of 2: downloading Python and numpy. This is the slow step on a first visit…" and then "Step 2 of 2: loading our GPS code…". `callPython("solver.solve_position", [args])` sends the arguments as JSON, the helper `_bridge_call` imports `mechanism.solver` and calls the function, and the result comes back as JSON. The page needs internet the first time.
 
 </details>
 
@@ -454,7 +454,7 @@ No. It calls Python and draws what comes back. The only arithmetic is metres or 
 
 <details><summary>Answer</summary>
 
-`first-screen.js` loads the bridge with `import("./bridge.js")` inside `try/catch` and shows "The calculation engine could not load, so the controls stay off. Reload the page to try again." For bad input Python returns `{"error": ...}` and `failed()` shows that sentence. If a call throws, `update` shows "Something went wrong in the calculation. Press Reset to start again." and calls `showNoFix()`. A missing unknown module or function raises "unknown module" / "unknown function" in `_bridge_call`; `callPython` rethrows the last line of the Python message.
+All four sections start through `whenPythonReady` in [startup.js](../../web/startup.js), which imports the bridge inside `attempt()`. If the load fails, every section's status line says "Python could not be downloaded, so nothing here can calculate yet. Check your internet connection, then press Try again." and a "Try again" button restarts the load. For bad input Python returns `{"error": ...}` and `failed()` shows that sentence. If a call throws, `update` shows "Something went wrong in the calculation. Press Reset to start again." and calls `showNoFix()`. A missing unknown module or function raises "unknown module" / "unknown function" in `_bridge_call`; `callPython` rethrows the last line of the Python message.
 
 </details>
 
@@ -486,7 +486,7 @@ Two of the four teammates code only in Python and own the mechanism (design.md s
 
 <details><summary>Answer</summary>
 
-All import `./bridge.js` (one module instance), and `loadMechanism` memoises its promise (`if (!loading) loading = doLoad(onStatus)`), so Pyodide loads once (decisions.md 2026-11-23).
+All four call `whenPythonReady` in startup.js; only the first call starts the load, the others wait for it, and `loadMechanism` also memoises its promise (`if (!loading) loading = doLoad()`), so Pyodide loads once (decisions.md 2026-11-23 and 2026-11-24).
 
 </details>
 
@@ -494,7 +494,7 @@ All import `./bridge.js` (one module instance), and `loadMechanism` memoises its
 
 <details><summary>Answer</summary>
 
-`start()` loads the bridge, `buildScene()` calls `coords.latlon_to_xyz` for the receiver and `coords.satellite_from_sky` for each satellite in `config.satellites`, then enables the controls and calls `update("start")`. If building the scene fails it says the engine could not set up the satellites.
+`start()` calls `whenPythonReady` (shared progress words while Python loads), then `buildScene()` calls `coords.latlon_to_xyz` for the receiver and `coords.satellite_from_sky` for each satellite in `config.satellites`, then enables the controls, shows the first guide hint ("Step 1. Drag this slider to the right.") and calls `update("start")`. If building the scene fails it says "Python loaded, but the satellites could not be set up, so the controls stay off. Reload the page to try again."
 
 </details>
 

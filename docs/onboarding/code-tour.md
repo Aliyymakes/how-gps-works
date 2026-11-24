@@ -1,6 +1,6 @@
 # Code tour
 
-Files in reading order: Python first (`mechanism/`), then the bridge, then the page. For each file: its job, 3 to 6 key lines (quoted exactly), what they mean, and the question a judge is most likely to ask, with a short answer. Answers use only what the code and [../facts.md](../facts.md) say.
+Files in reading order: Python first (`mechanism/`), then the bridge, then the page. For each file: its job, 3 to 6 key lines (quoted exactly), what they mean, and the question a judge is most likely to ask, with a short answer. Answers use only what the code and [../facts.md](../facts.md) say. For a slower, line-by-line read of any file, see [../annotated/how-to-read-code.md](../annotated/how-to-read-code.md) (Python files: `../annotated/mechanism/<name>.py.md`; page files: `../annotated/web/<name>.js.md`, [index.html.md](../annotated/index.html.md), [theme.css.md](../annotated/web/theme.css.md)).
 
 ## 1. [mechanism/constants.py](../../mechanism/constants.py)
 
@@ -163,20 +163,36 @@ The drift looks exactly like a phone clock error, because every satellite has th
 ```js
 const PYODIDE_BASE = 'https://cdn.jsdelivr.net/pyodide/v314.0.8/full/';
 ...
-pyodide.FS.writeFile(MECHANISM_DIR + '/' + name, await response.text());
+pyodide = await loadPyodide({ indexURL: PYODIDE_BASE, packages: ['numpy'] });
+...
+pyodide.FS.writeFile(MECHANISM_DIR + '/' + name, texts[i])
 ...
 return json.dumps(function(*json.loads(args_json)))
 ...
 return JSON.parse(bridgeCall(target, JSON.stringify(args)));
 ```
 
-It loads a pinned Pyodide, fetches each file in `MECHANISM_FILES` and writes it into Pyodide's file system, then `callPython` sends arguments as JSON and reads JSON back.
+It loads a pinned Pyodide together with numpy, fetches each file in `MECHANISM_FILES` (in parallel with the Pyodide download) and writes it into Pyodide's file system, then `callPython` sends arguments as JSON and reads JSON back. While it loads it reports "Step 1 of 2: downloading Python and numpy. This is the slow step on a first visit…" and "Step 2 of 2: loading our GPS code…". A failed load is not remembered, so a retry works. Annotated: [bridge.js.md](../annotated/web/bridge.js.md).
 
 **Judge asks:** how does JavaScript call your Python? **Answer:** JSON text both ways, through one helper `_bridge_call` that imports `mechanism.<module>` and calls the function by name. That is why only plain numbers, lists and dicts can cross.
 
+### 9b. [web/startup.js](../../web/startup.js), [web/say.js](../../web/say.js), [web/format.js](../../web/format.js)
+
+Three small helpers every section uses.
+
+```js
+export function whenPythonReady(statusNode, onReady, { hasControls = true } = {}) {
+export function say(node, text) {
+export function formatMetres(m) {
+```
+
+`whenPythonReady` is the one start-up path: the first caller starts the load, every section shows the same progress words and, if the download fails, the same sentence ("Python could not be downloaded, so nothing here can calculate yet. Check your internet connection, then press Try again.") and one "Try again" button. `say` writes a message and flashes it for 160 ms, so pressing something always gives a visible answer even when the words repeat. `formatMetres` is the one metres format: one decimal under 100 m, whole metres from 100 m up, so 520.3 m shows as "520 m".
+
+**Judge asks:** what if the download fails? **Answer:** the page says so in words and offers "Try again"; nothing pretends to calculate. Annotated: [startup.js.md](../annotated/web/startup.js.md), [say.js.md](../annotated/web/say.js.md), [format.js.md](../annotated/web/format.js.md).
+
 ## 10. [web/config.js](../../web/config.js)
 
-All first-screen placeholder numbers live here (a design.md rule: placeholder numbers live in one config file, never inline). The step files keep their own `geometryConfig` and `signalConfig`.
+All first-screen (and rung 4) placeholder numbers live here (a design.md rule: placeholder numbers live in one config file, never inline). The step files keep their own `geometryConfig` and `signalConfig`.
 
 ```js
 export const receiver = { lat_deg: -6.2, lon_deg: 106.8 };
@@ -184,13 +200,15 @@ export const receiver = { lat_deg: -6.2, lon_deg: 106.8 };
 export const mapHalfWidthM = 1000;
 export const clockSlider = { min_s: 0, max_s: 3e-6, step_s: 5e-8 };
 export const errorLimits = { ok_m: 10, warn_m: 100 };
+export const relativitySlider = { min_h: 0, max_h: 24, step_h: 1, start_h: 0 };
+export const relativityPhoneClockErrorS = 0;
 ```
 
 **Judge asks:** why these satellites? **Answer:** azimuths 10/100/235/325 and elevations 60/35/20/20 were picked so no two distance lines are parallel and PDOP stays under 4 (PDOP 3.37; decisions.md, 2026-11-24, issue #43).
 
 ## 11. [web/first-screen.js](../../web/first-screen.js)
 
-Walked through in [follow-one-click.md](follow-one-click.md). Key lines:
+Walked through in [follow-one-click.md](follow-one-click.md). It also runs the three-step guide (hints "Step 1. Drag this slider to the right.", "Step 2. The lines no longer meet. Press this button.", "Step 3. Now switch one satellite off.", then a closing line), refuses in words when too few satellites are on, and glides the lines together when you press the solve button. Annotated: [first-screen.js.md](../annotated/web/first-screen.js.md). Key lines:
 
 ```js
 if (running) { rerun = true; return; }
@@ -231,16 +249,16 @@ The last line is in `levelOf`. The label words are "Found", "Barely found" and "
 
 ## 14. [web/step-relativity.js](../../web/step-relativity.js)
 
-Rung 4. Calls `relativity.drift_over_time` once with `config.relativityHours` (0, 1, 6, 24) and a 1 microsecond phone clock error, then draws a table.
+Rung 4. A slider, "Hours without correcting the satellite clocks" (0 to 24 h, `config.relativitySlider`). On every change it calls `relativity.drift_over_time` with a one-element hours list and `config.relativityPhoneClockErrorS`, which is 0, so at 0 h both ways of solving agree.
 
 ```js
 const result = await callPython("relativity.drift_over_time",
-  [receiver, satellites, config.relativityPhoneClockErrorS, config.relativityHours]);
+  [receiver, satellites, config.relativityPhoneClockErrorS, [hours]]);
 ```
 
-Columns are hours, "Each distance gains" (`range_added_m`) and "Position off by (clock solved)" (`error_clock_solved_m`). "Each distance gains" follows our model, which adds the drift as longer distances; a real satellite clock running ahead would make them shorter by the same amount (see section 8). The position result is the same either way.
+Three readouts: "Each measured distance is wrong by" (`range_added_m`), "If the phone trusted its clock" (`error_clock_trusted_m`) and "Because the phone solves for its clock" (`error_clock_solved_m`). At 24 h with the default satellites they read 11,392 m, 19,767 m and 0 m (computed by running `relativity.drift_over_time`). The range figure follows our model, which adds the drift as longer distances; a real satellite clock running ahead would make them shorter by the same amount (see section 8). The position result is the same either way. Annotated: [step-relativity.js.md](../annotated/web/step-relativity.js.md).
 
-**Judge asks:** why does the position not move? **Answer:** the page says it: the drift is the same for every satellite, so it looks like the phone's own clock error and solving for the clock absorbs it.
+**Judge asks:** why does the position not move? **Answer:** the page says it ("Every distance is wrong by the same amount, so solving for the clock absorbs it. Trusting the clock would not."): the drift is the same for every satellite, so it looks like the phone's own clock error and solving for the clock absorbs it.
 
 ## 15. [web/theme.js](../../web/theme.js) and [web/theme.css](../../web/theme.css)
 
@@ -248,6 +266,6 @@ Columns are hours, "Each distance gains" (`range_added_m`) and "Position off by 
 
 ## 16. [index.html](../../index.html)
 
-Holds the first-screen elements by `id` (`clock`, `solve`, `error-value`, `map-lines`, `map-dot`, `switches`) and three empty `div`s (`step-geometry`, `step-signal`, `step-relativity`) that the step modules fill with `mount...Step`.
+Opens with the idea in words ("Each satellite's signal says when it left. Your phone times the trip, and travel time × the speed of light = distance. Each distance draws one line on the map, and you are where the lines meet."), then holds the first-screen elements by `id` (`clock`, `solve`, `error-value`, `map-lines`, `map-dot`, `switches`, the map key) and three empty `div`s (`step-geometry`, `step-signal`, `step-relativity`) that the step modules fill with `mount...Step`. Between the sections are the "but / therefore" link lines. Annotated: [index.html.md](../annotated/index.html.md).
 
 **Judge asks:** where does the page get its numbers? **Answer:** from Python through the bridge; the HTML only has places to put them.
