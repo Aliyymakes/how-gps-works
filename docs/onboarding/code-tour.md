@@ -141,7 +141,7 @@ scores.append(float(np.dot(values, np.roll(code_array, shift)) / CODE_LENGTH))
 
 Try all 1023 shifts, multiply chip by chip, average. A perfect clean match scores 1.0. `best_delay_chips` is the shift with the top score.
 
-**Judge asks:** how can it find a signal buried in noise? **Answer:** `correlate` scores every one of the 1023 shifts and takes the best, and a clean match scores 1.0. Each score averages 1023 products, so the noise in a score is about noise divided by the square root of 1023 (about noise/32), while the true peak stays near 1. With seed 1 the page's "Add noise" slider holds at 8 times the signal ("Barely found") and is lost at 12 times.
+**Judge asks:** how can it find a signal buried in noise? **Answer:** `correlate` scores every one of the 1023 shifts and takes the best, and a clean match scores 1.0. Each score averages 1023 products, so the noise in a score is about noise divided by the square root of 1023 (about noise/32), while the true peak stays near 1. With the page's settings (PRN 7, delay 300, seed 1) it is "Found" up to 6 times the signal, "Barely found" from 6.5 to 9.5 times, and "Lost" from 10 times upward (best shift 713, not 300), for this one seed.
 
 ## 8. [mechanism/relativity.py](../../mechanism/relativity.py)
 
@@ -238,7 +238,7 @@ const result = await callPython("relativity.drift_over_time",
   [receiver, satellites, config.relativityPhoneClockErrorS, config.relativityHours]);
 ```
 
-Columns are hours, "Each distance gains" (`range_added_m`) and "Position off by (clock solved)" (`error_clock_solved_m`).
+Columns are hours, "Each distance gains" (`range_added_m`) and "Position off by (clock solved)" (`error_clock_solved_m`). "Each distance gains" follows our model, which adds the drift as longer distances; a real satellite clock running ahead would make them shorter by the same amount (see section 8). The position result is the same either way.
 
 **Judge asks:** why does the position not move? **Answer:** the page says it: the drift is the same for every satellite, so it looks like the phone's own clock error and solving for the clock absorbs it.
 
