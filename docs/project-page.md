@@ -2,11 +2,13 @@
 
 Draft for Icarus. Wording not approved.
 
+Live link: TBA
+
 ## What it is
 
 An interactive web page that shows how a phone works out where it is from GPS satellite signals. Everything you see is computed in your browser, by the team's own code, from the settings you change.
 
-The one idea: the phone finds its position by measuring time. A signal travels at the speed of light, so a travel time is a distance. The satellites are about 20,200 km up.
+The one idea: the phone finds its position by measuring time. A signal travels at the speed of light, so a travel time is a distance. The satellites are about 20,200 km up (20,189 km above our sphere model).
 
 ## How it works, one rung at a time
 
@@ -14,18 +16,18 @@ The one idea: the phone finds its position by measuring time. A signal travels a
 
 **Rung 2, geometry.** The same measurement errors give a much worse fix when the satellites are bunched together in the sky. The page shows the dilution of precision (DOP) the mechanism computes: how much the layout multiplies measurement errors, and the position error that results.
 
-**Rung 3, the C/A code.** Each satellite sends a known pattern of 1023 chips that repeats every 1 millisecond (the C/A code). The signal arrives below the background noise. The phone slides its own copy of the code along the received signal and scores the match at every shift. You add noise and watch the match peak hold, then fail. The page shows the scores and the peak.
+**Rung 3, the C/A code.** Each satellite sends a known pattern of 1023 chips that repeats every 1 millisecond (the C/A code). On the page you can make the noise bigger than the signal and the match still finds it. The phone slides its own copy of the code along the received signal and scores the match at every shift. You add noise and watch the match peak hold, then fail. The page shows the scores and the peak.
 
-**Rung 4, relativity.** Planned. It is being tested first, because a drift shared by all satellites may be absorbed by the clock solve and show no position drift. If so, the page will show the range error and say why the solver hides it.
+**Rung 4, satellite clock drift.** A table adds the same drift to every satellite (about 38 microseconds a day if uncorrected, about 11 km of range) and shows that the position error stays 0 m once the phone solves for its clock: a shared drift looks exactly like the phone's own clock error.
 
-**Rung 5, reflections off buildings.** Planned.
+**Rung 5, reflections off buildings.** Not built.
 
 ## What is simplified
 
-- The Earth is a sphere with one radius (about 6371 km). The real Earth is slightly flattened. Reason: the conversions are a few lines the team can explain, and the simulated truth and the solver use the same model, so results stay exact. The page says this is a simplification.
+- The Earth is a sphere with one radius (about 6371 km). The real Earth is slightly flattened. Reason: the conversions are a few lines the team can explain, and the simulated truth and the solver use the same model, so the solver recovers the simulated position to far below a millimetre. This is agreement with our own sphere model, not real-world accuracy. The README says so; the page itself does not yet.
 - The ground map is a flat square about 2 km wide, centred on the true position. Reason: at that size the curved distance lines look almost straight, and a flat map is simple to draw.
 - In the signal step the delay is a whole number of chips, 0 to 1022. Reason: it keeps the code-sliding demonstration simple. One chip is about 293 m of travel.
-- The noise in the signal step is random noise added by the page's code. It is not a recording of a real receiver.
+- The noise in the signal step is random noise added by our Python (`mechanism/signal.py`). It is not a recording of a real receiver.
 - The satellites are placed at example positions in the sky, not read from real orbit data. The browser cannot read which satellites a phone is really using, so the page does not claim to.
 
 ## Components we did not write

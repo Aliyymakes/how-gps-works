@@ -150,7 +150,7 @@ The line does not cross the square, so `points` is empty. `inside` is true only 
 
 <details><summary>Answer</summary>
 
-The real Earth is slightly flattened. The sphere keeps the conversions a few lines anyone can explain, and the simulated truth and the solver use the same model so results stay exact. The page must say it is a simplification (decisions.md 2026-11-23, provisional).
+The real Earth is slightly flattened. The sphere keeps the conversions a few lines anyone can explain, and the simulated truth and the solver use the same model, so the solver recovers the simulated position to far below a millimetre. This is agreement with our own sphere model, not real-world accuracy. The page must say it is a simplification (decisions.md 2026-11-23, provisional).
 
 </details>
 
@@ -318,7 +318,7 @@ The score adds up 1023 chip-by-chip products. At the right shift they all lean t
 
 <details><summary>Answer</summary>
 
-`levelOf` in step-signal.js says "Lost" when `best_delay_chips` is not the true delay (300), "Barely found" when `peak_to_next` is under 1.5, else "Found". With PRN 7, delay 300, seed 1 (computed in interview-prep): found at noise 0, 1, 4 and 8 times the signal (peak_to_next 16.2, 7.3, 2.3 and 1.2, so 8 is "barely"), lost at 12 (best shift 713). That is one seed, not a general limit.
+`levelOf` in step-signal.js says "Lost" when `best_delay_chips` is not the true delay (300), "Barely found" when `peak_to_next` is under 1.5, else "Found". With PRN 7, delay 300, seed 1 (computed in interview-prep): found up to 6 times the signal, barely found from 6.5 times to 9.5 times, lost from 10 times upward (best shift 713, not 300), for this one seed (PRN 7, delay 300, seed 1). That is not a general limit.
 
 </details>
 
@@ -346,7 +346,7 @@ Code: [mechanism/relativity.py](../../mechanism/relativity.py), [scripts/check_r
 
 <details><summary>Answer</summary>
 
-Tested with `scripts/check_relativity.py` (its own five satellites, computed in interview-prep 6.7): with the phone's clock solved, the position error stays 0 m after a day and the solved clock grows by the drift instead, because the solver cannot tell a phone clock error from a shared satellite clock drift. With the clock trusted, the same drift gives about 17 km (17 296 m) of position error after a day for that script's five satellites (with the page's four satellites: about 20.3 km, which the page does not show). Do not say the position would be 11 km off.
+Tested with `scripts/check_relativity.py` (its own five satellites, computed in interview-prep 6.7): with the phone's clock solved, the position error stays 0 m after a day and the solved clock grows by the drift instead, because the solver cannot tell a phone clock error from a shared satellite clock drift (every distance changes by the same amount; a satellite clock running ahead makes each distance read shorter, our model adds it as longer, which flips the sign of the solved clock but not the position result). The satellite clocks would gain about 38 µs a day if uncorrected; real satellites are set slow before launch to cancel it (docs/facts.md rows 28-29), and our table shows the uncorrected case. With the clock trusted, the same drift gives about 17 km (17 296 m) of position error after a day for that script's five satellites (with the page's four satellites: about 20.3 km, which the page does not show). Do not say the position would be 11 km off.
 
 </details>
 
@@ -362,7 +362,7 @@ Tested with `scripts/check_relativity.py` (its own five satellites, computed in 
 
 <details><summary>Answer</summary>
 
-About 11 km of range a day: 38 µs times the speed of light is 11 392 m (facts.md row 31, D6). In `drift_over_time`, `range_added_m` is `drift_s * SPEED_OF_LIGHT_M_PER_S`.
+About 11 km of range a day (11 392 m is 38 µs × c; the spec's exact offset gives about 11.6 km; facts.md row 31, D6). In `drift_over_time`, `range_added_m` is `drift_s * SPEED_OF_LIGHT_M_PER_S`.
 
 </details>
 
@@ -386,7 +386,7 @@ A list with one dict per hour: `hours`, `range_added_m`, `error_clock_solved_m`,
 
 <details><summary>Answer</summary>
 
-Every satellite's distance grows by the same number of metres, which is exactly what the clock column of 1.0s in `solve_position` models, so the clock solve takes it in. After 24 hours the solved clock reads 39.0 µs (1 from the phone plus the drift, interview-prep 6.7).
+Every satellite's distance changes by the same number of metres (a satellite clock running ahead makes each distance read shorter; our model adds it as longer, which flips the sign of the solved clock but not the position result), which is exactly what the clock column of 1.0s in `solve_position` models, so the clock solve takes it in. After 24 hours the solved clock reads 39.0 µs (1 from the phone plus the drift, interview-prep 6.7).
 
 </details>
 
