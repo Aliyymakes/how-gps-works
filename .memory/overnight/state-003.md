@@ -1,6 +1,6 @@
 # State log, plan 003
 
-Live link: none yet. Item 4 held: see report-2026-11-24b.md, "The one decision needed".
+Live link: https://aliyymakes.github.io/how-gps-works/ (public since 2026-11-24, after the user's yes to item 4).
 
 - 2026-11-24 | start | Session began plan-003 from item 1. Inbox read (latest note 23:35: fix #40 before #38, merge order #26 then #38).
 - 2026-11-24 | item 1 | DONE. #40 fixed on 37-layers: showNoFix() in web/first-screen.js runs on the 3-satellite refusal, every failed() Python error and a thrown call; it uses requestAnimationFrame so an earlier queued draw cannot overwrite it. Sonnet reviewer passed #26 and #38 (code reading). Merged #26, then #38 (CI pytest pass, 78 local tests pass). Issues #3 #5 #9 #10 #37 #40 closed with notes; #17 #18 #19 show as merged (their commits are in #38), noted. Not browser-checked: the #40 fix itself.
@@ -21,3 +21,5 @@ Live link: none yet. Item 4 held: see report-2026-11-24b.md, "The one decision n
 - 2026-11-24 | item 7 | Fable read README, project-page, interview-prep, onboarding as a judge: 16 findings (stale rung 4 / open-PR text, 'page says simplification/simulated' false, drift sign (sat clock ahead shortens distances; model adds as longer; position unaffected; confirmed by main against interface.md:12 and relativity.py:61), 'exact' overstated, noise thresholds Found<=6 / Barely 6.5-9.5 / Lost>=10, three-satellite refusal only with clock solved, etc.). Sonnet fixing docs on #48/48-accuracy. Out of scope (page/mechanism, freeze): relativity.py:61 comment and page column 'Each distance gains' carry the sign issue; page lacks a 'simplified/simulated' line; interface.md lacks drift_over_time row. For Questions for Icarus.
 - 2026-11-24 | item 7 | DONE. #49 MERGED (CI pass). Haiku reviewer: scope PASS, stale phrases gone, links PASS; its one FAIL (thresholds missing) was a false negative: present at code-tour.md:144, self-check.md:321, interview-prep.md:149 (checked by grep). decisions.md keeps a spec quote 'results stay exact' with a plain correction after it.
 - 2026-11-24 | item 10 | Report written: report-2026-11-24b.md, on #50/50-plan003-report. List done except item 4 (held for the user's decision).
+- 2026-11-24 | item 4 | User answered 'Yes, go public'. Re-scanned commits since the first scan: clean. Repo made PUBLIC; Pages turned on from main /, URL https://aliyymakes.github.io/how-gps-works/.
+- 2026-11-24 | item 4 | DONE. All 19 page and mechanism files and the Pyodide v314.0.8 script return 200 from the live URL (curl). Link put in README.md, docs/project-page.md and the top of this log on #52.

@@ -4,7 +4,7 @@ An interactive web page that shows how a phone works out where it is from GPS sa
 
 ## How to try it
 
-- Live link: `LIVE LINK TBA`
+- Live link: https://aliyymakes.github.io/how-gps-works/
 - Locally, from the repository root: `python3 -m http.server 8000`, then open <http://localhost:8000/>. The page needs an internet connection to load Pyodide (see below).
 
 ## How it works
@@ -31,7 +31,7 @@ Every GPS number on the page is computed by the team's own Python in `mechanism/
 - **Pyodide** runs Python in the browser. Two teammates code only in Python and own the mechanism, so the mechanism stays Python and the page (JavaScript) only draws it and calls it.
 - **numpy** does the array maths in the mechanism.
 - **Google Fonts** supplies the page's fonts.
-- Hosting: TBA.
+- Hosting: GitHub Pages, served from the main branch.
 
 ## The team
 
