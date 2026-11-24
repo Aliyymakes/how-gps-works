@@ -508,6 +508,11 @@ Python is ready and the phone is placed, so switch on the slider and the Reset b
 Show the hint (set `hidden` to false), unless the user has already touched the slider while Python was loading (`hintDone` true), in which case it stays hidden.
 
 ```js
+      if (!hintDone) el.hint.classList.add("is-shown"); // index.html's .hint rule fades it in only with this class
+```
+Fades the hint in. The page's `.hint` rule starts every hint at opacity 0 (invisible) and only the class `is-shown` makes it opacity 1, so removing `hidden` alone left the hint on the page but unseen. The `if` skips this when the reader already used the slider. Without this line the hint would be invisible.
+
+```js
       update();
 ```
 Run the calculation for the starting slider position, so the numbers appear without the user having to do anything.

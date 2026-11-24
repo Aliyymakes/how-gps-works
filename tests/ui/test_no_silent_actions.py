@@ -122,6 +122,9 @@ def test_solve_button_shows_its_mode(open_page):
     assert solve.inner_text() == first_words
     assert "Back to trusting the clock" in text(page, "#msg-slider")
     set_slider(page, "#clock", 11)
+    assert "Back to trusting the clock" in text(page, "#msg-slider")  # it stays through a drag (#73)
+    page.locator("#solve").click()
+    settle(page)
     assert text(page, "#msg-slider") == ""
 
 
@@ -161,7 +164,7 @@ def test_loading_shows_steps_in_every_section(open_page):
 # 8
 def test_missing_mechanism_file_fails_the_load(open_page):
     page = open_page(missing=["mechanism/solver.py"], wait=False).page
-    wait_for_text_in_all_status_lines(page, FAILURE_WORDS)
+    wait_for_text_in_all_status_lines(page, "Part of our GPS code could not be downloaded")
     assert page.get_by_role("button", name="Try again").count() == 4
     assert_nothing_pretends_to_work(page)
 

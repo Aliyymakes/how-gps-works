@@ -82,6 +82,7 @@ export function mountSignalStep(container) {
       callPython = call;
       setControlsDisabled(false);
       el.hint.hidden = hintDone;
+      if (!hintDone) el.hint.classList.add("is-shown"); // index.html's .hint rule fades it in only with this class
       update();
     });
   }

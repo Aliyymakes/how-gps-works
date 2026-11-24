@@ -1,3 +1,4 @@
+import { say } from "./say.js";
 // One start-up path for every section: the same progress words, the same failure words
 // and one shared "Try again" button. Each section calls whenPythonReady once.
 // bridge.js is imported inside attempt(), not at the top: if that file fails to download,
@@ -5,6 +6,8 @@
 let callPython = null; // set once the bridge has loaded
 
 const FAILURE_WORDS = "Python could not be downloaded, so nothing here can calculate yet. Check your internet connection, then press Try again.";
+const OUR_FILE_WORDS = "Part of our GPS code could not be downloaded, so nothing here can calculate yet. Reload the page; if that does not help, the site itself has a problem.";
+let failureWords = FAILURE_WORDS; // which of the two sentences the failure shows
 
 const sections = []; // one { statusNode, onReady, hasControls, retryButton, done } per section
 let state = "loading"; // "loading", "failed" or "ready"
@@ -37,6 +40,8 @@ function attempt() {
     (error) => {
       console.error(error);
       state = "failed";
+      // bridge.js says "could not load mechanism/<file>" when one of our own files is missing.
+      failureWords = String(error.message).startsWith("could not load mechanism/") ? OUR_FILE_WORDS : FAILURE_WORDS;
       for (const section of sections) showFailure(section);
     },
   );
@@ -55,6 +60,7 @@ function onProgress(text) {
 }
 
 function showProgress(section) {
+  if (!latestProgress) return; // no progress text yet: the status line keeps "Loading the maths…"
   const prefix = section.hasControls ? "The controls switch on when this finishes. " : "";
   section.statusNode.textContent = prefix + latestProgress;
 }
@@ -68,7 +74,7 @@ function finish(section) {
 }
 
 function showFailure(section) {
-  section.statusNode.textContent = FAILURE_WORDS;
+  say(section.statusNode, failureWords); // say() flashes the line, so a repeated failure is seen
   if (section.retryButton) return;
   const button = document.createElement("button");
   button.className = "btn";

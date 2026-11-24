@@ -365,6 +365,11 @@ Unlocks the slider and the Reset button (they start locked).
 Shows the hint ("Drag this slider to bury the signal in noise, until the phone loses it.") unless the reader has already used the slider. `hidden = false` shows it, `hidden = true` hides it, so the flag sets this directly.
 
 ```js
+      if (!hintDone) el.hint.classList.add("is-shown"); // index.html's .hint rule fades it in only with this class
+```
+Fades the hint in. The page's `.hint` rule starts every hint at opacity 0 (invisible) and only the class `is-shown` makes it opacity 1, so removing `hidden` alone left the hint on the page but unseen. The `if` skips this when the reader already used the slider. Without this line the hint would be invisible.
+
+```js
       update();
 ```
 Does the first calculation and drawing, so the graphs are filled in as soon as Python is ready.

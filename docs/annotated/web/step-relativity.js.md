@@ -439,6 +439,11 @@ Everything worked, so switch the slider and the button on.
 Show the hint unless the reader already touched the slider while loading (`hintDone` true makes `hidden` true).
 
 ```js
+    if (!hintDone) el.hint.classList.add("is-shown"); // index.html's .hint rule fades it in only with this class
+```
+Fades the hint in. The page's `.hint` rule starts every hint at opacity 0 (invisible) and only the class `is-shown` makes it opacity 1, so removing `hidden` alone left the hint on the page but unseen. The `if` skips this when the reader already used the slider. Without this line the hint would be invisible.
+
+```js
     update();
   }
 ```

@@ -445,9 +445,9 @@ An empty group `map-lines`, which holds the distance lines the code draws, in fr
 A group `map-dot` for the "where the phone thinks it is" dot. `class="is-ok"` is its starting colour state. `style="display: none"` hides it until the code has a position. It contains a circle of radius 9 with the `map-dot` look. The code moves it by changing its centre numbers.
 
 ```html
-        <text id="map-wait" class="map-wait" x="200" y="200" text-anchor="middle">The map appears when Python has loaded.</text>
+        <text id="map-wait" class="map-wait" x="200" y="240" text-anchor="middle">The map appears when Python has loaded.</text>
 ```
-The waiting text, `The map appears when Python has loaded.`, centred (`text-anchor="middle"`) at the middle of the square (x 200, y 200). The code hides it once the map is ready.
+The waiting text, `The map appears when Python has loaded.`, centred (`text-anchor="middle"`) horizontally in the middle of the square (x 200) and low down (y 240). It sits below the middle on purpose: the "where it really is" cross is drawn in the middle and its arms end at y 212, so words at y 200 were drawn over the cross. The code hides it once the map is ready.
 
 ```html
       </svg>

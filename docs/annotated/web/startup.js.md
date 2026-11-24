@@ -24,6 +24,11 @@ New to code? See [how to read code](../how-to-read-code.md). Browser words used 
 ## The code, line by line
 
 ```js
+import { say } from "./say.js";
+```
+Brings in `say` from [`say.js`](say.js.md), a small helper that puts words in a message line and flashes the line briefly. It is used for the failure words, so that pressing "Try again" and failing again is visibly different from nothing happening. Without it a second failure would put the same words in the same place and look as if the button did nothing.
+
+```js
 // One start-up path for every section: the same progress words, the same failure words
 // and one shared "Try again" button. Each section calls whenPythonReady once.
 // bridge.js is imported inside attempt(), not at the top: if that file fails to download,
@@ -40,6 +45,16 @@ Makes a box called `callPython` holding `null` (nothing yet). `let` means the co
 const FAILURE_WORDS = "Python could not be downloaded, so nothing here can calculate yet. Check your internet connection, then press Try again.";
 ```
 A fixed sentence (`const` means it never changes). It is the message every section shows when the download fails. Keeping it in one place means all sections use identical words. Without it, each section would need its own copy.
+
+```js
+const OUR_FILE_WORDS = "Part of our GPS code could not be downloaded, so nothing here can calculate yet. Reload the page; if that does not help, the site itself has a problem.";
+```
+A second fixed sentence, for a different failure: one of our own Python files could not be fetched from this site. Telling the reader to check their internet connection would be wrong then (their connection is fine), so this sentence says the code is missing and that reloading may help.
+
+```js
+let failureWords = FAILURE_WORDS; // which of the two sentences the failure shows
+```
+A box holding whichever of the two failure sentences applies. It starts as the internet one. It is a `let` because the failure handler may swap it for the other. Without it the file could only ever show one failure sentence.
 
 ```js
 const sections = []; // one { statusNode, onReady, hasControls, retryButton, done } per section
@@ -133,10 +148,12 @@ The success function. `() => { ... }` is a small unnamed function with no inputs
     (error) => {
       console.error(error);
       state = "failed";
+      // bridge.js says "could not load mechanism/<file>" when one of our own files is missing.
+      failureWords = String(error.message).startsWith("could not load mechanism/") ? OUR_FILE_WORDS : FAILURE_WORDS;
       for (const section of sections) showFailure(section);
     },
 ```
-The failure function. It receives `error`, a description of what went wrong. `console.error(error)` writes it into the browser's developer console, a hidden log for programmers, so the cause is not lost. Then it sets the state to failed and shows the failure words on every section. Without it a failed download would leave the sections saying "loading" for ever.
+The failure function. It receives `error`, a description of what went wrong. `console.error(error)` writes it into the browser's developer console, a hidden log for programmers, so the cause is not lost. Then it sets the state to failed. The next two lines choose the words. [`bridge.js`](bridge.js.md) gives its error the message "could not load mechanism/" plus the file name when one of our own Python files cannot be fetched; `startsWith` checks for that. If it matches, the failure shows `OUR_FILE_WORDS`, otherwise the internet words (`? :` is a short if-else). Last, it shows the failure words on every section. Without it a failed download would leave the sections saying "loading" for ever.
 
 ```js
   );
@@ -200,6 +217,11 @@ function showProgress(section) {
 Starts a function that writes the progress words into one section.
 
 ```js
+  if (!latestProgress) return; // no progress text yet: the status line keeps "Loading the maths…"
+```
+If no progress words have arrived yet, stop here and leave the status line as it is: it already says "Loading the maths…". Without this, the line would show only the lead-in ("The controls switch on when this finishes.") with nothing after it, which reads as half a sentence.
+
+```js
   const prefix = section.hasControls ? "The controls switch on when this finishes. " : "";
 ```
 Chooses a short lead-in. If the section has controls (the `? :` is a short if), the lead-in is "The controls switch on when this finishes. " and otherwise it is empty text. It tells the reader why sliders are greyed out. A section without controls would find that sentence confusing, so it gets none.
@@ -255,9 +277,9 @@ function showFailure(section) {
 Starts a function that shows the failure for one section.
 
 ```js
-  section.statusNode.textContent = FAILURE_WORDS;
+  say(section.statusNode, failureWords); // say() flashes the line, so a repeated failure is seen
 ```
-Writes the fixed failure sentence into the section's message element.
+Writes the chosen failure sentence into the section's message element, using `say`, which also flashes the line briefly. So if the reader presses "Try again" and the download fails again, the line visibly blinks and they can see something happened, even though the words are the same.
 
 ```js
   if (section.retryButton) return;
