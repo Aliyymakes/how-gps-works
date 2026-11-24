@@ -12,7 +12,7 @@ The measured distance is called a pseudorange ("pseudo" because it is not the tr
 ## Which files it talks to
 - `mechanism/constants.py`: gives `SPEED_OF_LIGHT_M_PER_S`, needed to turn a clock error in seconds into metres.
 - `numpy` and `math` (outside libraries): the random number maker and the square root.
-- `mechanism/relativity.py`: calls `make_pseudoranges` once per hour of drift.
+- `mechanism/relativity.py`: calls `make_pseudoranges` once for each hour value in its `hours_list`.
 - `web/first-screen.js` and `web/step-geometry.js`: call `scenario.make_pseudoranges` through the Python bridge.
 - `mechanism/solver.py`: receives the list this file makes and works backwards from it to a position.
 - `tests/test_scenario.py` and `tests/test_mapview.py`: check and use it.
@@ -80,7 +80,7 @@ A noise size below zero is meaningless (a spread cannot be negative), and numpy 
 ```
 The idea: the phone works out distance as "time the signal took" times "speed of light". If the phone's clock is ahead by a little, every time looks a little too long, so every distance comes out too long by the same amount, whichever satellite it is. So the clock error in seconds, multiplied by the speed of light, gives the extra distance in metres.
 
-Worked example: a clock 1 microsecond ahead (0.000001 s, the value the page uses). 0.000001 times 299 792 458 = 299.792458 metres. One millionth of a second is about 300 metres of distance, which is why clocks matter so much.
+Worked example: a clock 1 microsecond ahead (0.000001 s, the value the DOP step of the page uses). 0.000001 times 299 792 458 = 299.792458 metres. One millionth of a second is about 300 metres of distance, which is why clocks matter so much.
 
 ```python
     # The same seed always gives the same noise.
@@ -91,7 +91,7 @@ The first line is a reminder of why there is a seed. `np.random.default_rng(seed
 
 `rng.normal(0.0, noise_m, len(satellites))` asks for a list of random numbers that cluster around 0.0 and spread out by about `noise_m` (a "normal" or bell-curve spread); the last part says how many, one per satellite. They can be positive or negative. If `noise_m` is 0 they are all exactly 0.
 
-Worked example: with seed 0 and noise_m 3, one satellite gets noise 0.377 m (I ran this).
+Worked example: with seed 0 and noise_m 3, the first satellite gets noise 0.377 m (worked out by running the code).
 
 ```python
     pseudoranges = []
@@ -116,7 +116,7 @@ Worked example: phone at (0, 0, 0), satellite at (3 000 000, 4 000 000, 0). Gaps
 ```
 This is the formula from the description, now as code: true distance, plus clock effect, plus this satellite's noise. `float(...)` turns the result into an ordinary decimal number, so the page can read it. `.append` puts it at the end of the list, so the answers stay in the same order as the satellites.
 
-Worked example, same satellite as above, clock error 1 microsecond, noise 3 m, seed 0: 5 000 000 + 299.792458 + 0.377 = 5 000 300.170 m (I ran this; the code printed 5 000 300.1696...). Without noise, the answer is 5 000 299.792458 m.
+Worked example, same satellite as above, clock error 1 microsecond, noise 3 m, seed 0: 5 000 000 + 299.792458 + 0.377 = 5 000 300.170 m (running the code prints 5 000 300.1696...). Without noise, the answer is 5 000 299.792458 m.
 
 ```python
     return pseudoranges

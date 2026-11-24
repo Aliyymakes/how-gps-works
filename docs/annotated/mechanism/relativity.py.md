@@ -7,7 +7,7 @@ If you have never read code, start with [how to read code](../how-to-read-code.m
 ## What this file is for
 Because of Einstein's relativity, satellite clocks would run about 38 microseconds a day fast compared with clocks on the ground, if nobody corrected them. This file answers the question: what does that do to the position the phone works out?
 
-It adds a drift that grows with time, the same for every satellite, to the measured distances. Then it solves the position twice: once letting the solver find the clock error too, and once trusting the phone's clock. The answer is a short table, one line per hour.
+It adds a drift that grows with time, the same for every satellite, to the measured distances. Then it solves the position twice: once letting the solver find the clock error too, and once trusting the phone's clock. The answer is a short table, one line for each hour value it is asked about (the page asks for 0, 1, 6 and 24 hours).
 
 ## Which files it talks to
 - `mechanism/constants.py`: gives `RELATIVITY_DRIFT_S_PER_DAY` (38e-6, from `docs/facts.md` row 27) and `SPEED_OF_LIGHT_M_PER_S`.
@@ -22,7 +22,7 @@ It adds a drift that grows with time, the same for every satellite, to the measu
 2. For each hour, work out the drift in seconds and add it to the phone's clock error, so every distance gets longer by the same amount.
 3. Solve twice (clock solved, clock trusted), measure how far each answer is from the true position, and return one result per hour.
 
-A point to hold on to: this model adds the drift as an extra phone clock error. A shared drift is soaked up by the clock the solver finds, so when the clock is solved the position stays right. Only when the clock is trusted does the drift ruin the position. Do not read the table as "your position is 11 km off per day"; that would be wrong in this model. Also do not say the satellite clock "gains, so distances get longer": a satellite clock running ahead would shorten the measured distances. The code adds the drift as longer, which flips the sign of the solved clock but not the position result.
+A point to hold on to: this model adds the drift as an extra phone clock error. A shared drift is soaked up by the clock the solver finds, so when the clock is solved the position stays right. Only when the clock is trusted does the drift ruin the position. Do not read the table as "your position is 11 km off per day"; that would be wrong in this model. Also do not say the satellite clock "gains, so distances get longer": a satellite clock running ahead would shorten the measured distances. The code adds the drift as longer. Doing it the other way would make the solved clock come out as the phone's error minus the drift instead of plus, and would change the trusted-clock error somewhat, but with the clock solved the position would still stay right.
 
 ## The code, line by line
 
@@ -152,7 +152,7 @@ Worked example:
         if isinstance(ranges, dict):
             return ranges
 ```
-The comment gives the modelling choice: the drift is treated like extra phone clock error, so it is simply added to the phone's own clock error and passed on. `make_pseudoranges` then gives each satellite a measured distance that is the true distance plus the clock error (now bigger) times the speed of light. No noise is passed, so noise is 0. This is a model choice: the real satellite clock would, if running ahead, shorten distances (see the note at the top); the position result is the same either way.
+The comment gives the modelling choice: the drift is treated like extra phone clock error, so it is simply added to the phone's own clock error and passed on. `make_pseudoranges` then gives each satellite a measured distance that is the true distance plus the clock error (now bigger) times the speed of light. No noise is passed, so noise is 0. This is a model choice: the real satellite clock would, if running ahead, shorten distances (see the note at the top). With the clock solved, the position comes out right either way.
 
 If `make_pseudoranges` hits a problem it returns a `dict` (a labelled box with `error`) instead of a list. `isinstance(ranges, dict)` spots that and passes the error straight on. Without the check, the solver below would be given an error box instead of distances.
 
@@ -184,17 +184,18 @@ The same distances again, but with `solve_clock=False`: the solver is told to be
 ```
 This builds this hour's result box and adds it to the list. Each `float(...)` turns a value into an ordinary decimal number.
 - `hours`: the hour value.
-- `range_added_m`: the drift turned into metres, drift in seconds times the speed of light. Worked example, 1 hour: 0.0000015833 times 299 792 458 = 474.67 metres. For 6 hours it is 2 848.03 metres. For 24 hours: 38e-6 times 299 792 458 = 11 392.11 metres, the "about 11 km a day" of `docs/facts.md` row 31 (the facts file says about 11 km, not exactly).
+- `range_added_m`: the drift turned into metres, drift in seconds times the speed of light. Worked example, 1 hour: 0.0000015833 times 299 792 458 = 474.67 metres. For 6 hours it is 2 848.03 metres. For 24 hours: 38e-6 times 299 792 458 = 11 392.11 metres, the figure in `docs/facts.md` row 31 (11.39 km, worked out from 38 microseconds; NASA's source says only "about 11 km", and the 38 microseconds is itself rounded).
 - `error_clock_solved_m` and `error_clock_trusted_m`: how far each solved position is from the truth, using `_error_m` above.
 - `solved_clock_error_s`: the clock error that the solver found, in seconds.
 
-I ran this with the page's four satellite directions (azimuth 10, 100, 235, 325 degrees; elevation 60, 35, 20, 20 degrees) about 20 000 km from a receiver on the Earth's surface, and a phone clock error of 1 microsecond:
+Running it with the page's settings (`web/config.js`: receiver in Jakarta; four satellites at azimuth 10, 100, 235, 325 degrees and elevation 60, 35, 20, 20 degrees, placed on the GPS orbit, about 20 900 to 23 700 km from the receiver; a phone clock error of 1 microsecond) gives:
 
 ```text
 hours  range_added_m  error_clock_solved_m  error_clock_trusted_m  solved_clock_error_s
-0           0.0       about 0 (3e-9)           520.3                1.0000e-06
-1         474.7       about 0 (2e-9)          1344.2                2.5833e-06
-24     11392.1        about 0 (2e-9)         20286.4                3.9000e-05
+0           0.0       about 0 (under 1e-8)     520.3                1.0000e-06
+1         474.7       about 0 (under 1e-8)    1344.2                2.5833e-06
+6        2848.0       about 0 (under 1e-8)    5463.1                1.0500e-05
+24     11392.1        about 0 (under 1e-8)   20287.0                3.9000e-05
 ```
 Read it like this. With the clock solved, the position error stays at about zero, because the drift is the same for every satellite and the solved clock soaks it up: the solved clock error is 1 microsecond (the phone's own) plus the drift, 1 + 1.5833 = 2.5833 microseconds at 1 hour and 1 + 38 = 39 microseconds at 24 hours. With the clock trusted, there is nowhere for the shared drift to go, so the position is pushed away: over 20 km off after a day. The page must say this carefully: the large error belongs to trusting the clock, not to relativity itself.
 

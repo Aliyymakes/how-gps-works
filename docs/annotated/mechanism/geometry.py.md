@@ -7,12 +7,12 @@ If you have never read code, start with [how to read code](../how-to-read-code.m
 ## What this file is for
 Some satellite layouts give a good position and some give a bad one, even when every measurement is equally good. This file measures how bad a layout is. The number it makes is called DOP (dilution of precision): the factor by which the layout multiplies the measurement errors. Lower is better.
 
-It looks only at the directions from the phone to the satellites. It does not use any distances or any clock.
+It looks only at the directions from the phone to the satellites. It does not use the measured distances or any clock reading (it works out each arrow's length only to shrink the arrow to length 1).
 
 ## Which files it talks to
 - `numpy` (outside library): does the arrays, the "transpose" and the "inverse" in this file.
 - `mechanism/solver.py`: no direct link. The solver finds the position; this file only says how well a layout can do that.
-- `web/step-geometry.js`: calls `geometry.dop` through the Python bridge, once for the spread-out satellites and once for the bunched ones.
+- `web/step-geometry.js`: calls `geometry.dop` through the Python bridge each time it works out a result, for the layout the slider currently shows (a blend between the spread-out satellites and the bunched ones).
 - `tests/test_geometry.py`: checks `dop`.
 - `docs/interface.md`: the contract that fixes the name `dop`, its inputs and the shape of its answer.
 
@@ -138,7 +138,7 @@ def dop(receiver, satellites):
 ```
 This is the maths line. Take the table, call it H. `table.T` is H flipped so rows become columns (the "transpose", written Hᵀ). `@` means matrix multiplication. So `table.T @ table` is HᵀH. The table has 4 columns, so HᵀH is a small square table of 4 rows by 4 columns, one row and one column for each unknown: x, y, z, clock. Each entry says how much two columns of directions "overlap".
 
-`np.linalg.inv(...)` then finds the inverse, written (HᵀH)⁻¹. The inverse of a table is like "one divided by" a number: multiplying a table by its inverse gives the "do nothing" table. The idea behind DOP: if every measurement is off by an error of about 1 metre, the position unknowns are off by an amount set by the diagonal of this inverse. A layout where the satellites look alike makes HᵀH nearly impossible to invert, so the inverse has huge numbers: errors are magnified.
+`np.linalg.inv(...)` then finds the inverse, written (HᵀH)⁻¹. The inverse of a table is like "one divided by" a number: multiplying a table by its inverse gives the "do nothing" table. The idea behind DOP: if every measurement is off by an error of about 1 metre, the unknowns are off by an amount set by the diagonal of this inverse (the square roots of its entries, as the last lines show). A layout where the satellites look alike makes HᵀH nearly impossible to invert, so the inverse has huge numbers: errors are magnified.
 
 Worked example, spread satellites from above. HᵀH comes out (rounded) as:
 
@@ -158,7 +158,7 @@ Check the top-left number: it is the sum of each row's first number squared, 0.0
 ```
 The diagonal (top-left to bottom-right) is 0.755, 0.755, 3.282, 1.072. Up (z) is the worst because the satellites are never below the phone, so only a bit of the geometry pins the height down.
 
-The `try` / `except` is the safety net. If the table is "flat" (for example all four satellites at the same height in the sky, as in my test with satellites at (10 000 000, 0, 10 000 000), (-10 000 000, 0, 10 000 000), (0, 10 000 000, 10 000 000) and (0, -10 000 000, 10 000 000): every z number is 0.7071 and the clock column is all 1, so one column is always 0.7071 times another) the inverse does not exist and numpy raises a `LinAlgError`. The `except` catches it and returns the sentence. Without the safety net, a bad layout would crash the page.
+The `try` / `except` is the safety net. If the table is "flat" (for example all four satellites at the same height in the sky, such as satellites at (10 000 000, 0, 10 000 000), (-10 000 000, 0, 10 000 000), (0, 10 000 000, 10 000 000) and (0, -10 000 000, 10 000 000): every z number is 0.7071 and the clock column is all 1, so one column is always 0.7071 times another; receiver at (0, 0, 0)) the inverse does not exist and numpy raises a `LinAlgError`. The `except` catches it and returns the sentence. Without the safety net, a bad layout would crash the page.
 
 ```python
     diagonal = np.diag(inverse)

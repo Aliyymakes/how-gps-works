@@ -101,7 +101,7 @@ A docstring that explains the three inputs in plain words. A "pseudorange" is a 
 ```python
     if len(satellites) != len(pseudoranges_m):
 ```
-Checks that the two lists have different lengths. `len(...)` counts the items in a list and `!=` means "is not equal to". If there are, say, 5 satellites but only 4 distances, some satellite has no distance.
+Checks whether the two lists have different lengths. `len(...)` counts the items in a list and `!=` means "is not equal to". If there are, say, 5 satellites but only 4 distances, some satellite has no distance.
 
 ```python
         return {"error": "There must be one distance for each satellite."}
