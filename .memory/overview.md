@@ -11,6 +11,7 @@ What is built. One dated line per merged issue, added at the end: `- YYYY-MM-DD 
 ## Built
 - 2026-11-22 | setup | Team system only: AGENTS.md, CLAUDE.md, CONTRIBUTING.md, .memory/, issue and pull request templates, test workflow, one smoke test. No project code yet. Not yet pushed to GitHub.
 - 2026-11-23 | #13 | docs/interview-prep.md: 57 judge questions in 8 groups; answers for geometry, signal and the page from open PRs; solver, bridge, coords and mapview answers left for their owners.
+- 2026-11-23 | #12 | docs/demo-script.md: draft shot list for the demo video (first screen, then rungs 2 and 3); length left to Icarus.
 - 2026-11-23 | #5 (draft) | index.html, web/config.js, web/first-screen.js: the first screen (ground map, clock slider, solve button, satellite switches). Paints without Python; waits on bridge, coords, scenario, solver, mapview to run.
 - 2026-11-23 | #9 (draft) | web/step-geometry.js + web/dev/step-geometry.html: rung 2 section ("Bunch the satellites" slider, sky diagram, DOP, position error). Waits on the bridge and mechanism.
 - 2026-11-23 | #10 (draft) | web/step-signal.js + web/dev/step-signal.html: rung 3 section (noise slider, received signal, 1023 correlation scores with best and true delay marked). Waits on the bridge and signal.py.
@@ -30,3 +31,4 @@ What is built. One dated line per merged issue, added at the end: `- YYYY-MM-DD 
 - 2026-11-24 | #40 | web/first-screen.js: when the page refuses to solve or a Python call fails, showNoFix clears the metres value, badge and map dot.
 - 2026-11-24 | #43 | web/config.js default satellites: azimuths 10/100/235/325, elevations 60/35/20/20 (PDOP 3.37, four distinct line directions).
 - 2026-11-24 | #13 | docs/interview-prep.md re-checked against merged bridge, page, step files and config.js; answers use the new default satellites (520.3 m trusted, PDOP 3.37) and name the Hᵀ H step in dop.
+- 2026-11-24 | #12 | docs/demo-script.md: 8-shot demo video script, about 2:05, quoting the real page text of the first screen and rungs 2 and 3; timing is read from code, not recorded.
