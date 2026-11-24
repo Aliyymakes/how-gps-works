@@ -88,3 +88,11 @@ Reading: A finished product comes before each teammate writing their own part. W
 ### 2026-11-23 21:20
 His words: "use fable for hardest descisions and tasks, opus for hard stuff, sonnet for regular stuff, haiku for easy stuff"
 Reading: Model ladder for agent work: Fable for the hardest decisions and tasks, Opus for hard work, Sonnet for regular work, Haiku for easy work. Written into plan-002. Applies to future plans too.
+
+### 2026-11-24 15:51
+His words: "how much isnt done? my idea is basically finish eerything then make documentation like how big companies have it so new employees cna learn the code base"
+Reading: Finish the product, then write onboarding documentation in the style large companies use, so teammates can learn the whole codebase. The orchestrator recommended writing the docs today alongside finishing, since the interview can open 30 minutes after submission.
+
+### 2026-11-24 15:55 (picked from four questions)
+His words: Go public: "Yes, public now (Recommended)". Licence name: "All four GitHub usernames (Recommended)". Satellites: "Yes, change them (Recommended)". Video: "About 2 minutes (Recommended)".
+Reading: Make the repo public now and turn on GitHub Pages. MIT licence, copyright line "aliyymakes, tw-2866, scoobertfan, jstnstyad10". Default satellite azimuths become 10/100/235/325, checked that the screen still starts green and DOP stays good. Demo video about 2 minutes. Does NOT settle: the project name, the "How AI was used" text, who records the video.
