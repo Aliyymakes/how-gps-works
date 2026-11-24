@@ -29,6 +29,7 @@ def test_heading_and_first_label_show_while_the_cdn_is_slow(open_page):
 def use_everything(page):
     """Drag every slider end to end in 40 mouse steps, then press every button."""
     for slider in page.locator("input[type=range]").all():
+        slider.scroll_into_view_if_needed()  # mouse moves do not scroll; the slider must be on screen
         box = slider.bounding_box()
         y = box["y"] + box["height"] / 2
         page.mouse.move(box["x"] + 2, y)
@@ -36,6 +37,7 @@ def use_everything(page):
         for i in range(1, 41):
             page.mouse.move(box["x"] + 2 + (box["width"] - 4) * i / 40, y)
         page.mouse.up()
+        assert slider.input_value() == slider.get_attribute("max"), "the drag did not reach the end"
     for button in page.locator("button:visible").all():
         if button.is_enabled():
             button.click()
