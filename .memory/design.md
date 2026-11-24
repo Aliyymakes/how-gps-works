@@ -100,6 +100,8 @@ Division: senior (Icarus, 2026-11-22).
 
 Feature freeze: 25 Nov 18:59 WIB, one day before the deadline (Icarus, 2026-11-23). After it, only bug fixes, the project page, the demo video and interview practice.
 
+Decided 2026-11-24 (Icarus): repo goes public now with GitHub Pages for the live link; MIT licence, copyright "aliyymakes, tw-2866, scoobertfan, jstnstyad10"; default azimuths 10/100/235/325 (overrides the earlier config placeholders); demo video about 2 minutes.
+
 ## 5. What gets submitted
 
 Live link, public repository, project page, short demo video. Who makes the project page and the video: TBA.
