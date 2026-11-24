@@ -13,7 +13,7 @@ GPS_ORBIT_RADIUS_M = 26_559_700.0
 RELATIVITY_DRIFT_S_PER_DAY = 38e-6
 ```
 
-The speed of light turns time into distance. The Earth is one sphere with this mean radius. The orbit radius is measured from the Earth's centre, so the satellites are about 20,200 km up (20,189 km above our sphere model; facts.md row 35). The drift is "about 38" microseconds a day. They would gain about 38 µs a day if uncorrected; real satellites are set slow before launch to cancel it (docs/facts.md rows 28-29). Our table shows the uncorrected case.
+The speed of light turns time into distance. The Earth is one sphere with this mean radius. The orbit radius is measured from the Earth's centre, so the satellites are about 20,200 km up (20,189 km above our sphere model; facts.md row 35). The drift is "about 38" microseconds a day. They would gain about 38 µs a day if uncorrected; real satellites are set slow before launch to cancel it (docs/facts.md rows 28-29). Our slider shows the uncorrected case.
 
 **Judge asks:** where do these numbers come from? **Answer:** each has a source row in facts.md (rows 1, 33, 3, 27). The relativity figure is "about 38", not exact: 45 minus 7 rounded (facts.md notes).
 
@@ -256,7 +256,7 @@ const result = await callPython("relativity.drift_over_time",
   [receiver, satellites, config.relativityPhoneClockErrorS, [hours]]);
 ```
 
-Three readouts: "Each measured distance is wrong by" (`range_added_m`), "If the phone trusted its clock" (`error_clock_trusted_m`) and "Because the phone solves for its clock" (`error_clock_solved_m`). At 24 h with the default satellites they read 11,392 m, 19,767 m and 0 m (computed by running `relativity.drift_over_time`). The range figure follows our model, which adds the drift as longer distances; a real satellite clock running ahead would make them shorter by the same amount (see section 8). The position result is the same either way. Annotated: [step-relativity.js.md](../annotated/web/step-relativity.js.md).
+Three readouts: "Each measured distance is wrong by" (`range_added_m`), "If the phone trusted its clock" (`error_clock_trusted_m`) and "Because the phone solves for its clock" (`error_clock_solved_m`). At 24 h with the default satellites they read 11,392 m, 19,767 m and 0 m (computed by running `relativity.drift_over_time`). The range figure follows our model, which adds the drift as longer distances; a real satellite clock running ahead would make them shorter by the same amount (see section 8). The clock-solved result (0 m) is the same either way; the trusted figure differs slightly (19,779 m with the sign flipped, computed). Annotated: [step-relativity.js.md](../annotated/web/step-relativity.js.md).
 
 **Judge asks:** why does the position not move? **Answer:** the page says it ("Every distance is wrong by the same amount, so solving for the clock absorbs it. Trusting the clock would not."): the drift is the same for every satellite, so it looks like the phone's own clock error and solving for the clock absorbs it.
 

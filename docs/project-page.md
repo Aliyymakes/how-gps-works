@@ -54,4 +54,4 @@ The Area column is proposed and can change.
 
 ## Sources
 
-Every number on the page and in this text is listed with its source in [docs/facts.md](facts.md).
+Every GPS fact on the page and in this text is listed with its source in [docs/facts.md](facts.md). Figures our code computes (such as 520 m and 19,767 m) are not in that file; they come from running the code with the page's settings.

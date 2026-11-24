@@ -36,7 +36,7 @@ The slider counts whole steps (0 to 60), and the code multiplies by `step_s` (0.
 
 ### 3. `runOnce("slider")` asks Python four times, in this order
 
-Mode is "trusted", so `solveClock` is `false`. `sats` is the satellites whose switch is on (all four at the start). (If fewer than 3 are on, the page refuses before any Python call; see Part 2.)
+Mode is "trusted", so `solveClock` is `false`. `sats` is the satellites whose switch is on (all four at the start). (If fewer than 3 are on, the page refuses before calling the solver; see Part 2.)
 
 | Step | JavaScript call | What Python runs | What comes back |
 |---|---|---|---|
@@ -61,7 +61,7 @@ requestAnimationFrame(() => draw(lines, local, errorM, animate));
 showWords(solution, errorM, solveClock);
 ```
 
-- The error shown is `Math.hypot` of the three local numbers: straight-line distance between the solved dot and the true spot. It is the one piece of arithmetic on the page besides drawing scale.
+- The error shown is `Math.hypot` of the three local numbers: straight-line distance between the solved dot and the true spot. Besides this, the page only scales for drawing, turns slider steps into seconds (above) and rounds numbers for display.
 - `draw()` calls `drawLines(lines)`: each line is an SVG `<polyline>` (created once per satellite id, then updated) whose `points` attribute is `toPixelX(e),toPixelY(n)` for each `[e, n]`. The map is a 400 by 400 box covering -1000 to +1000 metres, so one pixel is 5 metres and north is up (`toPixelY` flips the axis).
 - `draw()` then places the dot at `toPixelX(local.east_m), toPixelY(local.north_m)` (hidden if it falls off the map), sets the colour class from `errorLevel(errorM)` (under 10 m "ok", under 100 m "warn", otherwise "bad", from `config.errorLimits`), and writes "Position off by" as metres (through `formatMetres` in [format.js](../../web/format.js): one decimal under 100 m, whole metres from 100 m up) plus the badge word ("Good fix", "Fix is off" or "Fix is far off").
 - `showWords()` writes "The phone trusts its clock, so the distance lines miss each other." when the error is not "ok".
@@ -73,7 +73,7 @@ With the defaults, at 1 microsecond with the clock trusted the readout is 520 m 
 The button is `<button id="solve">` with the label "Let the phone solve for its clock" in index.html.
 
 1. The `click` handler in `setupControls()` sets `state.mode = "solved"` and calls `update("solve")`. The slider value is left alone, so `state.clockErrorS` is still the wrong clock you chose.
-2. `runOnce("solve")` has `solveClock = true`. Before calling Python it checks `sats.length < 4` (with the clock trusted the limit is 3): if you switched satellites off, `refuse()` writes the sentence under the switches, for example "Can't solve: four things are unknown (east, north, up and the clock), but only 3 satellites are on, and each satellite gives one measurement. Turn a satellite back on." (the count is in words: "only 3 satellites are on" is written with the number from `countWords`; with none on it says "no satellites are on"). It writes "No position: see the message under the satellite switches." under the readout, clears the dot, metres value and badge with `showNoFix()`, and still draws the distance lines of the satellites that are on (two Python calls, `make_pseudoranges` and `distance_lines`). The solver is not called. The map caption then says how many lines have left the map.
+2. `runOnce("solve")` has `solveClock = true`. Before calling Python it checks `sats.length < 4` (with the clock trusted the limit is 3): if you switched satellites off, `refuse()` writes the sentence under the switches, for example "Can't solve: four things are unknown (east, north, up and the clock), but only 3 satellites are on, and each satellite gives one measurement. Turn a satellite back on." (the count comes from `countWords`: "only 3 satellites are on", "only 1 satellite is on", and with none on "no satellites are on"). It writes "No position: see the message under the satellite switches." under the readout, clears the dot, metres value and badge with `showNoFix()`, and still draws the distance lines of the satellites that are on (two Python calls, `make_pseudoranges` and `distance_lines`). The solver is not called. If any of those lines have left the map, the caption says how many.
 3. Otherwise it runs the same four calls as above, with these differences:
    - `make_pseudoranges` is called with the same `state.clockErrorS`, so the measured distances are the same as before.
    - `solve_position` gets `true` for `solve_clock`. In `solver.py` each row of the table gets an extra `1.0` for the clock, so it solves four unknowns (x, y, z, clock). With fewer than 4 satellites it would return `{"error": "At least 4 satellites are needed."}`.
@@ -84,6 +84,6 @@ Two other controls use the same path: a satellite switch calls `update("switch")
 
 ## The three-step guide
 
-`guideStep` is 1, 2, 3 or 4. Only the hint for the current step shows, with a border on that step's control: step 1 "Step 1. Drag this slider to the right." (moves on when the fix is no longer "Good fix"), step 2 "Step 2. The lines no longer meet. Press this button." (moves on when you solve; goes back to step 1 if the lines meet again), step 3 "Step 3. Now switch one satellite off." (moves on when the page refuses to solve), then the closing line "That is the main idea: the phone needs four satellites because its own clock is a fourth unknown. Keep playing, or scroll on." Reset does not bring back a finished guide.
+`guideStep` is 1, 2, 3 or 4. Only the hint for the current step shows, with a border on that step's control: step 1 "Step 1. Drag this slider to the right." (moves on when the fix is no longer "Good fix"), step 2 "Step 2. The lines no longer meet. Press this button." (moves on when you solve; goes back to step 1 if the lines meet again), step 3 "Step 3. Now switch one satellite off." (moves on when the page refuses with the clock solved), then the closing line "That is the main idea: the phone needs four satellites because its own clock is a fourth unknown. Keep playing, or scroll on." Reset does not bring back a finished guide.
 
 Not checked by eye: the 520.3 m (shown as 520 m) and 1.00 µs figures were confirmed by replaying the Python calls with the default config (and match .memory/decisions.md, 2026-11-24), not by seeing them on screen.

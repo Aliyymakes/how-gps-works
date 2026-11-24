@@ -116,6 +116,7 @@ Taken from `git ls-files` on this branch.
 - [LICENSE](../../LICENSE): MIT licence.
 - [pytest.ini](../../pytest.ini): test config (`pythonpath = .`, `testpaths = tests`).
 - [requirements-dev.txt](../../requirements-dev.txt): `pytest` and `numpy`.
+- [requirements-ui.txt](../../requirements-ui.txt): Playwright, for the browser tests in `tests/ui/`.
 - [.gitattributes](../../.gitattributes), [.gitignore](../../.gitignore), [.nojekyll](../../.nojekyll): git settings; `.nojekyll` tells GitHub Pages not to run Jekyll.
 
 ### mechanism/ (Python, the maths)
@@ -150,11 +151,12 @@ Taken from `git ls-files` on this branch.
 
 - [test_coords.py](../../tests/test_coords.py), [test_geometry.py](../../tests/test_geometry.py), [test_mapview.py](../../tests/test_mapview.py), [test_relativity.py](../../tests/test_relativity.py), [test_scenario.py](../../tests/test_scenario.py), [test_signal.py](../../tests/test_signal.py), [test_solver.py](../../tests/test_solver.py): one test file per mechanism module.
 - [test_smoke.py](../../tests/test_smoke.py): checks one microsecond is between 299 and 300 metres.
+- [test_annotations.py](../../tests/test_annotations.py): checks that every file in `docs/annotated/` quotes its source exactly and that every source file has one.
 
 ### docs/
 
 - [interface.md](../interface.md): the contract between Python and the page.
-- [facts.md](../facts.md): every number the page or documents use, with its source.
+- [facts.md](../facts.md): the GPS facts the page and documents use, with their sources. Numbers our code computes (such as 520.3 m) are not in it; they come from running the code.
 - [ui-guide.md](../ui-guide.md): layout, look and motion rules for the page.
 - [project-page.md](../project-page.md): a draft of the project page text (marked "Draft for Icarus").
 - [demo-script.md](../demo-script.md): the script for the demo video.

@@ -346,7 +346,7 @@ Code: [mechanism/relativity.py](../../mechanism/relativity.py), [scripts/check_r
 
 <details><summary>Answer</summary>
 
-Tested with `scripts/check_relativity.py` (its own five satellites, computed in interview-prep 6.7): with the phone's clock solved, the position error stays 0 m after a day and the solved clock grows by the drift instead, because the solver cannot tell a phone clock error from a shared satellite clock drift (every distance changes by the same amount; a satellite clock running ahead makes each distance read shorter, our model adds it as longer, which flips the sign of the solved clock but not the position result). The satellite clocks would gain about 38 µs a day if uncorrected; real satellites are set slow before launch to cancel it (docs/facts.md rows 28-29), and our slider (0 to 24 hours) shows the uncorrected case. With the clock trusted, the same drift gives about 17 km (17 296 m) of position error after a day for that script's five satellites (with the page's four satellites and a phone clock error of 0: 19,767 m, which the page shows as "If the phone trusted its clock"). Do not say the position would be 11 km off.
+Tested with `scripts/check_relativity.py` (its own five satellites, computed in interview-prep 6.7): with the phone's clock solved, the position error stays 0 m after a day and the solved clock grows by the drift instead, because the solver cannot tell a phone clock error from a shared satellite clock drift (every distance changes by the same amount; a satellite clock running ahead makes each distance read shorter, our model adds it as longer, which flips the sign of the solved clock but not the position result). The satellite clocks would gain about 38 µs a day if uncorrected; real satellites are set slow before launch to cancel it (docs/facts.md rows 28-29), and our slider (0 to 24 hours) shows the uncorrected case. With the clock trusted, the same drift gives about 17 km (17 296 m, which also includes the script's 1 µs phone clock error) of position error after a day for that script's five satellites (with the page's four satellites and a phone clock error of 0: 19,767 m, which the page shows as "If the phone trusted its clock"). Do not say the position would be 11 km off.
 
 </details>
 
@@ -446,7 +446,7 @@ Only plain numbers, strings, booleans, lists and dicts; no numpy arrays or custo
 
 <details><summary>Answer</summary>
 
-No. It calls Python and draws what comes back. The only arithmetic is metres or chips to pixels, the slider-to-angle blend and sky scale (geometry step), scaling a bar (relativity step) and `Math.hypot` for the error length.
+No. It calls Python and draws what comes back. The only arithmetic is metres or chips to pixels, slider steps to values (0.05 µs steps on the first screen), rounding for display, the slider-to-angle blend and sky scale (geometry step) and `Math.hypot` for the error length.
 
 </details>
 
