@@ -152,9 +152,10 @@ async function runOnce(cause) {
   clearMessages();
 
   if (solveClock && sats.length < 4) {
-    // Do not call the solver: it cannot work, and the page says why. The last drawing stays.
+    // Do not call the solver: it cannot work, and the page says why. There is no fix to show.
     el.msgSwitch.textContent = "Four things are unknown (east, north, up and the clock), but three satellites give only three measurements.";
     hideSwitchedOffLines(sats);
+    showNoFix();
     return;
   }
 
@@ -178,6 +179,7 @@ async function runOnce(cause) {
 function failed(result, slot) {
   if (!result || !result.error) return false;
   slot.textContent = result.error; // Python's own plain sentence
+  showNoFix();
   return true;
 }
 
@@ -238,6 +240,16 @@ function draw(lines, local, errorM) {
   el.caption.textContent = inside
     ? `The map is about ${config.mapHalfWidthM * 2 / 1000} km wide. North is up.`
     : "The phone's position is off the edge of this map.";
+}
+
+// When the page refuses to solve: no metres value, no badge, no dot (issue #40).
+// Done in the next frame so it lands after any drawing an earlier run has already queued.
+function showNoFix() {
+  requestAnimationFrame(() => {
+    el.dot.style.display = "none";
+    el.errorValue.textContent = "–";
+    el.badge.hidden = true;
+  });
 }
 
 function drawLines(lines) {
