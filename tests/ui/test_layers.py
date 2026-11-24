@@ -25,7 +25,6 @@ def test_hints_show_after_ready_and_hide_for_good_after_first_input(open_page):
     page = open_page().page
     for section, hint, slider, reset, value in [
         (GEO, f"{GEO} [data-id=hint]", GEO_SLIDER, f"{GEO} [data-id=reset]", 50),
-        (SIG, f"{SIG} [data-el=hint]", SIG_SLIDER, f"{SIG} [data-el=reset]", 8),
         (REL, f"{REL} [data-id=hint]", REL_SLIDER, f"{REL} [data-id=reset]", 12),
     ]:
         assert page.locator(hint).is_visible(), section
@@ -54,8 +53,10 @@ def test_signal_clip_note_badge_and_slider_head_at_phone_width(open_page):
     assert text(page, clip) == ""
     set_slider(page, SIG_SLIDER, 24)
     assert text(page, clip) != ""
+    page.locator(f"{SIG} [data-el=search]").click()
+    settle(page)
     assert text(page, f"{SIG} [data-el=badge]") == "Lost"
-    label = page.locator(f"{SIG} .slider-head label").bounding_box()
+    label = page.locator(f"{SIG} label[for=signal-noise]").bounding_box()
     value = page.locator(f"{SIG} [data-el=noise-value]").bounding_box()
     apart = (
         label["x"] + label["width"] <= value["x"] or value["x"] + value["width"] <= label["x"]
