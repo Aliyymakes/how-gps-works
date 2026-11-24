@@ -8,7 +8,7 @@ The Earth is a ball, and the page needs to put things on it: the phone on the gr
 ## Which files it talks to
 - `mechanism/constants.py`: gives this file the Earth's radius and the GPS orbit radius.
 - `mechanism/mapview.py`: uses `latlon_to_xyz` and `_local_directions` to draw the flat local map.
-- Other mechanism files that need a satellite position or a receiver position call `satellite_from_sky` and `latlon_to_xyz` (see `docs/interface.md` for what the page receives).
+- No other mechanism file uses it. The page calls `latlon_to_xyz` and `satellite_from_sky` directly (from `web/first-screen.js`, `web/step-geometry.js` and `web/step-relativity.js`); see `docs/interface.md` for what the page receives. `xyz_to_latlon` is used only by the tests.
 - Basics of reading code (functions, `if`, lists) are in `docs/annotated/how-to-read-code.md`.
 
 ## In three lines
@@ -229,7 +229,7 @@ Unpacks the phone's bundle into three plain numbers in a row, easier to loop ove
 ```python
     b = sum(s * d for s, d in zip(start, direction))
 ```
-`b` is the "dot product" of the phone's position and the direction: multiply the x parts, the y parts and the z parts, then add them. It says how much the walk heads away from the centre. Straight up from the equator it equals the Earth's radius. For a satellite directly overhead the phone's position and direction line up, so `b` = 6,371,008.7714.
+`b` is the "dot product" of the phone's position and the direction: multiply the x parts, the y parts and the z parts, then add them. It says how much the walk heads away from the centre: it works out to the Earth's radius times sin(elevation), so it is 0 for a satellite on the horizon and largest straight up. For a satellite directly overhead (from anywhere on Earth) the phone's position and direction line up, so `b` = 6,371,008.7714.
 
 ```python
     c = sum(s * s for s in start) - GPS_ORBIT_RADIUS_M**2

@@ -137,7 +137,7 @@ if (height > 0) {
 }
 ```
 
-`>` means "greater than", `==` means "equal to" (two equals signs, because one `=` already means "store a value"). In Python the indentation shows what belongs to the `if`. In JavaScript the braces do.
+These two examples assume a value called `height` was stored earlier; on their own they would stop with an error saying `height` is not defined. `>` means "greater than", `==` means "equal to" in Python (two equals signs, because one `=` already means "store a value"). JavaScript code, including this project's, usually writes three: `===` means "equal to, and the same kind of value". In Python the indentation shows what belongs to the `if`. In JavaScript the braces do.
 
 ## A loop
 
@@ -170,11 +170,11 @@ import { sqrt } from "./maths.js";
 console.log(sqrt(9));
 ```
 
-The first borrows Python's built-in `math` toolbox and uses its square root, giving 3. The second borrows a function called `sqrt` from a file next to it (`./maths.js`). Imports at the top of a file tell you which other files it depends on.
+The first borrows Python's built-in `math` toolbox and uses its square root; it shows `3.0` (Python's square root always gives a decimal number). The second borrows a function called `sqrt` from a file next to it (`./maths.js`, a made-up file for this example; JavaScript has no such built-in file, its own square root is `Math.sqrt`). Imports at the top of a file tell you which other files it depends on.
 
 ## async and await
 
-Some jobs take time: loading a file, waiting for the network. `async` marks a function that may need to wait. `await` means "pause here until this finishes, then carry on". While it waits, the page stays usable.
+Some jobs take time: loading a file, waiting for the network. `async` marks a function that may need to wait. `await` means "pause here until this finishes, then carry on". While it waits, other work can carry on; on the web page that means the page stays usable.
 
 ```text
 async def load():
@@ -189,7 +189,7 @@ async function load() {
 }
 ```
 
-Without `await`, the next line would run before the data had arrived, and `data` would not be ready yet.
+`fetch_data` and `fetchData` are made-up names standing for any slow job. Without `await`, `data` would not hold the data at all: it would hold only a ticket for a result that has not arrived yet (Python calls it a coroutine, JavaScript a promise), and the next line would run straight away with that ticket. In Python, an `async` function is also only run when something else (Python's `asyncio` toolbox) starts it; calling `load()` on its own just makes such a ticket.
 
 ## An event listener
 
@@ -205,7 +205,7 @@ button.addEventListener("click", function () {
 });
 ```
 
-The button is told to watch for clicks. Each time someone clicks, the function runs. The page waits quietly until then. `() => { ... }` is a shorter way to write the same kind of function.
+This assumes `button` already names a button on the page (found earlier, for example with `document.getElementById("go")`). The button is told to watch for clicks. Each time someone clicks, the function runs. The page waits quietly until then. `() => { ... }` is a shorter way to write the same kind of function.
 
 ## An HTML tag
 

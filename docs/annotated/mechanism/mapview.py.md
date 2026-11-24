@@ -192,7 +192,7 @@ A square with half-width 1000 has its corners 1000 x 1.41421 = 1,414.2 m from it
 ```python
     half_angle = math.pi if reach >= radius else min(math.pi, math.asin(reach / radius) * 1.05)
 ```
-How wide a slice of the circle, either side of `middle_angle`, we need to sample. If the circle is smaller than `reach`, any part of it might be inside, so take the full half-turn (`math.pi`, 180 degrees each side, which is the whole circle). Otherwise, the slice is `asin(reach / radius)` (the angle at which a circle of size `reach` appears from far away), made 5 percent bigger (`* 1.05`) as a safety margin, and never more than `math.pi`. Example: radius 2500 gives asin(1414.2 / 2500) = asin(0.5657) = 0.6013, times 1.05 = 0.6313 radians (36.2 degrees). Sampling only this slice puts all the points near the map instead of wasting them all around a huge circle.
+How wide a slice of the circle, either side of `middle_angle`, we need to sample. If the circle is smaller than `reach`, any part of it might be inside, so take the full half-turn (`math.pi`, 180 degrees each side, which is the whole circle). Otherwise, the slice is `asin(reach / radius)`: the largest angle away from `middle_angle` at which a point of the circle can still be within `reach` of the map's middle (whatever the distance between the two centres), so no part of the circle that could land on the map is left out. It is made 5 percent bigger (`* 1.05`) as a safety margin, and never more than `math.pi`. Example: radius 2500 gives asin(1414.2 / 2500) = asin(0.5657) = 0.6013, times 1.05 = 0.6313 radians (36.2 degrees). Sampling only this slice puts all the points near the map instead of wasting them all around a huge circle.
 
 ```python
     points = []
@@ -336,7 +336,7 @@ The measured distance includes an error because the phone's clock is off. Light 
         # Pythagoras: distance^2 = radius^2 + up^2, so radius^2 = distance^2 - up^2.
         radius_squared = distance**2 - up_m**2
 ```
-Picture a ball of radius `distance` around the satellite, and the flat ground below it. The circle where they meet is centred on the spot directly under the satellite, which has the same east and north as the satellite. Take a right triangle whose long side is `distance` (satellite to a point on the circle), whose upright side is `up_m` (the satellite's height) and whose flat side is the circle's radius. Pythagoras says distance squared equals radius squared plus up squared, so radius squared = distance squared - up squared. Small example: distance 5, height 4 gives radius squared = 25 - 16 = 9, so radius 3. With real sizes, a satellite straight overhead at 20,188,691.2 m with a measured distance of 20,188,691.2 m gives radius squared 0, so the circle shrinks to a point under the satellite.
+Picture a ball of radius `distance` around the satellite, and the flat ground below it. The circle where they meet is centred on the spot directly under the satellite, which has the same east and north as the satellite. Take a right triangle whose long side is `distance` (satellite to a point on the circle), whose upright side is `up_m` (the satellite's height) and whose flat side is the circle's radius. Pythagoras says distance squared equals radius squared plus up squared, so radius squared = distance squared - up squared. Small example: distance 5, height 4 gives radius squared = 25 - 16 = 9, so radius 3. With real sizes, a satellite straight overhead at 20,188,691.2 m with a measured distance of 20,188,691.2 m gives radius squared 0 (or a hair either side of 0, from rounding), so the circle shrinks to a single point under the satellite, and no line is drawn.
 
 ```python
         points = []
@@ -347,7 +347,7 @@ Start with no points for this satellite.
         if radius_squared > 0:
             points = _circle_points(east_m, north_m, math.sqrt(radius_squared), half_width_m, samples)
 ```
-If the radius squared is zero or negative, the ball does not reach the ground at all (the measured distance is shorter than the satellite's height), so there is no circle and we skip it. Otherwise take the square root to get the radius and ask `_circle_points` for the points of the circle that lie on the map. Without the `if`, `math.sqrt` of a negative number would crash.
+If the radius squared is negative, the ball does not reach the ground at all (the measured distance is shorter than the satellite's height); if it is exactly zero, the ball only touches the ground at one spot. Either way there is no circle to draw, so we skip it. Otherwise take the square root to get the radius and ask `_circle_points` for the points of the circle that lie on the map. Without the `if`, `math.sqrt` of a negative number would crash.
 
 ```python
         # A line that only clips a corner of the square by a metre or two is too short to draw.
@@ -358,9 +358,9 @@ If the radius squared is zero or negative, the ball does not reach the ground at
 ```python
         lines.append({"id": satellite.get("id"), "points": points if inside else [], "inside": inside})
 ```
-Adds this satellite's result to the list: its `id` (`.get` gives nothing instead of crashing if the satellite has no id), its points (replaced by an empty list when too few), and the `inside` flag. The page uses `inside` to know whether to draw the line or say that it is off the map.
+Adds this satellite's result to the list: its `id` (`.get` gives nothing instead of crashing if the satellite has no id), its points (replaced by an empty list when too few), and the `inside` flag. The page (`web/first-screen.js`) uses `inside` to decide whether to show the line or hide it.
 
 ```python
     return lines
 ```
-Hands back one entry per satellite, in the same order as the input. The page draws these as the circles around the true phone position.
+Hands back one entry per satellite, in the same order as the input. The page draws each one as a line on the map: the part of that satellite's circle that crosses the map square around the true phone position.

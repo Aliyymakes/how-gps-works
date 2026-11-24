@@ -434,7 +434,7 @@ Starts a "try this, and if it goes wrong, do something kind instead" block. The 
         values = np.array(received, dtype=float)
 ```
 
-Turns the received list into a numpy array of decimal numbers. If `received` is not a list of numbers (for example it contains text), numpy raises an error, which the next lines catch.
+Turns the received list into a numpy array of decimal numbers. If `received` cannot be read as numbers (for example it contains a word such as `"abc"`), numpy raises an error, which the next lines catch. Text that spells a number, such as `"1.5"`, is quietly turned into that number and accepted.
 
 ```python
     except (TypeError, ValueError):
@@ -570,7 +570,7 @@ The ratio of the best score to the second best. Worked examples for PRN 7, delay
     return {"scores": scores, "best_delay_chips": best, "peak_to_next": float(peak_to_next)}
 ```
 
-Hands back a dictionary with three entries, exactly as promised in `docs/interface.md`: the list of 1023 `scores`, the `best_delay_chips` (the winning shift), and `peak_to_next`. The `float(...)` makes the ratio a plain decimal number. The page draws the scores as a graph and shows `peak_to_next` as the "x" figure.
+Hands back a dictionary with three entries, exactly as promised in `docs/interface.md`: the list of 1023 `scores`, the `best_delay_chips` (the winning shift), and `peak_to_next`. The `float(...)` makes the ratio a plain decimal number. The page draws the scores as a graph and shows `peak_to_next` in the "Peak stands out by" figure (for example "7.3×"). It also uses `best_delay_chips` to mark the winning shift and to show it in chips.
 
 ## Things worth knowing
 - The chips repeat every 1023 steps, which is why shifts wrap round and why only whole-chip delays between 0 and 1022 make sense.
