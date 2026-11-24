@@ -257,16 +257,24 @@ Mechanism (Python):
 - [`signal.py`](mechanism/signal.py.md)
 - [`solver.py`](mechanism/solver.py.md)
 
-Page (HTML, JavaScript, CSS), coming:
+Page (HTML, JavaScript, CSS):
 
-- `index.html` (coming)
-- `web/bridge.js` (coming)
-- `web/config.js` (coming)
-- `web/first-screen.js` (coming)
-- `web/say.js` (coming)
-- `web/startup.js` (coming)
-- `web/step-geometry.js` (coming)
-- `web/step-relativity.js` (coming)
-- `web/step-signal.js` (coming)
-- `web/theme.js` (coming)
-- `web/theme.css` (coming)
+- [`index.html`](index.html.md)
+- [`web/bridge.js`](web/bridge.js.md)
+- [`web/config.js`](web/config.js.md)
+- [`web/first-screen.js`](web/first-screen.js.md)
+- [`web/format.js`](web/format.js.md)
+- [`web/say.js`](web/say.js.md)
+- [`web/startup.js`](web/startup.js.md)
+- [`web/step-geometry.js`](web/step-geometry.js.md)
+- [`web/step-relativity.js`](web/step-relativity.js.md)
+- [`web/step-signal.js`](web/step-signal.js.md)
+- [`web/theme.js`](web/theme.js.md)
+- [`web/theme.css`](web/theme.css.md)
+
+Developer test pages (not part of the page judges see):
+
+- [`web/bridge-test.html`](web/bridge-test.html.md)
+- [`web/theme-preview.html`](web/theme-preview.html.md)
+- [`web/dev/step-geometry.html`](web/dev/step-geometry.html.md)
+- [`web/dev/step-signal.html`](web/dev/step-signal.html.md)

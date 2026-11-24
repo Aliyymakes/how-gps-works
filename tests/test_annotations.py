@@ -18,16 +18,13 @@ SHOWN = 10  # how many lines a failure message lists
 
 # Source files whose annotation is not written yet. The main session empties
 # this set as the docs land (web docs come after the page is final).
-PENDING = {
-    "index.html",
-    "web/theme.css",
-    *(f"web/{p.name}" for p in (ROOT / "web").glob("*.js")),
-}
+PENDING = set()  # every source file is annotated
 
 
 def source_files():
     found = [p.relative_to(ROOT).as_posix() for p in (ROOT / "mechanism").glob("*.py")]
     found += [p.relative_to(ROOT).as_posix() for p in (ROOT / "web").glob("*.js")]
+    found += [p.relative_to(ROOT).as_posix() for p in (ROOT / "web").rglob("*.html")]
     for name in ("web/theme.css", "index.html"):
         if (ROOT / name).exists():
             found.append(name)
