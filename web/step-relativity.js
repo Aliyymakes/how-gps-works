@@ -75,6 +75,7 @@ function mapMarkup(name, title, label) {
 const PAGE = `
 <div class="rel">
   <header class="rel-stack" style="display: grid; gap: var(--s-2)">
+    <p class="label part-label">Part 4 of 4</p>
     <h2 id="rel-title">Do the satellites' own clocks matter?</h2>
     <p class="rel-note" data-id="status" role="status" aria-live="polite">Loading the maths…</p>
   </header>

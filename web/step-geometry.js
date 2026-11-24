@@ -65,6 +65,7 @@ const STYLE = `
 const PAGE = `
 <div class="geo">
   <header class="geo-stack" style="gap: var(--s-2)">
+    <p class="label part-label">Part 2 of 4</p>
     <h2>Does it matter where the satellites are?</h2>
     <p class="muted">Same four satellites, same clock error, same noise. Only the layout changes.</p>
   </header>
