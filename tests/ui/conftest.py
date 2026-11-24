@@ -106,4 +106,7 @@ def open_page(browser):
 
     yield open_it
     for context in contexts:
+        # Stop any delayed request still waiting, so it cannot fail inside the next test.
+        for page in context.pages:
+            page.unroute_all(behavior="ignoreErrors")
         context.close()
