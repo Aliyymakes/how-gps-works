@@ -25,14 +25,20 @@ const STYLE = `
 .rel-pair { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
 @media (min-width: 560px) { .rel-pair { grid-template-columns: 1fr 1fr; } }
 .rel-why { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--s-2); font-size: var(--text-sm); }
-.rel-maps { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
+.rel-maps { max-width: 640px; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
 @media (min-width: 340px) { .rel-maps { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 .rel-map { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-2); align-content: start; }
 .rel-map-title { font-size: var(--text-sm); font-weight: 600; margin: 0; }
 .rel-off { font-size: var(--text-lg); overflow-wrap: anywhere; }
-.rel-map .rel-off { font-size: var(--text-md); }
+.rel-map .rel-off { font-size: var(--text-md); white-space: nowrap; }
 .rel .hint { font-size: var(--text-sm); font-weight: 500; color: var(--text); }
-.rel .slider-head { flex-wrap: wrap; column-gap: var(--s-3); }
+.rel .slider-head { flex-wrap: nowrap; column-gap: var(--s-3); }
+.rel .slider-head .num { white-space: nowrap; }
+.rel-control { position: sticky; top: var(--s-2); z-index: 5; background: var(--surface); }
+.rel-control, .rel input, .rel button { scroll-margin-top: 140px; }
+@media (max-width: 559px) { .rel-control { padding: var(--s-3); gap: var(--s-2); } .rel-control .rel-highlight { padding: var(--s-3); } }
+@media (max-width: 419px) { .rel-map .rel-off { font-size: var(--text-sm); } }
+.rel [data-id="sentence"] { color: var(--text); font-size: var(--text-md); }
 .rel .badge[hidden] { display: none; }
 .rel .btn { touch-action: manipulation; }
 .rel input[type="range"] { touch-action: pan-y; }
@@ -72,7 +78,7 @@ const PAGE = `
     <h2 id="rel-title">Do the satellites' own clocks matter?</h2>
     <p class="rel-note" data-id="status" role="status" aria-live="polite">Loading the maths…</p>
   </header>
-  <section class="card rel-card" aria-label="Control">
+  <section class="card rel-card rel-control" aria-label="Control">
     <p class="hint" data-id="hint" hidden>Drag this back to 0 and the two clocks agree. Drag it forward and watch the gap grow.</p>
     <div class="slider inset rel-highlight">
       <div class="slider-head">
@@ -114,7 +120,7 @@ const PAGE = `
         <span class="num rel-digits" data-id="digits-satellite" role="img" aria-label="">–</span>
       </div>
     </div>
-    <p class="rel-note">The last digits are millionths of a second (µs).</p>
+    <p class="rel-note">Both clocks were set together at 00:00:00. The last digits are millionths of a second (µs).</p>
     <div class="rel-pair">
       <div class="inset rel-readout">
         <span class="label">Satellite clock ahead by</span>
@@ -140,6 +146,7 @@ const PAGE = `
       <h3 id="rel-b-title">So why doesn't your position drift?</h3>
     </div>
     <p class="looking"><b>What you're looking at:</b> the map from the top of the page, twice, with every satellite clock ahead by the same amount. Each map is 40 km wide.</p>
+    <p class="rel-note">Cross: where it really is. Dot: where the phone thinks it is.</p>
     <div class="rel-maps">${mapMarkup("trusted", "The phone trusts its clock", "Ground map, 40 km wide. The phone trusts its clock.")}${mapMarkup("solved", "The phone solves for its clock", "Ground map, 40 km wide. The phone solves for its clock.")}
     </div>
     <p class="rel-note" data-id="height-note">Most of the left map's error is height, which a flat map cannot show. The dot shows the sideways part.</p>
@@ -358,7 +365,6 @@ export function mountRelativityStep(container) {
     let words = inside ? "" : "The phone's position is off the edge of this map.";
     if (off > 0) words += ` ${off} of the ${lines.length} distance lines ${off === 1 ? "has" : "have"} moved off the edge of this map.`;
     map.caption.textContent = words.trim();
-    
     map.svg.setAttribute("aria-label", `${map.base}. ${lines.length} distance lines. Position off by ${map.value.textContent.replace(" off", "")}.`);
   }
 

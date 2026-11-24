@@ -125,3 +125,15 @@ def test_dragging_stays_responsive(open_page):
     assert max(gaps) < 250
     assert text(page, f"{REL} [data-id=slider-value]") == "24 h"
     assert "38" in text(page, f"{REL} [data-id=gap]")  # the last value won
+
+
+def test_slider_stays_on_screen_while_card_b_is_in_view(open_page):
+    for width in (390, 1200):
+        page = open_page(width=width).page
+        page.locator(f"{REL} [data-id=reset]").scroll_into_view_if_needed()
+        settle(page)
+        box = page.locator(SLIDER).bounding_box()
+        height = page.evaluate("window.innerHeight")
+        assert box["y"] >= 0 and box["y"] + box["height"] <= height, (width, box)
+        set_hours(page, 5)  # it still works from there
+        assert text(page, f"{REL} [data-id=slider-value]") == "5 h"
