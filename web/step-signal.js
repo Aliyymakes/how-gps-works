@@ -659,6 +659,7 @@ function laneHtml(where, name, words, markClass) {
 const PAGE_HTML = `
 <section class="signal-step" aria-labelledby="signal-title" data-guide="1">
   <header class="intro">
+    <p class="label part-label">Part 3 of 4</p>
     <h2 id="signal-title">How does the phone measure the time?</h2>
     <p class="muted">Every satellite repeats a pattern the phone already knows. The phone slides its own copy along what it hears. How far it has to slide is how late the signal arrived.</p>
     <p class="hint" data-el="hint" hidden></p>
