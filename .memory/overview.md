@@ -28,3 +28,4 @@ What is built. One dated line per merged issue, added at the end: `- YYYY-MM-DD 
 - 2026-11-23 | #37 | index.html: rung 2, 3 and 4 sections below the first screen (web/step-relativity.js new); stacked on #17, #18, #19, #26; not yet checked in a browser.
 - 2026-11-24 | #41 | LICENSE: MIT, copyright 2026 aliyymakes, tw-2866, scoobertfan, jstnstyad10.
 - 2026-11-24 | #40 | web/first-screen.js: when the page refuses to solve or a Python call fails, showNoFix clears the metres value, badge and map dot.
+- 2026-11-24 | #43 | web/config.js default satellites: azimuths 10/100/235/325, elevations 60/35/20/20 (PDOP 3.37, four distinct line directions).
