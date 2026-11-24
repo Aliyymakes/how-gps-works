@@ -34,6 +34,7 @@ The one idea: the phone finds its position by measuring time. A signal travels a
 
 - **Pyodide** (Python in the browser; numpy loads together with it). Two of the four teammates code only in Python and own the mechanism, so the mechanism is Python and runs in the user's browser. The page, in JavaScript, only draws and calls it.
 - **numpy.** Approved by Icarus for the mechanism's array maths.
+- **jsDelivr.** The CDN (<https://www.jsdelivr.com/>) that serves Pyodide 314.0.8 to the page, from cdn.jsdelivr.net.
 - **Google Fonts.** The page's theme fonts load from Google Fonts.
 - **Hosting.** GitHub Pages, served from the repository's main branch.
 
