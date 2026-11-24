@@ -17,12 +17,11 @@ CHECKED_TAGS = {"python", "js", "html", "css"}
 SHOWN = 10  # how many lines a failure message lists
 
 # Source files whose annotation is not written yet. The main session empties
-# this set as the docs land (mechanism docs are on other branches; web docs come later).
+# this set as the docs land (web docs come after the page is final).
 PENDING = {
     "index.html",
     "web/theme.css",
     *(f"web/{p.name}" for p in (ROOT / "web").glob("*.js")),
-    *(f"mechanism/{p.name}" for p in (ROOT / "mechanism").glob("*.py")),
 }
 
 
