@@ -18,7 +18,7 @@ The page's calculations run in Python, and Python has to be downloaded into the 
 
 New to code? See [how to read code](../how-to-read-code.md). Browser words used here:
 - The **DOM** is the browser's live model of the page. Each tag on the page is an object (an **element**) that code can find, read and change.
-- A **Promise** is a ticket for a result that has not arrived yet. It later turns out either well or badly. `async` and `await` are described in the how-to-read-code page.
+- A **Promise** is a ticket for a result that has not arrived yet. It later turns out either well or badly. `async` and `await` are described in [how to read code](../how-to-read-code.md#async-and-await).
 - A **module** is a file that other files can `import` things from.
 
 ## The code, line by line
