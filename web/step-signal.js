@@ -63,6 +63,7 @@ const STYLE = `
 .signal-step.is-dragging .copy-hit { cursor: grabbing; }
 .signal-step .guide-block { border: 1px solid transparent; border-radius: var(--r-inner); padding: var(--s-3); display: grid; gap: var(--s-2); }
 .signal-step[data-guide="1"] .g1, .signal-step[data-guide="2"] .g2, .signal-step[data-guide="3"] .g3 { border-color: var(--accent); }
+.signal-step .slider.guide-block { padding: var(--s-4); }
 .signal-step .hand-score { display: flex; align-items: baseline; gap: var(--s-3); flex-wrap: wrap; }
 .signal-step .meter { height: 4px; border-radius: 2px; background: var(--line-strong); overflow: hidden; }
 .signal-step .meter-fill { height: 100%; width: 100%; background: var(--text); transform-origin: left; transform: scaleX(0); }
@@ -645,7 +646,7 @@ const PAGE_HTML = `
       <p class="key muted" data-el="clip-note" role="status" aria-live="polite"></p>
 
       <div class="guide-block g1">
-        <div class="slider-head slider"><label for="signal-shift">Slide the phone's copy</label><span class="num" data-el="shift-value">0 chips</span></div>
+        <div class="slider-head"><label for="signal-shift">Slide the phone's copy</label><span class="num" data-el="shift-value">0 chips</span></div>
         <input id="signal-shift" data-el="shift" type="range" disabled>
       </div>
       <div class="inset readout">
