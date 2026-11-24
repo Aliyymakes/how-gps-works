@@ -39,9 +39,9 @@ Mode is "trusted", so `solveClock` is `false`. `sats` is the satellites whose sw
 | Step | JavaScript call | What Python runs | What comes back |
 |---|---|---|---|
 | 1 | `callPython("scenario.make_pseudoranges", [receiverPoint, sats, state.clockErrorS])` | `make_pseudoranges` in [scenario.py](../../mechanism/scenario.py): for each satellite, straight-line distance (Pythagoras) plus `clock_error_s * SPEED_OF_LIGHT_M_PER_S`; noise is 0 here because the page passes no `noise_m` | a list of four numbers, metres |
-| 2 | `callPython("solver.solve_position", [sats, ranges, solveClock])` | `solve_position` in [solver.py](../../mechanism/solver.py): starts at the Earth's centre, repeats a least-squares correction (`np.linalg.lstsq`) up to 20 times, stops when the correction is under 1 mm; with `solve_clock=False` it trusts the clock (clock stays 0) | `{"x_m","y_m","z_m","clock_error_s","converged","steps"}` |
+| 2 | `callPython("solver.solve_position", [sats, ranges, solveClock])` | `solve_position` in [solver.py](../../mechanism/solver.py): starts at the Earth's centre, repeats a least-squares correction (`np.linalg.lstsq`), at most 19 corrections (`MAX_STEPS` = 20 counts the saved guesses, including the start), and stops when the length of the whole correction (position and clock term, in metres) is under 1 mm; with `solve_clock=False` it trusts the clock (clock stays 0) | `{"x_m","y_m","z_m","clock_error_s","converged","steps"}` |
 | 3 | `callPython("mapview.to_local", [lat_deg, lon_deg, point])` | `to_local` in [mapview.py](../../mechanism/mapview.py): the solved point minus the true receiver, measured along the local east, north and up directions (`coords._local_directions`) | `{"east_m","north_m","up_m"}` |
-| 4 | `callPython("mapview.distance_lines", [lat_deg, lon_deg, sats, ranges, assumedClockS, config.mapHalfWidthM, config.lineSamples])` | `distance_lines` in mapview.py: for each satellite, takes the distance (pseudorange minus the assumed clock effect), finds the circle where that distance sphere cuts the ground, and samples points that fall inside the 2 km square (`_circle_points`) | a list of four `{"id","points","inside"}` |
+| 4 | `callPython("mapview.distance_lines", [lat_deg, lon_deg, sats, ranges, assumedClockS, config.mapHalfWidthM, config.lineSamples])` | `distance_lines` in mapview.py: for each satellite, takes the distance (pseudorange minus the assumed clock effect), finds the circle where that distance sphere cuts the ground (the flat plane up = 0 at the true receiver), and samples points that fall inside the 2 km square (`_circle_points`) | a list of four `{"id","points","inside"}` |
 
 `assumedClockS` is `0` in trusted mode, so the lines use the raw (wrong) distances. If any call returns `{"error": ...}`, `failed()` writes Python's sentence into the message slot and `showNoFix()` clears the dot.
 
@@ -64,7 +64,7 @@ showWords(solution, errorM, solveClock);
 - `draw()` then places the dot at `toPixelX(local.east_m), toPixelY(local.north_m)` (hidden if it falls off the map), sets the colour class from `errorLevel(errorM)` (under 10 m "ok", under 100 m "warn", otherwise "bad", from `config.errorLimits`), and writes "Position off by" as metres plus the badge word ("Good fix", "Fix is off" or "Fix is far off").
 - `showWords()` writes "The phone trusts its clock, so the distance lines miss each other." when the error is not "ok".
 
-With the defaults, at 1 microsecond with the clock trusted the readout is 520.3 m ("Fix is far off"). That is not 300 m: one microsecond adds about 300 m to each distance, but the position error depends on where the satellites are (design.md section 2b).
+With the defaults, at 1 microsecond with the clock trusted the readout is 520.3 m ("Fix is far off"). That 520.3 m is the 3D distance from the dot to the true spot, and about 506 m of it is "up"; the dot on the map uses only east and north (`toPixelX`/`toPixelY` in `draw`), so it sits about 120 m from the centre. That is not 300 m: one microsecond adds about 300 m to each distance, but the position error depends on where the satellites are (design.md section 2b).
 
 ## Part 2: pressing "Let the phone solve for its clock"
 
@@ -80,4 +80,4 @@ The button is `<button id="solve">` with the label "Let the phone solve for its 
 
 Two other controls use the same path: a satellite switch calls `update("switch")`, and "Reset" calls `resetAll()` then `update("reset")`.
 
-Not checked: I did not run the page in a browser, so the 520.3 m and 1.00 µs figures are the defaults you were given, not something I saw on screen.
+Not checked: I did not run the page in a browser, but the 520.3 m and 1.00 µs figures were confirmed by replaying the Python calls with the default config (and match .memory/decisions.md, 2026-11-24), not by seeing them on screen.

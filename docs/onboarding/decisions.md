@@ -1,6 +1,6 @@
 # Decisions
 
-Each record: we chose X over Y because Z; the cost is W. Sources are only [.memory/decisions.md](../../.memory/decisions.md) ("decisions.md" below, cited by entry date and file) and [.memory/design.md](../../.memory/design.md) ("design.md", cited by section). Where no reason is written there, the record says "reason not recorded". Nothing here is new.
+Each record: we chose X over Y because Z; the cost is W. Sources are mainly [.memory/decisions.md](../../.memory/decisions.md) ("decisions.md" below, cited by entry date and file) and [.memory/design.md](../../.memory/design.md) ("design.md", cited by section). Where no reason is written there, the record says "reason not recorded". Some records also cite .memory/gotchas.md, docs/facts.md or the code where they add a cost or a fact; each says so where it does. Nothing here is new.
 
 ## 1. Python in the browser (Pyodide)
 
@@ -22,7 +22,7 @@ Each record: we chose X over Y because Z; the cost is W. Sources are only [.memo
 - We chose: a local flat map about 2 km wide, centred on the true position, east and north in metres, up ignored for drawing; one "distance line" per satellite where its distance sphere cuts the ground (design.md section 2b item 2; `docs/interface.md` section on `mapview.py`).
 - Over: not named in the sources.
 - Because: reason not recorded. design.md section 2b explains why the screen uses four satellites with the clock trusted (more measurements than unknowns, so the lines visibly miss each other), but not why a flat map was chosen.
-- The cost: "The lines look almost straight at this zoom" (design.md section 2b). decisions.md (2026-11-23, `mechanism/mapview.py`) says a line that only clips a corner by a few points is not drawn, and the map size is a placeholder.
+- The cost: "The lines look almost straight at this zoom" (design.md section 2b). decisions.md (2026-11-23, `mechanism/mapview.py`) says a line that only clips a corner by a few points is not drawn, and the map size is a placeholder (design.md section 2b item 2).
 
 ## 4. Solving for the clock
 
@@ -42,7 +42,7 @@ Each record: we chose X over Y because Z; the cost is W. Sources are only [.memo
 
 - We chose: rung 4 shows the range error growing and the clock-solved position error (which stays at 0), not a drifting position.
 - Over: a position that drifts.
-- Because: design.md section 2b says rung 4 "is tested before it is promised": a drift shared by all satellites may be absorbed by the clock solve. The test (decisions.md, 2026-11-23, `scripts/check_relativity.py`) found a shared drift of 38 µs a day is absorbed completely: position error 0.0000 m after 1 h, 6 h and 1 day, while the solved clock error grows by the drift. With the clock trusted, the error grows from 444 m to 17.3 km.
+- Because: design.md section 2b says rung 4 "is tested before it is promised": a drift shared by all satellites may be absorbed by the clock solve. The test (decisions.md, 2026-11-23, `scripts/check_relativity.py`) found a shared drift of 38 µs a day is absorbed completely: position error 0.0000 m after 1 h, 6 h and 1 day, while the solved clock error grows by the drift. With the clock trusted, the error grows from 444 m to 17.3 km (these are the script's five satellites; with the page's four the trusted error is 520 m at 0 h and about 20.3 km at 24 h, which the page does not show).
 - The cost: the page cannot say "your position would be 11 km off per day". The drift adds about 11 km of range a day, but the position stays put when the clock is solved (.memory/gotchas.md, 2026-11-23). decisions.md marks the entry provisional, and design.md section 2a says the 38 µs figure is "from memory, unverified" (later confirmed as "about 38" in docs/facts.md row 27).
 
 ## 7. No frameworks

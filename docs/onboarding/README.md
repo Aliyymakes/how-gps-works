@@ -27,7 +27,7 @@ Do these in order. Each one assumes the ones before it.
 From the repository root. Commands come from [.memory/commands.md](../../.memory/commands.md) and [README.md](../../README.md).
 
 - Tests: `pip install -r requirements-dev.txt` (unverified), then `python -m pytest -q`. Run it from the repo root: [pytest.ini](../../pytest.ini) sets `pythonpath = .` so `import mechanism` works.
-- The page: `python3 -m http.server 8000`, then open <http://localhost:8000/>. commands.md says first paint was checked and the Python parts need [web/bridge.js](../../web/bridge.js). Opening `index.html` straight from a file (`file://`) does not work, because module imports and `fetch` need http (gotchas.md, 2026-11-23).
+- The page: `python3 -m http.server 8000`, then open <http://localhost:8000/>. commands.md says first paint was checked and the Python parts need [web/bridge.js](../../web/bridge.js). Opening `index.html` straight from a file (`file://`) does not work, because module imports and `fetch` need http (gotchas.md, 2026-11-23, written about bridge-test.html; index.html uses the same module imports and `fetch`, so the same holds).
 - The page loads Pyodide from a CDN, so it needs an internet connection and a few seconds on first load. I did not run the page or a browser to write this folder, so I cannot confirm the full page works end to end.
 - Bridge test page: `http://localhost:8000/web/bridge-test.html` (unverified).
 - Relativity check script: `python scripts/check_relativity.py` (commands.md lists it without an "unverified" mark).

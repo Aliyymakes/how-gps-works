@@ -16,7 +16,8 @@ flowchart TD
   sig["web/step-signal.js<br/>rung 3: signal"]
   rel["web/step-relativity.js<br/>rung 4: relativity"]
   cfg["web/config.js<br/>numbers to tune"]
-  theme["web/theme.js and theme.css"]
+  theme["web/theme.js"]
+  css["web/theme.css"]
   bridge["web/bridge.js<br/>loadMechanism and callPython"]
   pyo["Pyodide plus numpy<br/>from the jsDelivr CDN"]
   coords["mechanism/coords.py"]
@@ -34,6 +35,7 @@ flowchart TD
   index --> rel
   first --> cfg
   rel --> cfg
+  index --> css
   first --> theme
   first --> bridge
   geo --> bridge
@@ -73,7 +75,7 @@ The contract is [docs/interface.md](../interface.md). The rules in it:
 - Only plain numbers, strings, booleans, lists and dicts cross. No numpy arrays, no custom classes.
 - Units are in the name: `_m` metres, `_s` seconds, `_deg` degrees.
 - A point is `{"x_m", "y_m", "z_m"}`, metres from the Earth's centre. A satellite is a point plus an `"id"` string.
-- On bad input a function returns `{"error": "<plain message>"}` instead of raising. The page shows that sentence.
+- A function never fails silently (docs/interface.md); on bad input it returns `{"error": "<plain message>"}` and the page shows that sentence. Some malformed inputs can still raise a Python exception, which `callPython` rethrows as a JavaScript `Error`.
 
 How it is done in the code ([web/bridge.js](../../web/bridge.js)): the page sends the arguments as JSON text (`JSON.stringify(args)`). The Python helper `_bridge_call` reads them with `json.loads`, calls the function, and sends back `json.dumps(result)`, which the page reads with `JSON.parse`. That is why no numpy arrays can cross, and why `signal.correlate` returns `1e9` instead of infinity (a comment in `signal.py` says infinity is not valid JSON).
 
@@ -144,6 +146,8 @@ Taken from `git ls-files` on this branch.
 - [facts.md](../facts.md): every number the page or documents use, with its source.
 - [ui-guide.md](../ui-guide.md): layout, look and motion rules for the page.
 - [project-page.md](../project-page.md): a draft of the project page text (marked "Draft for Icarus").
+- [demo-script.md](../demo-script.md): the script for the demo video.
+- [interview-prep.md](../interview-prep.md): judge questions and answers; [self-check.md](self-check.md) draws on it.
 - [onboarding/](.): this folder.
 
 ### scripts/

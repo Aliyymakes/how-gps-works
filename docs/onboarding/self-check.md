@@ -18,7 +18,7 @@ It guesses where the phone is, compares the guess with the measured distances, a
 
 <details><summary>Answer</summary>
 
-At the centre of the Earth with clock error 0 (comment "Start at the Earth's centre" in `solve_position`), because that needs no outside information. Each round uses a straight-line approximation of the real curved problem, which is only roughly right when the guess is far off, so each round gets closer. With a 1 µs clock error and the clock solved, `steps` held 6 guesses: the centre plus 5 improved ones (computed this run in interview-prep 1.2). The "flat version" explanation is a reading of the code, so check it with Icarus.
+At the centre of the Earth with clock error 0 (comment "Start at the Earth's centre" in `solve_position`), because that needs no outside information. Each round fits a small move to the gaps, which is only roughly right when the guess is far off, so each round gets closer. With a 1 µs clock error and the clock solved, `steps` held 6 guesses: the centre plus 5 improved ones (computed this run in interview-prep 1.2). The reason it needs several rounds is my reading of the code, so check it with Icarus.
 
 </details>
 
@@ -26,7 +26,7 @@ At the centre of the Earth with clock error 0 (comment "Start at the Earth's cen
 
 <details><summary>Answer</summary>
 
-`converged` is true when the last correction was under `STOP_WHEN_CHANGE_IS_SMALLER_THAN` (0.001 m). It is false if all `MAX_STEPS` (20) guesses were used. In `showWords` in [web/first-screen.js](../../web/first-screen.js), when `converged` is false the page writes "The solver did not settle on an answer."
+`converged` is true when the last correction was under `STOP_WHEN_CHANGE_IS_SMALLER_THAN` (0.001 m). The test is on the length of the whole correction (position and clock term, in metres). It is false if 20 guesses were saved (`MAX_STEPS`, counting the start, so at most 19 corrections) and it was still moving. In `showWords` in [web/first-screen.js](../../web/first-screen.js), when `converged` is false the page writes "The solver did not settle on an answer."
 
 </details>
 
@@ -42,7 +42,7 @@ The table of directions has no fourth column, so the solver finds three unknowns
 
 <details><summary>Answer</summary>
 
-Four unknowns: east, north, up and the clock error, so four measurements. `solve_position` returns `{"error": "At least 4 satellites are needed."}` for fewer when `solve_clock` is true. The page does not even call it: `runOnce` in first-screen.js writes "Four things are unknown (east, north, up and the clock), but three satellites give only three measurements." and calls `showNoFix()`.
+Four unknowns: x, y, z (Earth-centred) and the clock error (the page words the first three as east, north, up), so four measurements. `solve_position` returns `{"error": "At least 4 satellites are needed."}` for fewer when `solve_clock` is true. The page does not even call it: `runOnce` in first-screen.js writes "Four things are unknown (east, north, up and the clock), but three satellites give only three measurements." and calls `showNoFix()`.
 
 </details>
 
@@ -58,7 +58,7 @@ There are more measurements than unknowns, so with a wrong clock no point fits a
 
 <details><summary>Answer</summary>
 
-No. 1 µs adds about 300 m to each distance (docs/facts.md row 32), but the position error depends on where the satellites are. The page always shows the error the solver computed (`Math.hypot` of east, north, up in `runOnce`), 520.3 m with the default satellites.
+No. 1 µs adds about 300 m to each distance (docs/facts.md row 32), but the position error depends on where the satellites are. The page always shows the error the solver computed (`Math.hypot` of east, north, up in `runOnce`), 520.3 m with the default satellites. That is a 3D distance, about 506 m of it "up"; the dot on the map uses only east and north, so it sits about 120 m from the centre.
 
 </details>
 
@@ -118,7 +118,7 @@ Azimuth 0 is north and 90 is east. Elevation 0 is the horizon and 90 is straight
 
 <details><summary>Answer</summary>
 
-The satellite's measured distance defines a sphere around it; the line is where that sphere cuts the ground. In `mapview.distance_lines` the sphere meets the plane where up is 0 in a circle centred right under the satellite, with radius the square root of distance squared minus up squared. `_circle_points` keeps the points inside the 2 km square. The circle is huge, so the part on the map looks almost straight.
+The satellite's measured distance defines a sphere around it; the line is where that sphere cuts the ground. In `mapview.distance_lines` the sphere meets the ground plane (the flat plane up = 0 at the true receiver) in a circle centred right under the satellite, with radius the square root of distance squared minus up squared. `_circle_points` keeps the points inside the 2 km square. The circle is huge, so the part on the map looks almost straight.
 
 </details>
 
@@ -202,7 +202,7 @@ GDOP uses all four diagonal entries, PDOP the first three (position only), TDOP 
 
 <details><summary>Answer</summary>
 
-The table has four columns (x, y, z, clock), so fewer than four rows cannot be inverted. `make_table` returns "At least 4 satellites are needed to work out DOP."
+The table has four columns (x, y, z, clock), and the product `table.T @ table` is 4 by 4 (the table itself is never inverted). With fewer than four rows that product has rank under 4 and cannot be inverted, so `make_table` refuses first and returns "At least 4 satellites are needed to work out DOP."
 
 </details>
 
@@ -346,7 +346,7 @@ Code: [mechanism/relativity.py](../../mechanism/relativity.py), [scripts/check_r
 
 <details><summary>Answer</summary>
 
-Tested with `scripts/check_relativity.py` (its own five satellites, computed in interview-prep 6.7): with the phone's clock solved, the position error stays 0 m after a day and the solved clock grows by the drift instead, because the solver cannot tell a phone clock error from a shared satellite clock drift. With the clock trusted, the same drift gives about 17 km (17 296 m) of position error after a day. Do not say the position would be 11 km off.
+Tested with `scripts/check_relativity.py` (its own five satellites, computed in interview-prep 6.7): with the phone's clock solved, the position error stays 0 m after a day and the solved clock grows by the drift instead, because the solver cannot tell a phone clock error from a shared satellite clock drift. With the clock trusted, the same drift gives about 17 km (17 296 m) of position error after a day for that script's five satellites (with the page's four satellites: about 20.3 km, which the page does not show). Do not say the position would be 11 km off.
 
 </details>
 
@@ -394,7 +394,7 @@ Every satellite's distance grows by the same number of metres, which is exactly 
 
 <details><summary>Answer</summary>
 
-Not with the clock solved. decisions.md (2026-11-23, `scripts/check_relativity.py`): position error 0.0000 m after 1 h, 6 h and 1 day. With the clock trusted, the error grows from 444 m to 17.3 km. The page can show the range error growing, not a position drift (gotchas.md).
+Not with the clock solved. decisions.md (2026-11-23, `scripts/check_relativity.py`): position error 0.0000 m after 1 h, 6 h and 1 day. With the clock trusted, the error grows from 444 m to 17.3 km (these come from `scripts/check_relativity.py`'s five satellites; with the page's four satellites the trusted error is 520 m at 0 h and about 20.3 km at 24 h, which the page does not show). The page can show the range error growing, not a position drift (gotchas.md).
 
 </details>
 
@@ -478,7 +478,7 @@ The bridge fetches our `.py` files when the page loads (visible in the network t
 
 <details><summary>Answer</summary>
 
-Two of the four teammates code only in Python and own the mechanism (design.md section 3). A server: the brief requires a public link with no sign-in, download or API key (design.md 1 point 3). Whether a server was considered is not recorded.
+Two of the four teammates code only in Python and own the mechanism (design.md section 3). A server: the brief requires outputs computed by our code from the user's inputs (design.md section 1 point 5), and also a public link with no sign-in, download or API key (design.md 1 point 3). Whether a server was considered is not recorded.
 
 </details>
 

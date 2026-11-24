@@ -38,7 +38,7 @@ t = -b + math.sqrt(b * b - c)
 
 Start at the receiver, walk `t` metres along the sky direction, and stop where you reach the orbit sphere. That is a quadratic in `t`; the code takes the positive root.
 
-**Judge asks:** why a sphere and not the real Earth shape? **Answer:** the conversions stay a few lines, and the simulated truth and the solver use the same model so results are exact; the page says it is a simplification (decisions.md, 2026-11-23).
+**Judge asks:** why a sphere and not the real Earth shape? **Answer:** the conversions stay a few lines, and the simulated truth and the solver use the same model so results are exact; .memory/decisions.md (2026-11-23) says the page must call this a simplification; README.md ("What is simplified") says so; the page itself does not yet.
 
 ## 3. [mechanism/scenario.py](../../mechanism/scenario.py)
 
@@ -69,9 +69,9 @@ clock_m = 0.0  # Store clock error as extra distance for easier maths.
 correction, _, rank, _ = np.linalg.lstsq(changes, errors, rcond=None)
 ```
 
-Each loop: for every satellite, compare what we would measure from the current guess (`distance + clock_m`) with what was measured (`errors`); build a row of how the distance changes with x, y, z (`dx / distance` and so on), plus a `1.0` for the clock when `solve_clock` is true; ask `lstsq` for the small move that best reduces all errors; apply it. Stop when the move is under 1 mm (`STOP_WHEN_CHANGE_IS_SMALLER_THAN`) or after `MAX_STEPS` (20). Every guess is saved in `steps`.
+Each loop: for every satellite, compare what we would measure from the current guess (`distance + clock_m`) with what was measured (`errors` is measured distance minus predicted); build a row of how the distance changes with x, y, z (`dx / distance` and so on), plus a `1.0` for the clock when `solve_clock` is true; ask `lstsq` for the small move that best reduces all errors; apply it. Stop when the length of the whole correction (position plus the clock term, in metres) is under 1 mm (`STOP_WHEN_CHANGE_IS_SMALLER_THAN`), or when 20 guesses are saved (`MAX_STEPS`, counting the start, so at most 19 corrections: the loop is `range(MAX_STEPS - 1)`). Every guess is saved in `steps`.
 
-**Judge asks:** why do you need four satellites? **Answer:** there are four unknowns, east, north, up and the clock. With `solve_clock=True` the code returns `{"error": "At least 4 satellites are needed."}` for fewer. With three satellites and the clock trusted it solves three unknowns.
+**Judge asks:** why do you need four satellites? **Answer:** there are four unknowns: x, y, z (Earth-centred) and the clock. "East, north, up" is the page's wording for the same idea. With `solve_clock=True` the code returns `{"error": "At least 4 satellites are needed."}` for fewer. With three satellites and the clock trusted it solves three unknowns.
 
 ## 5. [mechanism/mapview.py](../../mechanism/mapview.py)
 
@@ -92,7 +92,7 @@ distance = pseudorange - assumed_clock_error_s * SPEED_OF_LIGHT_M_PER_S
 
 so the "assumed clock" changes how the lines are drawn. `_circle_points` samples only the part of the huge circle near the 2 km square.
 
-**Judge asks:** why do the lines look straight? **Answer:** the circles have radii of tens of thousands of kilometres and the map is 2 km wide, so only a tiny arc shows (design.md section 2b: "The lines look almost straight at this zoom").
+**Judge asks:** why do the lines look straight? **Answer:** the circles have radii of about 10,000 to 22,000 km for the default satellites (computed: 10,425 / 18,339 / 22,268 / 22,268 km) and the map is 2 km wide, so only a tiny arc shows (design.md section 2b: "The lines look almost straight at this zoom").
 
 ## 6. [mechanism/geometry.py](../../mechanism/geometry.py)
 
@@ -141,7 +141,7 @@ scores.append(float(np.dot(values, np.roll(code_array, shift)) / CODE_LENGTH))
 
 Try all 1023 shifts, multiply chip by chip, average. A perfect clean match scores 1.0. `best_delay_chips` is the shift with the top score.
 
-**Judge asks:** how can it find a signal buried in noise? **Answer:** `correlate` scores every one of the 1023 shifts and takes the best, and a clean match scores 1.0. The score averages over 1023 chips, which is why the peak can survive noise bigger than the signal; the page's "Add noise" slider shows it holding, then "Barely found", then "Lost". I did not find a written proof of why in the code, so for the maths ask the teammate who owns `signal.py`.
+**Judge asks:** how can it find a signal buried in noise? **Answer:** `correlate` scores every one of the 1023 shifts and takes the best, and a clean match scores 1.0. Each score averages 1023 products, so the noise in a score is about noise divided by the square root of 1023 (about noise/32), while the true peak stays near 1. With seed 1 the page's "Add noise" slider holds at 8 times the signal ("Barely found") and is lost at 12 times.
 
 ## 8. [mechanism/relativity.py](../../mechanism/relativity.py)
 
