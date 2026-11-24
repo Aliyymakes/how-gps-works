@@ -96,3 +96,14 @@ Fix what applies to the changed files. Write anything left unfixed under "Not ve
 - Emil Kowalski, animation standards: https://github.com/emilkowalski/skills (skills/review-animations/STANDARDS.md)
 - Vercel, Web Interface Guidelines: https://github.com/vercel-labs/web-interface-guidelines
 - Icarus's Instrument system (his own; files to be added by him)
+
+## 6. Every action answers (Icarus, 2026-11-24)
+
+No silent actions. A user must never press, drag or type something and see nothing happen without knowing why.
+
+- Every control gives visible feedback within 100 ms of being used, even if the real result takes longer (a pressed state, a "working" line, the value updating).
+- When something cannot happen, the page says why, in one plain sentence next to the control the user just used, and what to do instead. Example: "Can't solve: four things are unknown and only three satellites are on. Turn one back on."
+- A disabled control always explains itself: a visible line near it saying why it is off and what turns it on (not only a tooltip, which phones do not show).
+- Loading, failure and empty states each have their own words. If Python fails to load, the page says so and what to try (reload, another browser), and nothing pretends to work.
+- Messages are announced to screen readers (`aria-live="polite"`).
+- Every message is short, specific to what just happened, and goes away or changes when the situation changes. A message never contradicts what is on screen.
