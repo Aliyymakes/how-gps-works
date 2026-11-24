@@ -11,7 +11,7 @@ The page is written in JavaScript, but all the position maths is written in Pyth
 - [`web/first-screen.js`](first-screen.js.md), [`web/step-geometry.js`](step-geometry.js.md), [`web/step-signal.js`](step-signal.js.md), [`web/step-relativity.js`](step-relativity.js.md): every call from the page to Python goes through `callPython`, for example `solver.solve_position` ([solver.py explained](../mechanism/solver.py.md)), `coords.latlon_to_xyz` ([coords.py](../mechanism/coords.py.md)) and `mapview.distance_lines` ([mapview.py](../mechanism/mapview.py.md)).
 - [`web/bridge-test.html`](bridge-test.html.md): the test page that uses `evalPython`.
 - [`index.html`](../index.html.md): repeats the Pyodide web address in a `<link rel="modulepreload">` so the download can start early. See [index.html explained](../index.html.md).
-- Outside the repo: Pyodide itself, downloaded from the address `cdn.jsdelivr.net`.
+- Pyodide itself, a copy in the repo's `vendor/` folder (experiment branch only).
 
 ## In three lines
 1. Download Pyodide (Python and numpy) and, at the same time, download the team's nine Python files.
@@ -44,9 +44,9 @@ A comment block (lines starting `//` are notes for people; the computer skips th
 A comment: the exact version of Pyodide is fixed (pinned) on purpose, so the page behaves the same for everyone and does not change when a newer Pyodide appears. The same address is written again in [`index.html`](../index.html.md) (a `<link rel="modulepreload">`), and the comment warns that both must be changed together. If only one were changed, the early download would fetch a different file from the one the page really uses and would be wasted.
 
 ```js
-const PYODIDE_BASE = 'https://cdn.jsdelivr.net/pyodide/v314.0.8/full/';
+const PYODIDE_BASE = new URL('../vendor/pyodide/v314.0.8/full/', import.meta.url).href;
 ```
-`const` makes a named value that can never be reassigned. `PYODIDE_BASE` is the web address of the folder on a public file server (a CDN, "content delivery network") where Pyodide's files live. The version is `v314.0.8`. Other lines add file names to the end of it, so the address must finish with a `/`. Without it the page would not know where to download Python from.
+`const` makes a named value that can never be reassigned. `PYODIDE_BASE` is the web address of the folder where Pyodide's files live. On this experiment branch they are a copy inside the repo, in `vendor/`; `new URL(..., import.meta.url)` turns the path into a full address measured from where `bridge.js` itself is. The version is `v314.0.8`. Other lines add file names to the end of it, so the address must finish with a `/`. Without it the page would not know where to download Python from.
 
 ```js
 // Files of the `mechanism` package. A file that cannot be fetched makes the whole load fail.

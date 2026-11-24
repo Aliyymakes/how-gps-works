@@ -62,19 +62,14 @@ Sets the colour of the browser's own toolbar on phones to `#0a0a0a`, nearly blac
 The page's title, shown on the browser tab: `How does your phone know where you are?`
 
 ```html
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-```
-Asks the browser to open a network connection to `cdn.jsdelivr.net`, where Pyodide is hosted, ahead of time, so the later download starts faster. `crossorigin` is needed because the files will be fetched in the way scripts are.
-
-```html
 <!-- Same Pyodide address as PYODIDE_BASE in web/bridge.js: change both together. -->
 ```
 A comment, written `<!-- ... -->`. It warns that the web address on the next line must match `PYODIDE_BASE` in [`web/bridge.js`](web/bridge.js.md), and both must be changed together.
 
 ```html
-<link rel="modulepreload" href="https://cdn.jsdelivr.net/pyodide/v314.0.8/full/pyodide.mjs" crossorigin>
+<link rel="modulepreload" href="vendor/pyodide/v314.0.8/full/pyodide.mjs">
 ```
-`modulepreload` asks the browser to start downloading the Pyodide loader script now, while the page is still being read, instead of waiting until the JavaScript asks for it. This saves time on the slow first visit. The address must be identical to the one in [`bridge.js`](web/bridge.js.md), or the early download is wasted.
+`modulepreload` asks the browser to start downloading the Pyodide loader script (a copy kept in this repo's `vendor/` folder on this experiment branch) now, while the page is still being read, instead of waiting until the JavaScript asks for it. This saves time on the slow first visit. The address must be identical to the one in [`bridge.js`](web/bridge.js.md), or the early download is wasted.
 
 ```html
 <link rel="preconnect" href="https://fonts.googleapis.com">
