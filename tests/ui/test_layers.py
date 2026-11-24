@@ -68,19 +68,21 @@ def test_signal_clip_note_badge_and_slider_head_at_phone_width(open_page):
 
 def test_relativity_slider_results_and_reset(open_page):
     page = open_page().page
-    numbers = [f"{REL} [data-id={name}]" for name in ("range", "trusted", "solved")]
-    assert [text(page, n) for n in numbers] == ["0 m", "0 m", "0 m"]
-    assert text(page, f"{REL} [data-id=sentence]").startswith("No drift yet")
-    set_slider(page, REL_SLIDER, 24)
-    drift = float(text(page, numbers[0]).replace("m", "").replace(",", "").strip())
-    assert drift > 10000
+    # It starts at one day, so the effect is already showing (improvement 10).
+    assert page.locator(REL_SLIDER).input_value() == "24"
+    assert "38" in text(page, f"{REL} [data-id=gap]")
+    assert "11 km" in text(page, f"{REL} [data-id=range]")
     assert text(page, f"{REL} [data-id=trusted-badge]") == "Fix is far off"
     assert text(page, f"{REL} [data-id=solved-badge]") == "Good fix"
+    set_slider(page, REL_SLIDER, 0)
+    assert text(page, f"{REL} [data-id=range]") == "0 m"
+    assert text(page, f"{REL} [data-id=solved]") == "0 m off"
+    assert text(page, f"{REL} [data-id=sentence]").startswith("No gap yet")
     page.locator(f"{REL} [data-id=reset]").click()
     settle(page)
-    assert text(page, f"{REL} [data-id=msg-reset]") == "Back to the start: no drift."
-    assert page.locator(REL_SLIDER).input_value() == "0"
-    assert text(page, numbers[0]) == "0 m"
+    assert text(page, f"{REL} [data-id=msg-reset]") == "Back to the start: one day."
+    assert page.locator(REL_SLIDER).input_value() == "24"
+    assert "11 km" in text(page, f"{REL} [data-id=range]")
 
 
 def test_relativity_never_says_gain_longer_or_shorter(open_page):

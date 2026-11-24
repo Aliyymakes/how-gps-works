@@ -24,7 +24,10 @@ export const clockSlider = { min_s: 0, max_s: 3e-6, step_s: 5e-8 }; // placehold
 export const errorLimits = { ok_m: 10, warn_m: 100 }; // placeholder, provisional
 
 // Rung 4 (relativity) section. The satellites and receiver above are reused.
-export const relativitySlider = { min_h: 0, max_h: 24, step_h: 1, start_h: 0 }; // placeholder, provisional: hours of drift
+export const relativitySlider = { min_h: 0, max_h: 24, step_h: 1, start_h: 24 }; // placeholder, provisional: hours of drift. Starts at one day so the effect is already showing.
+// The two maps in this section show a square 40 km wide (-20000 to +20000 m). With the clock trusted at 24 h all four
+// distance lines stay on a map this wide; on a 20 km wide map two would leave it.
+export const relativityMapHalfWidthM = 20000; // placeholder, provisional
 // Zero, so at 0 hours both ways of solving agree and show 0 m. A 1 microsecond phone clock error would put
 // about 500 m on the "trusted clock" result before any drift happens.
 export const relativityPhoneClockErrorS = 0; // placeholder, provisional: the phone's own clock error
