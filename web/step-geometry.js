@@ -33,7 +33,7 @@ export const geometryConfig = {
 const SVG = "http://www.w3.org/2000/svg";
 const SKY_SIZE = 240; // the sky SVG viewBox is 240 by 240
 const SKY_RADIUS = 110; // horizon circle radius in that box
-const SKY_LABEL = "Sky diagram. The edge is the horizon and the centre is straight overhead. Four dots are the satellites.";
+const SKY_LABEL = "Sky, seen from below. The edge is the horizon and the centre is straight overhead. Four dots are the satellites.";
 const LEVEL_WORDS = { ok: "Good fix", warn: "Fix is off", bad: "Fix is far off" };
 
 // Layout for this section only. Colours, fonts and radii come from theme.css.
@@ -69,11 +69,10 @@ const PAGE = `
     <p class="muted">Same four satellites, same clock error, same noise. Only the layout changes.</p>
   </header>
   <div class="geo-grid">
-    <section class="card" aria-labelledby="geo-sky-title">
-      <h3 class="label" id="geo-sky-title">Sky, seen from below</h3>
+    <section class="card" aria-label="Sky, seen from below">
+      <p class="looking"><b>What you're looking at:</b> the sky above the phone, seen from below. Each dot is a satellite. The centre is straight overhead, the edge is the horizon.</p>
       <svg class="geo-sky" data-id="sky" viewBox="0 0 ${SKY_SIZE} ${SKY_SIZE}" role="img"
            aria-label="${SKY_LABEL}"></svg>
-      <p class="geo-note" style="margin-top: var(--s-3)">Edge is the horizon, centre is straight overhead.</p>
     </section>
     <section class="card geo-stack" aria-label="Controls and results">
       <p class="geo-note" data-id="status" role="status" aria-live="polite">Loading the maths…</p>
@@ -104,7 +103,7 @@ const PAGE = `
       </div>
     </section>
   </div>
-  <p class="geo-closing">Spread out, the same errors barely move the fix. Bunched, they multiply. But all of this error began with time, so next: how does the phone measure it at all?</p>
+  <p class="geo-closing">Spread out, the same errors barely move the fix. Bunched, they multiply.</p>
 </div>`;
 
 export function mountGeometryStep(container) {
@@ -288,7 +287,7 @@ export function mountGeometryStep(container) {
     const sentence = stateSentence(level, position);
     if (el.msgSlider.textContent !== sentence) say(el.msgSlider, sentence); // only when the words change
     const percent = Math.round(position / geometryConfig.slider_steps * 100);
-    el.sky.setAttribute("aria-label", `Sky diagram. Satellites ${percent} % bunched. DOP ${dopText}.`);
+    el.sky.setAttribute("aria-label", `Sky, seen from below. Satellites ${percent} % bunched. DOP ${dopText}.`);
     el.dop.textContent = dopText;
     el.error.textContent = formatMetres(errorM);
     el.badge.hidden = false;

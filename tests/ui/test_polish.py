@@ -23,7 +23,7 @@ def test_card_labels_do_not_touch_what_is_under_them_at_phone_width(open_page):
       const next = label.nextElementSibling.getBoundingClientRect();
       return [label.textContent, next.top - label.getBoundingClientRect().bottom];
     })""")
-    assert len(gaps) == 5  # ground map, sky, and the three signal headings
+    assert len(gaps) == 4  # ground map and the three signal headings (the sky card now starts with a .looking line)
     for name, gap in gaps:
         assert gap >= 4, (name, gap)
 
