@@ -18,7 +18,7 @@ export const signalConfig = {
   barelyHoldingBelow: 1.5, // placeholder, provisional: peak_to_next under this = found but barely
   peakDisplayCap: 1000, // placeholder, provisional: above this the readout says "over 1000x"
   receivedLimit: 2, // placeholder, provisional: the heard row shows values from -2 to +2, bigger ones are cut off
-  scoreRange: { min: -0.5, max: 2.5 }, // placeholder, provisional: the plots show scores in this range
+  scoreRange: { min: -1.25, max: 1.5 }, // placeholder, provisional: the plots show scores in this range
   revealMs: 1000, // placeholder, provisional: how long the search takes to draw itself
   dragStartPx: 8, // placeholder, provisional: sideways movement before a drag starts, so a vertical swipe still scrolls
 };
@@ -26,12 +26,13 @@ export const signalConfig = {
 const CHIP = 10; // width of one step in the rows picture, in picture units
 const ROWS_W = signalConfig.windowChips * CHIP; // 400
 const ROW_MID = { sent: 38, heard: 100, copy: 162 }; // the middle line of each row, in picture units
-const HALF = 22; // half the height of a row
+const WAVE = 18; // tallest a wave is drawn, either side of its middle line
 const PLOT_HEIGHT = 120; // the full plot's picture is (number of chips) wide and 120 high
-const CLOSEUP_HEIGHT = 60; // the close-up's picture is 400 wide and 60 high
+const CLOSEUP_HEIGHT = 96; // the close-up's picture is 400 wide and 96 high
 const CODE_LENGTH = 1023;
 
 const SCORES_LABEL = "The match score at every one of the 1023 shifts.";
+const CLOSEUP_PROMPT = "Each shift you try leaves a bar here.";
 const GUIDE_WORDS = {
   1: "Step 1. Slide the phone's copy until it lines up with what the phone hears.",
   2: "Step 2. Now let the phone do the same search by itself.",
@@ -43,13 +44,16 @@ const STYLE = `
 .signal-step { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
 .signal-step .intro { display: grid; gap: var(--s-2); }
 .signal-step .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
-@media (min-width: 760px) { .signal-step .grid { grid-template-columns: 1.4fr 1fr; align-items: start; } }
+@media (min-width: 760px) {
+  .signal-step .grid { grid-template-columns: 1.4fr 1fr; align-items: start; }
+  .signal-step .grid > .stack { position: sticky; top: var(--s-4); }
+}
 .signal-step .stack { display: grid; gap: var(--s-4); grid-template-columns: minmax(0, 1fr); }
 .signal-step .sketch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-3); margin: 0 0 var(--s-4); }
 .signal-step .sketch > div { display: grid; gap: var(--s-1); align-content: start; }
 .signal-step .sketch svg { width: 100%; height: auto; display: block; }
 .signal-step .sketch p { margin: 0; font-size: var(--text-xs); color: var(--text-muted); }
-.signal-step .rows { width: 100%; height: auto; display: block; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.signal-step .rows { overflow: visible; width: 100%; height: auto; display: block; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 .signal-step .row-name { font: 500 13px var(--font-sans); fill: var(--text-muted); stroke: none; }
 .signal-step .sent { fill: none; stroke: var(--text-muted); stroke-width: 1.5; stroke-linejoin: miter; }
 .signal-step .received { fill: none; stroke: var(--text); stroke-width: 1.5; stroke-linejoin: miter; }
@@ -72,8 +76,8 @@ const STYLE = `
 .signal-step .plot-area > svg { width: 100%; display: block; }
 .signal-step .plot-area .overlay { position: absolute; left: 0; top: 0; }
 .signal-step .plot-area .bar { fill: var(--text); }
-.signal-step .plot-full { height: 96px; }
-.signal-step .plot-close { height: 60px; }
+.signal-step .plot-full { height: 120px; }
+.signal-step .plot-close { height: 96px; }
 .signal-step .scores { fill: none; stroke: var(--text-muted); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .signal-step [data-reveal="hidden"] { clip-path: inset(0 100% 0 0); }
 .signal-step [data-reveal="running"] { clip-path: inset(0 0 0 0); transition: clip-path var(--reveal-ms, 1000ms) linear; }
@@ -97,7 +101,16 @@ const STYLE = `
 .signal-step .badge[hidden] { display: none; }
 .signal-step .note { font-size: var(--text-sm); color: var(--text-muted); min-height: 1.5em; }
 .signal-step .note:empty { min-height: 0; }
-.signal-step .note[data-el="msg-slider"]:empty { min-height: 1.5em; }
+.signal-step .stack > .note:empty { margin-bottom: calc(-1 * var(--s-4)); }
+.signal-step .slider.guide-block { row-gap: 0; }
+.signal-step .slider.guide-block .slider-head { margin-bottom: var(--s-2); }
+.signal-step .slider.guide-block > .note:not(:empty) { margin-top: var(--s-2); }
+.signal-step [data-el="clip-note"]:empty, .signal-step .note[data-el="closeup-note"]:empty { min-height: 1.5em; }
+.signal-step .g1 + .readout { margin: var(--s-3) 0; }
+@media (max-width: 759px) {
+  .signal-step .row-name, .signal-step .bracket-text { font-size: 16px; }
+  .signal-step [data-el="clip-note"]:empty, .signal-step .note[data-el="closeup-note"]:empty { min-height: 3em; }
+}
 .signal-step h3.label { margin-bottom: var(--s-3); }
 .signal-step h3.label:not(:first-child) { margin-top: var(--s-5); }
 .signal-step .hint { font-size: var(--text-sm); font-weight: 500; color: var(--text); }
@@ -170,7 +183,7 @@ export function mountSignalStep(container) {
   function buildStaticParts() {
     const cells = [];
     for (let i = 0; i < signalConfig.windowChips; i += 1) {
-      cells.push(`<rect class="cell" x="${i * CHIP + 0.5}" width="${CHIP - 1}" height="${HALF / signalConfig.receivedLimit}"/>`);
+      cells.push(`<rect class="cell" x="${i * CHIP + 0.5}" width="${CHIP - 1}" height="${WAVE / signalConfig.receivedLimit}"/>`);
     }
     el.copyCells.innerHTML = cells.join("");
     el.cells = [...el.copyCells.children];
@@ -190,6 +203,7 @@ export function mountSignalStep(container) {
     el.slider.addEventListener("input", () => {
       noise = Number(el.slider.value) * step + min;
       el.msgReset.textContent = "";
+      el.msgSearch.textContent = "";
       if (guide === 3) { guide = 0; showGuide(); }
       showNoiseValue();
       update();
@@ -226,7 +240,7 @@ export function mountSignalStep(container) {
     el.copyHit.addEventListener("pointerup", endDrag);
     el.copyHit.addEventListener("pointercancel", endDrag);
 
-    el.search.addEventListener("click", search);
+    el.search.addEventListener("click", (event) => search(event.detail === 0)); // detail 0 = pressed from the keyboard
     // Any new input ends the reveal at once.
     for (const type of ["pointerdown", "keydown", "input"]) root.addEventListener(type, finishReveal, true);
     el.reset.addEventListener("click", () => {
@@ -244,7 +258,8 @@ export function mountSignalStep(container) {
       el.badge.hidden = true;
       el.sentence.textContent = "";
       el.emptyLine.hidden = false;
-      el.closeupNote.textContent = "";
+      el.closeupNote.textContent = CLOSEUP_PROMPT;
+      updateRealMarks();
       el.closeupBestTick.setAttribute("hidden", "");
       el.closeupBestLabel.hidden = true;
       el.fullBestTick.setAttribute("hidden", "");
@@ -295,6 +310,7 @@ export function mountSignalStep(container) {
     shift = next;
     el.shift.value = shift;
     visited.add(shift);
+    updateRealMarks();
     if (shift === signalConfig.trueDelayChips) moveGuideTo(2);
     drawHand();
     drawCloseup();
@@ -302,14 +318,15 @@ export function mountSignalStep(container) {
 
   // ---------- the search ----------
 
-  function search() {
+  function search(atOnce) {
     if (!result) return;
     searched = true;
     moveGuideTo(3);
     drawResult();
     drawCloseup();
     drawFull();
-    startReveal();
+    if (atOnce) { clearTimeout(revealTimer); setReveal("done"); } else startReveal(); // keyboard actions are never animated
+    updateRealMarks();
     say(el.msgSearch, `The phone tried all 1023 shifts. Its best match is at shift ${result.best_delay_chips}.`);
   }
 
@@ -439,7 +456,7 @@ export function mountSignalStep(container) {
 
   function drawRows(usedNoise) {
     const { windowChips, receivedLimit } = signalConfig;
-    const unit = HALF / receivedLimit;
+    const unit = WAVE / receivedLimit;
     const sent = code.slice(0, windowChips);
     const heard = received.slice(0, windowChips).map((v) => Math.min(receivedLimit, Math.max(-receivedLimit, v)));
     el.sentLine.setAttribute("points", stepPoints(sent, ROW_MID.sent, unit));
@@ -451,7 +468,7 @@ export function mountSignalStep(container) {
   // The copy row: each step is a block, lit where its sign agrees with the heard value above it, dim where it does not.
   function drawCopyRow() {
     if (!code || !received) return;
-    const unit = HALF / signalConfig.receivedLimit;
+    const unit = WAVE / signalConfig.receivedLimit;
     let agree = 0;
     el.cells.forEach((cell, index) => {
       const value = copyValue(index);
@@ -463,7 +480,9 @@ export function mountSignalStep(container) {
     const x = shift * CHIP;
     el.bracket.style.display = shift === 0 ? "none" : "";
     el.bracketLine.setAttribute("d", `M0,196 V200 H${x} V196`);
-    el.bracketText.setAttribute("x", x + 6);
+    const flip = shift > 22; // near the right edge the words sit left of the bracket end
+    el.bracketText.setAttribute("x", flip ? ROWS_W : x + 6);
+    el.bracketText.setAttribute("text-anchor", flip ? "end" : "start");
     el.bracketText.textContent = `slid ${chips(shift)}`;
     const noiseWords = shownNoise ? `${shownNoise.toFixed(1)} times the signal` : "none";
     el.rows.setAttribute("aria-label",
@@ -525,8 +544,8 @@ export function mountSignalStep(container) {
       setLevelClass(el.closeupBestTick, levelOf(result));
       placeTick(el.closeupBestTick, el.closeupBestLabel, (best + 0.5) / signalConfig.windowChips);
     }
-    el.closeupNote.textContent = searched && !inside
-      ? `The phone's best match is now at shift ${best}, outside this close-up.` : "";
+    if (!searched) el.closeupNote.textContent = CLOSEUP_PROMPT;
+    else el.closeupNote.textContent = inside ? "" : `The phone's best match is now at shift ${best}, outside this close-up.`;
     const words = searched
       ? `Best match at shift ${best}; the real delay is ${signalConfig.trueDelayChips}.`
       : `Not searched yet; ${visited.size} shifts tried by hand.`;
@@ -564,6 +583,13 @@ export function mountSignalStep(container) {
     if (!width || label.hidden) return;
     const labelWidth = label.offsetWidth;
     label.style.left = `${Math.min(width - labelWidth, Math.max(0, fraction * width - labelWidth / 2))}px`;
+  }
+
+  // The real delay is shown once the user has found it by hand or pressed the search, not before.
+  function updateRealMarks() {
+    const show = searched || visited.has(signalConfig.trueDelayChips);
+    for (const node of [el.closeupRealTick, el.closeupRealLabel, el.fullRealTick, el.fullRealLabel]) node.toggleAttribute("hidden", !show);
+    if (show) placeAllLabels();
   }
 
   function placeAllLabels() {
@@ -618,7 +644,7 @@ function rowsHtml() {
     <polyline class="received" data-el="received-line" points=""/>
     ${rowName("The phone's own copy", 135)}
     <g data-el="copy-cells"></g>
-    <rect class="copy-outline" x="-1" y="${ROW_MID.copy - HALF - 2}" width="${ROWS_W + 2}" height="${HALF * 2 + 4}" rx="3"/>
+    <rect class="copy-outline" x="-1" y="${ROW_MID.copy - 16}" width="${ROWS_W + 2}" height="32" rx="3"/>
     <g data-el="bracket"><path class="bracket" data-el="bracket-line" d=""/><text class="bracket-text" data-el="bracket-text" y="207"></text></g>
     <rect class="copy-hit" data-el="copy-hit" x="0" y="${ROW_MID.copy - 32}" width="${ROWS_W}" height="64"/>
   </svg>`;
@@ -626,8 +652,8 @@ function rowsHtml() {
 
 // A tick above (real delay) or below (the phone's best match) a plot, with its words.
 function laneHtml(where, name, words, markClass) {
-  return `<div class="lane lane-${where}"><span class="tick-label" data-el="${name}-label"${where === "bottom" ? " hidden" : ""}>${words}</span>
-    <svg class="tick ${where === "bottom" ? "is-ok" : ""}" data-el="${name}-tick" aria-hidden="true" ${where === "bottom" ? "hidden" : ""}><line class="${markClass}" x1="1" x2="1" y1="0" y2="12"/></svg></div>`;
+  return `<div class="lane lane-${where}"><span class="tick-label" data-el="${name}-label" hidden>${words}</span>
+    <svg class="tick ${where === "bottom" ? "is-ok" : ""}" data-el="${name}-tick" aria-hidden="true" hidden><line class="${markClass}" x1="1" x2="1" y1="0" y2="12"/></svg></div>`;
 }
 
 const PAGE_HTML = `
@@ -635,6 +661,7 @@ const PAGE_HTML = `
   <header class="intro">
     <h2 id="signal-title">How does the phone measure the time?</h2>
     <p class="muted">Every satellite repeats a pattern the phone already knows. The phone slides its own copy along what it hears. How far it has to slide is how late the signal arrived.</p>
+    <p class="hint" data-el="hint" hidden></p>
   </header>
 
   <div class="grid">
@@ -652,7 +679,7 @@ const PAGE_HTML = `
       <div class="inset readout">
         <div class="hand-score"><span class="label">Match score</span><span class="num big" data-el="hand-score">–</span></div>
         <div class="meter" aria-hidden="true"><div class="meter-fill" data-el="meter"></div></div>
-        <p class="note">Counted over the whole 1023-step pattern, not only the 40 steps shown. 1.00 means every step agrees. Near 0 means no better than chance.</p>
+        <p class="note">Counted over the whole 1023-step pattern, not only the 40 steps shown. 1.00 means every step agrees. Near 0 means no better than chance. Noise can push it a little above or below.</p>
         <p class="note" data-el="hand-sentence" role="status" aria-live="polite">Not lined up yet. Keep sliding.</p>
       </div>
       <p class="note">Here the delay is short so it fits in the picture. A real one can be anywhere in the 1023 steps.</p>
@@ -663,22 +690,22 @@ const PAGE_HTML = `
         <p class="note" data-el="msg-search" role="status" aria-live="polite"></p>
       </div>
 
-      <p class="plot-title">The first 40 shifts, close up</p>
+      <p class="plot-title">Match score at each of the first 40 shifts</p>
       <div class="plot-lanes">
         ${laneHtml("top", "closeup-real", "real delay", "mark-true")}
         <div class="plot-area plot-close">
-          <div data-el="closeup-rest-wrap" data-reveal="hidden"><svg viewBox="0 0 ${ROWS_W} ${CLOSEUP_HEIGHT}" preserveAspectRatio="none" height="60" width="100%" aria-hidden="true"><g data-el="closeup-rest"></g></svg></div>
-          <svg class="overlay" viewBox="0 0 ${ROWS_W} ${CLOSEUP_HEIGHT}" preserveAspectRatio="none" height="60" width="100%" role="img" aria-label="Close-up of the match score at the first 40 shifts."><g data-el="closeup-tries"></g></svg>
+          <div data-el="closeup-rest-wrap" data-reveal="hidden"><svg viewBox="0 0 ${ROWS_W} ${CLOSEUP_HEIGHT}" preserveAspectRatio="none" height="96" width="100%" aria-hidden="true"><g data-el="closeup-rest"></g></svg></div>
+          <svg class="overlay" viewBox="0 0 ${ROWS_W} ${CLOSEUP_HEIGHT}" preserveAspectRatio="none" height="96" width="100%" role="img" aria-label="Close-up of the match score at the first 40 shifts."><g data-el="closeup-tries"></g></svg>
         </div>
         ${laneHtml("bottom", "closeup-best", "phone's best match", "mark-best")}
       </div>
-      <p class="note" data-el="closeup-note" role="status" aria-live="polite"></p>
+      <p class="note" data-el="closeup-note" role="status" aria-live="polite">${CLOSEUP_PROMPT}</p>
 
-      <p class="plot-title">All 1023 shifts</p>
+      <p class="plot-title">Match score at all 1023 shifts</p>
       <div class="plot-lanes">
         ${laneHtml("top", "full-real", "real delay", "mark-true")}
         <div class="plot-area plot-full" data-el="full-wrap" data-reveal="hidden">
-          <svg data-el="scores-plot" viewBox="0 0 1023 ${PLOT_HEIGHT}" preserveAspectRatio="none" height="96" width="100%" role="img" aria-label="The match score at every one of the 1023 shifts."><polyline class="scores" data-el="scores-line" points=""/></svg>
+          <svg data-el="scores-plot" viewBox="0 0 1023 ${PLOT_HEIGHT}" preserveAspectRatio="none" height="120" width="100%" role="img" aria-label="The match score at every one of the 1023 shifts."><polyline class="scores" data-el="scores-line" points=""/></svg>
         </div>
         ${laneHtml("bottom", "full-best", "phone's best match", "mark-best")}
       </div>
@@ -686,8 +713,8 @@ const PAGE_HTML = `
     </div>
 
     <div class="card stack">
+      <h3 class="label">Then add noise</h3>
       <p class="note" data-el="status" role="status" aria-live="polite">Loading the maths…</p>
-      <p class="hint" data-el="hint" hidden></p>
       <div class="slider inset guide-block g3">
         <div class="slider-head">
           <label for="signal-noise">Add noise</label>

@@ -95,11 +95,63 @@ def test_search_fills_readout_at_once_and_markers_line_up(open_page):
             assert abs((a["x"] + a["width"] / 2) - (ta["x"] + ta["width"] / 2)) <= 2
 
 
-def test_real_delay_marker_is_visible_before_the_search(open_page):
+def test_real_delay_marker_waits_for_the_find_then_stays(open_page):
     page = open_page().page
-    assert page.locator(el("closeup-real-label")).is_visible()
-    assert page.locator(el("full-real-label")).is_visible()
+    for name in ("closeup-real-label", "closeup-real-tick", "full-real-label", "full-real-tick"):
+        assert page.locator(el(name)).is_hidden(), name
+    set_shift(page, 14)
+    for name in ("closeup-real-label", "full-real-label"):
+        assert page.locator(el(name)).is_visible(), name
     assert page.locator(el("closeup-best-label")).is_hidden()
+    set_shift(page, 5)
+    assert page.locator(el("full-real-label")).is_visible()
+    page.locator(el("reset")).click()
+    settle(page)
+    assert page.locator(el("closeup-real-label")).is_hidden()
+    press_search(page)
+    settle(page)
+    assert page.locator(el("full-real-label")).is_visible()
+
+
+def test_keyboard_search_is_not_animated(open_page):
+    page = open_page().page
+    page.locator(el("search")).focus()
+    page.keyboard.press("Enter")
+    assert page.evaluate("document.querySelector('#step-signal [data-el=full-wrap]').dataset.reveal") == "done"
+
+
+def test_noise_change_clears_the_search_message(open_page):
+    page = open_page().page
+    press_search(page)
+    assert text(page, el("msg-search")) != ""
+    page.locator(NOISE).fill("24")
+    settle(page)
+    assert text(page, el("msg-search")) == ""
+
+
+def test_cards_line_up_and_no_band_under_the_noise_slider(open_page):
+    page = open_page().page
+    left = page.locator(f"{SIG} .grid > .card:first-child > :first-child").bounding_box()
+    right = page.locator(f"{SIG} .grid > .card:last-child > :first-child").bounding_box()
+    assert abs(left["y"] - right["y"]) <= 1
+    block = page.locator(f"{SIG} .slider.inset").bounding_box()
+    slider = page.locator(NOISE).bounding_box()
+    assert block["y"] + block["height"] - (slider["y"] + slider["height"]) <= 24
+
+
+def test_bracket_words_stay_inside_the_picture_at_shift_30_on_a_phone(open_page):
+    page = open_page(width=390).page
+    set_shift(page, 30)
+    words = page.locator(el("bracket-text")).bounding_box()
+    rows = page.locator(el("rows")).bounding_box()
+    assert words["x"] >= rows["x"] - 1 and words["x"] + words["width"] <= rows["x"] + rows["width"] + 1
+
+
+def test_close_up_prompt_before_the_search(open_page):
+    page = open_page().page
+    assert text(page, el("closeup-note")) == "Each shift you try leaves a bar here."
+    press_search(page)
+    assert text(page, el("closeup-note")) == ""
 
 
 def test_reveal_takes_about_a_second_and_new_input_ends_it(open_page):
