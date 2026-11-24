@@ -138,6 +138,7 @@ async function update(cause) {
       } catch (error) {
         console.error(error);
         el.msgSolve.textContent = "Something went wrong in the calculation. Press Reset to start again.";
+        showNoFix();
       }
     } while (rerun);
   } finally {
