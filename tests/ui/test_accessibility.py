@@ -173,9 +173,10 @@ def test_every_control_works_from_the_keyboard(open_page, width):
         slider = page.locator(selector)
         slider.focus()
         before = slider.input_value()
-        page.keyboard.press("ArrowRight")
+        step = -1 if before == slider.get_attribute("max") else 1  # the relativity slider starts at its maximum
+        page.keyboard.press("ArrowLeft" if step < 0 else "ArrowRight")
         settle(page)
-        assert int(slider.input_value()) == int(before) + 1, f"{selector}: arrow key did not move the slider"
+        assert int(slider.input_value()) == int(before) + step, f"{selector}: arrow key did not move the slider"
     boxes = page.locator("#switches input")
     for key in ("Space", "Space"):
         was = boxes.first.is_checked()
@@ -197,7 +198,8 @@ def test_every_control_works_from_the_keyboard(open_page, width):
             page.locator(reset).focus()
             page.keyboard.press(key)
             settle(page)
-            assert page.locator(slider).input_value() == "0", f"{key} did not press {reset}"
+            start = "24" if slider == REL_SLIDER else "0"  # the relativity slider starts at one day
+            assert page.locator(slider).input_value() == start, f"{key} did not press {reset}"
 
 
 # 4. Contrast
