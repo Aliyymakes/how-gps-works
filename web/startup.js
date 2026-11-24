@@ -1,6 +1,8 @@
 // One start-up path for every section: the same progress words, the same failure words
 // and one shared "Try again" button. Each section calls whenPythonReady once.
-import { loadMechanism, callPython } from "./bridge.js";
+// bridge.js is imported inside attempt(), not at the top: if that file fails to download,
+// a top-level import would stop this whole file, and the page would wait forever.
+let callPython = null; // set once the bridge has loaded
 
 const FAILURE_WORDS = "Python could not be downloaded, so nothing here can calculate yet. Check your internet connection, then press Try again.";
 
@@ -27,7 +29,7 @@ export function whenPythonReady(statusNode, onReady, { hasControls = true } = {}
 function attempt() {
   state = "loading";
   for (const section of sections) removeRetryButton(section);
-  loadMechanism(onProgress).then(
+  loadBridge().then(
     () => {
       state = "ready";
       for (const section of sections) finish(section);
@@ -38,6 +40,12 @@ function attempt() {
       for (const section of sections) showFailure(section);
     },
   );
+}
+
+async function loadBridge() {
+  const bridge = await import("./bridge.js");
+  callPython = bridge.callPython;
+  await bridge.loadMechanism(onProgress);
 }
 
 function onProgress(text) {

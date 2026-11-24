@@ -194,3 +194,11 @@ def test_no_errors_while_using_every_control(open_page):
     page.locator("#step-signal [data-el=reset]").click()
     settle(page)
     assert site.errors == []
+
+
+def test_bridge_file_missing_shows_failure(open_page):
+    """If web/bridge.js itself cannot be downloaded, every section still says so (Codex review on #58)."""
+    page = open_page(missing=["web/bridge.js"], wait=False).page
+    page.wait_for_timeout(3000)
+    words = page.locator("text=Python could not be downloaded")
+    assert words.count() == 4
