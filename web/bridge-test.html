@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bridge test</title>
+</head>
+<body>
+<h1>Bridge test</h1>
+<h2>Status messages</h2>
+<ul id="status-log"></ul>
+<p id="result-line">Waiting...</p>
+<p id="error-line"></p>
+<script type="module">
+import { loadMechanism, callPython, evalPython } from './bridge.js';
+
+const t0 = performance.now();
+const log = document.getElementById('status-log');
+function onStatus(text) {
+  const item = document.createElement('li');
+  item.textContent = ((performance.now() - t0) / 1000).toFixed(2) + ' s: ' + text;
+  log.appendChild(item);
+}
+
+onStatus('Page opened.');
+try {
+  await loadMechanism(onStatus);
+  const speed = evalPython('__import__("mechanism.constants", fromlist=["x"]).SPEED_OF_LIGHT_M_PER_S');
+  const numpyVersion = evalPython('__import__("numpy").__version__');
+  const seconds = ((performance.now() - t0) / 1000).toFixed(2);
+  document.getElementById('result-line').textContent =
+    'speed of light ' + speed + ' m/s, numpy ' + numpyVersion + ', ready after ' + seconds + ' s';
+} catch (error) {
+  document.getElementById('result-line').textContent = 'FAILED: ' + error.message;
+}
+try {
+  await callPython('constants.no_such_function', []);
+  document.getElementById('error-line').textContent = 'ERROR: unknown function did not fail';
+} catch (error) {
+  document.getElementById('error-line').textContent = 'Unknown function rejected: ' + error.message;
+}
+</script>
+</body>
+</html>
