@@ -22,7 +22,18 @@
   .stack { display: grid; gap: var(--s-4); }
   .map { width: 100%; aspect-ratio: 1; display: block; }
   .map-frame { fill: none; stroke: var(--line-strong); }
-  .map-true { stroke: var(--text-faint); fill: none; }
+  .map-true { stroke: var(--text-muted); stroke-width: 1.5; fill: none; }
+  .map-wait { fill: var(--text-muted); font: 400 14px var(--font-sans); }
+  .intro p { max-width: 60ch; }
+  .map-key { list-style: none; margin: var(--s-3) 0 0; padding: 0; display: grid; gap: var(--s-1); font-size: var(--text-sm); color: var(--text-muted); }
+  .map-key li { display: flex; align-items: center; gap: var(--s-2); }
+  .map-key svg { width: 24px; height: 12px; flex: none; }
+  .is-ok-sample { color: var(--text); }
+  .guide-target { border: 1px solid transparent; border-radius: var(--r-inner); padding: var(--s-4); }
+  .guide-target.highlight { border-color: var(--accent); }
+  .hint { font-size: var(--text-sm); font-weight: 500; color: var(--text); opacity: 0; transition: opacity var(--dur-small) ease; }
+  .hint-done { font-size: var(--text-sm); color: var(--text); opacity: 0; transition: opacity var(--dur-small) ease; }
+  .hint.is-shown, .hint-done.is-shown { opacity: 1; }
   .map-line { stroke: var(--text-muted); stroke-width: 1.5; fill: none; transition: opacity var(--dur-small) ease; }
   .map-line.is-hidden { opacity: 0; }
   .map-dot { fill: currentColor; fill-opacity: 0.25; stroke: currentColor; stroke-width: 2; }
@@ -46,7 +57,8 @@
 <main>
   <header class="intro">
     <h1>How does your phone know where you are?</h1>
-    <p class="muted">Make the phone's clock wrong and watch its position move.</p>
+    <p>Each satellite's signal says when it left. Your phone times the trip, and travel time × the speed of light = distance. Each distance draws one line on the map, and you are where the lines meet.</p>
+    <p class="muted">That only works if the phone's clock is right. Make it wrong and watch what happens.</p>
   </header>
 
   <div class="grid">
@@ -57,13 +69,20 @@
         <g class="map-true" id="map-true"></g>
         <g id="map-lines"></g>
         <g id="map-dot" class="is-ok" style="display: none"><circle class="map-dot" r="9"/></g>
+        <text id="map-wait" class="map-wait" x="200" y="200" text-anchor="middle">The map appears when Python has loaded.</text>
       </svg>
+      <ul class="map-key" aria-label="Map key">
+        <li><svg viewBox="0 0 24 12" aria-hidden="true"><line class="map-line" x1="1" y1="6" x2="23" y2="6"/></svg> A distance line: one satellite says you are somewhere on it</li>
+        <li><svg viewBox="0 0 24 12" aria-hidden="true"><circle class="map-dot is-ok-sample" cx="12" cy="6" r="4"/></svg> Where the phone thinks it is</li>
+        <li><svg viewBox="0 0 24 12" aria-hidden="true"><path class="map-true" d="M6 6h12M12 0v12"/></svg> Where it really is</li>
+      </ul>
       <p class="map-caption muted" id="map-caption" role="status" aria-live="polite"></p>
     </section>
 
     <section class="card stack" aria-label="Controls">
       <p class="note" id="status" role="status" aria-live="polite">Loading the maths…</p>
-      <div class="slider inset highlight" style="padding: var(--s-4)">
+      <div class="slider inset guide-target highlight" id="block-slider">
+        <p class="hint" id="hint-1" hidden>Step 1. Drag this slider to the right.</p>
         <div class="slider-head">
           <label for="clock">Make the phone's clock wrong</label>
           <span class="num" id="clock-value">0.00 µs</span>
@@ -79,12 +98,14 @@
         <p class="note" id="msg-readout" role="status" aria-live="polite"></p>
       </div>
 
-      <div class="stack" style="gap: var(--s-2)">
+      <div class="stack guide-target" id="block-solve" style="gap: var(--s-2)">
+        <p class="hint" id="hint-2" hidden>Step 2. The lines no longer meet. Press this button.</p>
         <button class="btn btn-primary" id="solve" type="button" aria-pressed="false" disabled>Let the phone solve for its clock</button>
         <p class="note" id="msg-solve" role="status" aria-live="polite"></p>
       </div>
 
-      <div class="stack" style="gap: var(--s-1)">
+      <div class="stack guide-target" id="block-switches" style="gap: var(--s-1)">
+        <p class="hint" id="hint-3" hidden>Step 3. Now switch one satellite off.</p>
         <span class="label" id="switch-label">Satellites</span>
         <div class="switches" id="switches" role="group" aria-labelledby="switch-label"></div>
         <p class="note" id="msg-switch" role="status" aria-live="polite"></p>
@@ -96,6 +117,7 @@
         </div>
         <p class="note" id="msg-reset" role="status" aria-live="polite"></p>
       </div>
+      <p class="hint-done" id="hint-done" role="status" aria-live="polite" hidden>That is the main idea: the phone needs four satellites because its own clock is a fourth unknown. Keep playing, or scroll on.</p>
     </section>
   </div>
 
