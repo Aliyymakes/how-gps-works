@@ -1,6 +1,8 @@
 // Rung 3: how the time is measured (design.md 2a). It draws and takes input;
 // the received signal and every score come from Python (mechanism/signal.py).
 // The only arithmetic here is scaling numbers to pixels.
+import { whenPythonReady } from "./startup.js";
+import { say } from "./say.js";
 
 // Every tunable number lives here.
 export const signalConfig = {
@@ -51,7 +53,7 @@ export function mountSignalStep(container) {
   const find = (name) => root.querySelector(`[data-el="${name}"]`);
   const el = {
     status: find("status"), slider: find("noise"), sliderValue: find("noise-value"), msgSlider: find("msg-slider"),
-    reset: find("reset"), receivedLine: find("received-line"), scoresLine: find("scores-line"),
+    reset: find("reset"), msgReset: find("msg-reset"), receivedLine: find("received-line"), scoresLine: find("scores-line"),
     trueMark: find("true-mark"), bestMark: find("best-mark"), bestGroup: find("best-group"),
     bestDelay: find("best-delay"), trueDelay: find("true-delay"), peak: find("peak"),
     badge: find("badge"), sentence: find("sentence"),
@@ -67,19 +69,12 @@ export function mountSignalStep(container) {
 
   // ---------- start up ----------
 
-  async function start() {
-    try {
-      const bridge = await import("./bridge.js"); // may be missing: a failure here must not break the page
-      await bridge.loadMechanism((text) => { el.status.textContent = text; });
-      callPython = bridge.callPython;
-    } catch (error) {
-      console.error(error);
-      el.status.textContent = "The calculation engine could not load, so the controls stay off. Reload the page to try again.";
-      return;
-    }
-    el.status.textContent = "";
-    setControlsDisabled(false);
-    update();
+  function start() {
+    whenPythonReady(el.status, (call) => {
+      callPython = call;
+      setControlsDisabled(false);
+      update();
+    });
   }
 
   // ---------- controls ----------
@@ -93,6 +88,7 @@ export function mountSignalStep(container) {
     el.slider.value = Math.round((startValue - min) / step);
     el.slider.addEventListener("input", () => {
       noise = Number(el.slider.value) * step + min;
+      el.msgReset.textContent = "";
       showNoiseValue();
       update();
     });
@@ -101,6 +97,7 @@ export function mountSignalStep(container) {
       el.slider.value = Math.round((startValue - min) / step);
       showNoiseValue();
       update();
+      say(el.msgReset, "Back to the start: no noise.");
     });
     el.trueDelay.textContent = `${signalConfig.trueDelayChips} chips`;
     drawMark(el.trueMark, signalConfig.trueDelayChips);
@@ -133,7 +130,7 @@ export function mountSignalStep(container) {
       } while (rerun);
     } catch (error) {
       console.error(error);
-      el.msgSlider.textContent = "Something went wrong while calculating, so the picture may be out of date.";
+      say(el.msgSlider, "Something went wrong while calculating, so the picture may be out of date.");
     } finally {
       running = false;
     }
@@ -152,7 +149,7 @@ export function mountSignalStep(container) {
 
   function failed(result) {
     if (!result || !result.error) return false;
-    el.msgSlider.textContent = result.error; // Python's own plain sentence
+    say(el.msgSlider, result.error); // Python's own plain sentence
     return true;
   }
 
@@ -225,7 +222,6 @@ const PAGE_HTML = `
   <header class="intro">
     <h2 id="signal-title">How does the phone measure the time?</h2>
     <p class="muted">The satellite's signal is a known pattern of 1023 steps, called chips. The phone slides its own copy along what it hears and scores the match at every shift.</p>
-    <p class="note" data-el="status" role="status" aria-live="polite">Loading the maths…</p>
   </header>
 
   <div class="grid">
@@ -249,13 +245,14 @@ const PAGE_HTML = `
     </div>
 
     <div class="card stack">
+      <p class="note" data-el="status" role="status" aria-live="polite">Loading the maths…</p>
       <div class="slider inset highlight">
         <div class="slider-head">
           <label for="signal-noise">Add noise</label>
           <span class="num" data-el="noise-value">No noise</span>
         </div>
         <input id="signal-noise" data-el="noise" type="range" disabled>
-        <p class="note" data-el="msg-slider" role="status"></p>
+        <p class="note" data-el="msg-slider" role="status" aria-live="polite"></p>
       </div>
 
       <div class="inset readout">
@@ -264,10 +261,13 @@ const PAGE_HTML = `
         <div class="readout-row"><span class="muted">Real delay</span><span class="num" data-el="true-delay">–</span></div>
         <div class="readout-row"><span class="muted">Peak stands out by</span><span class="num" data-el="peak">–</span></div>
         <div><span class="badge is-ok" data-el="badge" hidden></span></div>
-        <p class="note" data-el="sentence" role="status"></p>
+        <p class="note" data-el="sentence" role="status" aria-live="polite"></p>
       </div>
 
-      <div><button class="btn" data-el="reset" type="button" disabled>Reset</button></div>
+      <div>
+        <button class="btn" data-el="reset" type="button" disabled>Reset</button>
+        <p class="note" style="margin-top: var(--s-2)" data-el="msg-reset" role="status" aria-live="polite"></p>
+      </div>
     </div>
   </div>
 </section>`;

@@ -1,6 +1,7 @@
 // Rung 4: relativity (design.md 2a, 2b). It draws a small table; every number comes from Python
 // (relativity.drift_over_time). The only arithmetic here is scaling a bar to its largest value.
 import * as config from "./config.js";
+import { whenPythonReady } from "./startup.js";
 
 // Layout for this section only. Colours, fonts and radii come from theme.css.
 const STYLE = `
@@ -38,7 +39,7 @@ const PAGE = `
       <thead><tr><th scope="col">Hours</th><th scope="col">Each distance gains</th><th scope="col">Position off by (clock solved)</th></tr></thead>
       <tbody data-id="rows"></tbody>
     </table>
-    <p class="rel-note" data-id="msg" role="status"></p>
+    <p class="rel-note" data-id="msg" role="status" aria-live="polite"></p>
   </section>
   <p>The drift is the same for every satellite, so it looks just like the phone's own clock error, and solving for the clock absorbs it. The position stays put.</p>
 </div>`;
@@ -54,19 +55,9 @@ export function mountRelativityStep(container) {
   const root = container.lastElementChild;
   const $ = (id) => root.querySelector(`[data-id="${id}"]`);
   const el = { status: $("status"), rows: $("rows"), msg: $("msg") };
-  start();
+  whenPythonReady(el.status, start, { hasControls: false });
 
-  async function start() {
-    let bridge;
-    try {
-      bridge = await import("./bridge.js"); // same module instance as the other sections: Pyodide loads once
-      await bridge.loadMechanism((text) => { el.status.textContent = text; });
-    } catch (error) {
-      console.error(error);
-      el.status.textContent = "The calculation engine could not load, so this table stays empty. Reload the page to try again.";
-      return;
-    }
-    const callPython = bridge.callPython;
+  async function start(callPython) {
     try {
       const { lat_deg, lon_deg } = config.receiver;
       const receiver = await callPython("coords.latlon_to_xyz", [lat_deg, lon_deg]);

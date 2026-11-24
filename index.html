@@ -44,7 +44,6 @@
   <header class="intro">
     <h1>How does your phone know where you are?</h1>
     <p class="muted">Make the phone's clock wrong and watch its position move.</p>
-    <p class="note" id="status" role="status" aria-live="polite">Loading the maths…</p>
   </header>
 
   <div class="grid">
@@ -56,39 +55,43 @@
         <g id="map-lines"></g>
         <g id="map-dot" class="is-ok" style="display: none"><circle class="map-dot" r="9"/></g>
       </svg>
-      <p class="map-caption muted" id="map-caption"></p>
+      <p class="map-caption muted" id="map-caption" role="status" aria-live="polite"></p>
     </section>
 
     <section class="card stack" aria-label="Controls">
+      <p class="note" id="status" role="status" aria-live="polite">Loading the maths…</p>
       <div class="slider inset highlight" style="padding: var(--s-4)">
         <div class="slider-head">
           <label for="clock">Make the phone's clock wrong</label>
           <span class="num" id="clock-value">0.00 µs</span>
         </div>
         <input id="clock" type="range" value="0" disabled>
-        <p class="note" id="msg-slider" role="status"></p>
+        <p class="note" id="msg-slider" role="status" aria-live="polite"></p>
       </div>
 
       <div class="inset readout">
         <span class="label">Position off by</span>
         <span class="num big" id="error-value">–</span>
         <div><span class="badge is-ok" id="error-badge" hidden></span></div>
-        <p class="note" id="msg-readout"></p>
+        <p class="note" id="msg-readout" role="status" aria-live="polite"></p>
       </div>
 
       <div class="stack" style="gap: var(--s-2)">
-        <button class="btn btn-primary" id="solve" type="button" disabled>Let the phone solve for its clock</button>
-        <p class="note" id="msg-solve" role="status"></p>
+        <button class="btn btn-primary" id="solve" type="button" aria-pressed="false" disabled>Let the phone solve for its clock</button>
+        <p class="note" id="msg-solve" role="status" aria-live="polite"></p>
       </div>
 
       <div class="stack" style="gap: var(--s-1)">
         <span class="label" id="switch-label">Satellites</span>
         <div class="switches" id="switches" role="group" aria-labelledby="switch-label"></div>
-        <p class="note" id="msg-switch" role="status"></p>
+        <p class="note" id="msg-switch" role="status" aria-live="polite"></p>
       </div>
 
-      <div class="actions">
-        <button class="btn" id="reset" type="button" disabled>Reset</button>
+      <div class="stack" style="gap: var(--s-2)">
+        <div class="actions">
+          <button class="btn" id="reset" type="button" disabled>Reset</button>
+        </div>
+        <p class="note" id="msg-reset" role="status" aria-live="polite"></p>
       </div>
     </section>
   </div>

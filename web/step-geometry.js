@@ -1,6 +1,8 @@
 // Rung 2: geometry (design.md 2a). It draws and takes input; every number comes from Python.
 // The only arithmetic here: Math.hypot for the position error, the slider-to-angle blend,
 // and the sky drawing scale.
+import { whenPythonReady } from "./startup.js";
+import { say } from "./say.js";
 
 // Every tunable number for this step. All of these are provisional until Icarus confirms them.
 export const geometryConfig = {
@@ -57,7 +59,6 @@ const PAGE = `
   <header class="geo-stack" style="gap: var(--s-2)">
     <h2>Does it matter where the satellites are?</h2>
     <p class="muted">Same four satellites, same clock error, same noise. Only the layout changes.</p>
-    <p class="geo-note" data-id="status" role="status" aria-live="polite">Loading the maths…</p>
   </header>
   <div class="geo-grid">
     <section class="card" aria-labelledby="geo-sky-title">
@@ -67,28 +68,32 @@ const PAGE = `
       <p class="geo-note" style="margin-top: var(--s-3)">Edge is the horizon, centre is straight overhead.</p>
     </section>
     <section class="card geo-stack" aria-label="Controls and results">
+      <p class="geo-note" data-id="status" role="status" aria-live="polite">Loading the maths…</p>
       <div class="slider inset geo-highlight">
         <div class="slider-head">
           <label for="geo-bunch">Bunch the satellites</label>
           <span class="num" data-id="slider-value">0 % bunched</span>
         </div>
         <input id="geo-bunch" data-id="slider" type="range" value="0" disabled>
-        <p class="geo-note" data-id="msg-slider" role="status"></p>
+        <p class="geo-note" data-id="msg-slider" role="status" aria-live="polite"></p>
       </div>
       <div class="inset geo-readout">
         <span class="label">DOP</span>
         <span class="num geo-big" data-id="dop">–</span>
         <p class="geo-note" style="min-height: 0">How much the satellites' layout multiplies measurement errors. Lower is better.</p>
-        <p class="geo-note" data-id="msg-dop" role="status"></p>
+        <p class="geo-note" data-id="msg-dop" role="status" aria-live="polite"></p>
       </div>
       <div class="inset geo-readout">
         <span class="label">Position off by</span>
         <span class="num geo-big" data-id="error">–</span>
         <div><span class="badge is-ok" data-id="badge" hidden></span></div>
-        <p class="geo-note" data-id="msg-error" role="status"></p>
+        <p class="geo-note" data-id="msg-error" role="status" aria-live="polite"></p>
       </div>
       <p>Spread out, the same errors barely move the fix. Bunched, they multiply. But all of this error began with time, so next: how does the phone measure it at all?</p>
-      <div><button class="btn" data-id="reset" type="button" disabled>Reset</button></div>
+      <div>
+        <button class="btn" data-id="reset" type="button" disabled>Reset</button>
+        <p class="geo-note" style="margin-top: var(--s-2)" data-id="msg-reset" role="status" aria-live="polite"></p>
+      </div>
     </section>
   </div>
 </div>`;
@@ -105,7 +110,7 @@ export function mountGeometryStep(container) {
   const el = {
     status: $("status"), sky: $("sky"), slider: $("slider"), sliderValue: $("slider-value"),
     msgSlider: $("msg-slider"), dop: $("dop"), msgDop: $("msg-dop"),
-    error: $("error"), badge: $("badge"), msgError: $("msg-error"), reset: $("reset"),
+    error: $("error"), badge: $("badge"), msgError: $("msg-error"), reset: $("reset"), msgReset: $("msg-reset"),
   };
   const { receiver, spread, bunched } = geometryConfig;
 
@@ -120,35 +125,32 @@ export function mountGeometryStep(container) {
   el.slider.value = 0;
   buildSky();
   showSlider();
-  el.slider.addEventListener("input", () => { showSlider(); update(); });
-  el.reset.addEventListener("click", () => { el.slider.value = 0; showSlider(); update(); });
+  el.slider.addEventListener("input", () => { el.msgReset.textContent = ""; showSlider(); update(); });
+  el.reset.addEventListener("click", () => {
+    el.slider.value = 0;
+    showSlider();
+    update();
+    say(el.msgReset, "Back to the start: satellites spread out.");
+  });
   start();
 
   // ---------- start up ----------
 
-  async function start() {
-    let bridge;
-    try {
-      bridge = await import("./bridge.js"); // may be missing: a failure here must not break the page
-      await bridge.loadMechanism((text) => { el.status.textContent = text; });
-    } catch (error) {
-      console.error(error);
-      el.status.textContent = "The calculation engine could not load, so the controls stay off. Reload the page to try again.";
-      return;
-    }
-    callPython = bridge.callPython;
-    try {
-      receiverPoint = await callPython("coords.latlon_to_xyz", [receiver.lat_deg, receiver.lon_deg]);
-      if (receiverPoint.error) throw new Error(receiverPoint.error);
-    } catch (error) {
-      console.error(error);
-      el.status.textContent = "The calculation engine loaded but could not place the phone, so the controls stay off.";
-      return;
-    }
-    el.status.textContent = "";
-    el.slider.disabled = false;
-    el.reset.disabled = false;
-    update();
+  function start() {
+    whenPythonReady(el.status, async (call) => {
+      callPython = call;
+      try {
+        receiverPoint = await callPython("coords.latlon_to_xyz", [receiver.lat_deg, receiver.lon_deg]);
+        if (receiverPoint.error) throw new Error(receiverPoint.error);
+      } catch (error) {
+        console.error(error);
+        el.status.textContent = "The calculation engine loaded but could not place the phone, so the controls stay off.";
+        return;
+      }
+      el.slider.disabled = false;
+      el.reset.disabled = false;
+      update();
+    });
   }
 
   // ---------- the slider and the sky (drawing only) ----------
@@ -241,13 +243,13 @@ export function mountGeometryStep(container) {
       requestAnimationFrame(() => showResult(dop.pdop, errorM));
     } catch (error) {
       console.error(error);
-      el.msgSlider.textContent = "Something went wrong in the calculation, so the numbers below may be out of date.";
+      say(el.msgSlider, "Something went wrong in the calculation, so the numbers below may be out of date.");
     }
   }
 
   function failed(result) {
     if (!result || !result.error) return false;
-    el.msgSlider.textContent = result.error; // Python's own plain sentence
+    say(el.msgSlider, result.error); // Python's own plain sentence
     return true;
   }
 

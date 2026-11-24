@@ -5,7 +5,7 @@
 // Pinned Pyodide version (ships Python 3.14.2).
 const PYODIDE_BASE = 'https://cdn.jsdelivr.net/pyodide/v314.0.8/full/';
 
-// Files of the `mechanism` package. A missing file is skipped with one console.warn.
+// Files of the `mechanism` package. A file that cannot be fetched makes the whole load fail.
 const MECHANISM_FILES = [
   '__init__.py', 'constants.py', 'coords.py', 'scenario.py', 'solver.py',
   'mapview.py', 'geometry.py', 'signal.py', 'relativity.py',
@@ -15,29 +15,46 @@ const MECHANISM_DIR = '/home/pyodide/mechanism';
 
 let pyodide = null;
 let loading = null;
+const listeners = []; // every status function passed to loadMechanism
+let latestText = null; // the most recent progress message
 
+// Every caller gets every progress message, also when another caller started the load.
 export function loadMechanism(onStatus = () => {}) {
-  if (!loading) loading = doLoad(onStatus);
+  if (!listeners.includes(onStatus)) listeners.push(onStatus);
+  if (latestText !== null) onStatus(latestText);
+  if (!loading) {
+    loading = doLoad().catch((error) => {
+      loading = null; // a failed load is not remembered: the next call tries again
+      throw error;
+    });
+  }
   return loading;
 }
 
-async function doLoad(onStatus) {
-  onStatus('Loading Python (a few seconds the first time)...');
+function tell(text) {
+  latestText = text;
+  for (const listener of listeners) listener(text);
+}
+
+async function doLoad() {
+  tell('Step 1 of 3: downloading Python. This is the slow step on a first visit…');
   const { loadPyodide } = await import(PYODIDE_BASE + 'pyodide.mjs');
   pyodide = await loadPyodide({ indexURL: PYODIDE_BASE });
 
-  onStatus('Loading numpy...');
+  tell('Step 2 of 3: downloading numpy, the number library…');
   await pyodide.loadPackage('numpy');
 
-  onStatus('Loading the mechanism code...');
+  tell('Step 3 of 3: loading our GPS code…');
   pyodide.FS.mkdirTree(MECHANISM_DIR);
   for (const name of MECHANISM_FILES) {
     const url = new URL('../mechanism/' + name, import.meta.url);
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.warn('bridge: skipping missing mechanism file ' + name);
-      continue;
+    let response;
+    try {
+      response = await fetch(url);
+    } catch {
+      response = null;
     }
+    if (!response || !response.ok) throw new Error('could not load mechanism/' + name);
     pyodide.FS.writeFile(MECHANISM_DIR + '/' + name, await response.text());
   }
   // The folder holding the package must be on sys.path.
@@ -58,7 +75,7 @@ def _bridge_call(target, args_json):
         raise ValueError("unknown function: mechanism." + target)
     return json.dumps(function(*json.loads(args_json)))
 `);
-  onStatus('Ready.');
+  tell('Ready.');
 }
 
 export async function callPython(target, args = []) {
