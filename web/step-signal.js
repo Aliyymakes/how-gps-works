@@ -41,6 +41,9 @@ const STYLE = `
 .signal-step .big { font-size: var(--text-xl); }
 .signal-step .badge[hidden] { display: none; }
 .signal-step .note { font-size: var(--text-sm); color: var(--text-muted); min-height: 1.5em; }
+.signal-step .note:empty { min-height: 0; }
+.signal-step .note[data-el="msg-slider"]:empty { min-height: 1.5em; }
+.signal-step h3.label { margin-bottom: var(--s-3); }
 .signal-step .highlight { border-color: var(--accent); padding: var(--s-4); }
 .signal-step .hint { font-size: var(--text-sm); font-weight: 500; color: var(--text); }
 .signal-step .slider-head { flex-wrap: wrap; column-gap: var(--s-3); }

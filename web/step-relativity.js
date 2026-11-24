@@ -3,13 +3,15 @@
 import * as config from "./config.js";
 import { whenPythonReady } from "./startup.js";
 import { say } from "./say.js";
+import { formatMetres } from "./format.js";
 
 // Layout for this section only. Colours, fonts and radii come from theme.css.
 const STYLE = `
 .rel { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
 .rel-stack { grid-template-columns: minmax(0, 1fr); }
 .rel-note { font-size: var(--text-sm); color: var(--text-muted); min-height: 1.5em; }
-.rel-card { padding: var(--s-4); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
+.rel-note:empty { min-height: 0; }
+.rel-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
 .rel-highlight { border-color: var(--accent); padding: var(--s-4); }
 .rel-readout { padding: var(--s-4); display: grid; gap: var(--s-2); }
 .rel-big { font-size: var(--text-xl); }
@@ -24,7 +26,6 @@ const STYLE = `
 .rel .btn:disabled:hover { border-color: var(--line-strong); }
 `;
 
-const nf = new Intl.NumberFormat("en", { maximumFractionDigits: 1 });
 const LEVEL_WORDS = { ok: "Good fix", warn: "Fix is off", bad: "Fix is far off" };
 
 function errorLevel(errorM) {
@@ -178,7 +179,7 @@ export function mountRelativityStep(container) {
   }
 
   function showResult(row, hours) {
-    el.range.textContent = `${nf.format(row.range_added_m)} m`;
+    el.range.textContent = formatMetres(row.range_added_m);
     showError(el.trusted, el.trustedBadge, row.error_clock_trusted_m);
     showError(el.solved, el.solvedBadge, row.error_clock_solved_m);
     const sentence = hours === 0
@@ -189,7 +190,7 @@ export function mountRelativityStep(container) {
 
   function showError(valueNode, badgeNode, errorM) {
     const level = errorLevel(errorM);
-    valueNode.textContent = `${nf.format(errorM)} m`;
+    valueNode.textContent = formatMetres(errorM);
     badgeNode.hidden = false;
     badgeNode.className = `badge is-${level}`;
     badgeNode.textContent = LEVEL_WORDS[level];
