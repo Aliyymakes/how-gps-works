@@ -36,10 +36,14 @@
   .figure-strip { min-height: 64px; } /* the drawing is added by a script: keep its room so nothing below moves */
   /* Phones: the map card stays at the top while its grid is on screen, so the map and the number are never scrolled away from the controls. */
   @media (max-width: 759px) {
-    main { padding-top: var(--s-4); --main-gap: var(--s-3); }
+    /* The "Part 1 of 4" label costs about 25 px; these four tighter gaps pay it back so the slider stays above the fold. */
+    main { padding-top: var(--s-3); --main-gap: var(--s-3); }
+    main .intro > .part-label { margin-bottom: 0; }
+    .grid .looking-map { margin-bottom: 0; }
     .grid { gap: var(--s-3); }
     .slider-head label { font-size: var(--text-sm); }
     .grid .card { --pad-card: var(--s-4); }
+    .grid .controls { --pad-card: var(--s-3); }
     .grid .map-card { --pad-card: var(--s-3); }
     .guide-target { padding: var(--s-3); }
     .intro { gap: var(--s-1); }
@@ -99,9 +103,11 @@
   .readout { padding: var(--s-4); display: grid; gap: var(--s-2); }
   .big { font-size: var(--text-xl); }
   .note { font-size: var(--text-sm); color: var(--text-muted); min-height: 1.5em; }
-  /* An empty message line takes no room, except where a control sits below it: those keep their height so nothing moves when words appear. */
+  /* An empty message line takes no room, not even its block's grid gap. They answer a press, so a one-line shift when words appear is fine. The readout's line keeps its height. */
   .note:empty { min-height: 0; }
-  #msg-readout:empty, #msg-solve:empty, #msg-switch:empty { min-height: 1.5em; }
+  #msg-readout:empty { min-height: 1.5em; }
+  /* Out of the flow while empty, so it makes no grid row and no gap (a negative margin cannot shrink a grid track); it stays a live region. */
+  #msg-solve:empty, #msg-switch:empty, #msg-reset:empty { position: absolute; }
   h2.label, h3.label { margin-bottom: var(--s-3); }
   .switches { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--s-4); }
   @media (max-width: 359px) { .switches { grid-template-columns: minmax(0, 1fr); } }

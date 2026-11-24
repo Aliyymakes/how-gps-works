@@ -436,11 +436,14 @@ function showGuide() {
       node.classList.add("is-shown");
     }
   }
-  const closing = $("hint-done");
-  if (guideStep === 4 && closing.getBoundingClientRect().bottom > window.innerHeight) {
-    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    closing.scrollIntoView({ block: "nearest", behavior: calm ? "auto" : "smooth" }); // only when the closing line appears below the window
-  }
+  // Check on the next frame: the action's own message line may still push the closing line down.
+  requestAnimationFrame(() => {
+    const closing = $("hint-done");
+    if (guideStep === 4 && closing.getBoundingClientRect().bottom > window.innerHeight) {
+      const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      closing.scrollIntoView({ block: "nearest", behavior: calm ? "auto" : "smooth" }); // only when the closing line appears below the window
+    }
+  });
 }
 
 function nextGuideStep() {

@@ -48,3 +48,5 @@ Traps that cut across areas. One line per entry, added at the end:
 - 2026-11-25 | tests/ui/test_speed.py | test_speed's paint times are noisy when other browser tests run at the same time; re-run it alone before believing a failure.
 - 2026-11-25 | external | New agent worktrees have an empty tests/ui/.cdn-cache; copy it from the main checkout or the first UI run downloads about 9 MB.
 - 2026-11-25 | external | BSD sed on macOS: `-i` needs an argument (`sed -i ''`) and `\n` in the replacement is not a newline. Use a short Python script for multi-line edits.
+- 2026-11-25 | index.html | A negative margin on an empty grid item does not remove the grid gap: the track clamps at 0 and the item stretches back to the gap's height. Take an empty live-region line out of the flow with `position: absolute` instead (never `display: none` on a live region).
+- 2026-11-25 | tests/ui/test_phone_layout.py | Anything added above the first screen's slider on phones (step 5's "Part 1 of 4" label cost 25 px) breaks the 620 px fold check; run test_phone_layout after any change to the intro.
