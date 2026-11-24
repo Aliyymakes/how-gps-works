@@ -1,3 +1,5 @@
+UI REDESIGN READY FOR ICARUS: PR #83
+
 # State log, plan 005
 
 Live link: https://aliyymakes.github.io/how-gps-works/
@@ -29,3 +31,11 @@ Live link: https://aliyymakes.github.io/how-gps-works/
 - 2026-11-25 05:25 WIB | Icarus: stop here, the run moves to another machine. Stopped the step 5/6 builder and the full UI run (no result; it was started at 05:21 after the lane C merge).
 - 2026-11-25 05:25 WIB | STOPPED HERE. Branch state: ui-redesign = step 0 + lanes A, B, C + step 4 + memory facts (644f6fc), pushed. lane-d-hierarchy = step 5 text hierarchy (85eba3b), committed and pushed but NOT reviewed, NOT tested and NOT merged; step 6 not started.
 - 2026-11-25 05:25 WIB | LEFT TO DO: (1) review and test step 5 on lane-d-hierarchy (WebKit test_speed x3 since .link-line changed), merge; (2) step 6 card spacing; (3) one full tests/ui run with --timeout=120 (pytest-timeout must be installed in .venv on the new machine); (4) step 9 annotations for index.html, web/first-screen.js, illustrations.js, step-signal.js, step-relativity.js, step-geometry.js, config.js, format.js, theme.css, then reader test for those files; (5) Haiku screenshot-only reader test per section; (6) after-screenshots to docs/ux-audit/redesign/after/, PR closing #77 with before/after pairs and the questions (WebKit cold load 35 s vs Chromium 5 s at the top, interface.md missing relativity.drift_over_time), and "UI REDESIGN READY FOR ICARUS: PR #<n>" at the top of this file by 10:00 WIB; (7) approval gate, 16:00 fallback; (8) post-merge docs + Opus accuracy pass; (9) report-2026-11-25.md. Steps 7 and 8 of the build order are dropped.
+- 2026-11-25 05:35 WIB | resume | Run continued on the Windows machine. Inbox is now issue #82 (no orchestrator notes since the 00:00 note copied into it).
+- 2026-11-25 | LEFT TO DO 1 | DONE. Step 5 reviewed against ui-redesign.md §7, merged (4711924). test_hierarchy_spacing + test_polish 20 pass; WebKit test_speed 3/3.
+- 2026-11-25 | LEFT TO DO 2 | DONE. Step 6 (fd56420): empty solve/switch/reset lines out of flow; closing-line scroll waits a frame; phone fold restored (step 5's part label had pushed the slider to 644 px; now 614). New tests for card tops, empty lines, solve block on drag.
+- 2026-11-25 | LEFT TO DO 3 | DONE. Full tests/ui: 222 passed (15 min), --timeout=120.
+- 2026-11-25 | LEFT TO DO 4 | DONE. Annotations for 9 changed files + new illustrations.js.md (03f81a3, four Sonnet writers); test_annotations 54 pass. Restored formatMetres' no-break space (lane B regression). Docs reader test 20/20 pass (1e28589).
+- 2026-11-25 | LEFT TO DO 5 | DONE. Screenshot-only reader test: first screen, geometry, signal, relativity all pass the ui-redesign.md criteria. Section crops retaken at scroll 0 (element screenshots caught sticky cards mid-section).
+- 2026-11-25 | LEFT TO DO 6 | DONE. After-screenshots in docs/ux-audit/redesign/after/ (28). PR #83 opened (closes #77), before/after pairs, WebKit 35 s cold load and interface.md gap at the top of the questions.
+- 2026-11-25 | LEFT TO DO 7-9 | WAITING: approval gate (Icarus), 16:00 WIB fallback, then post-merge docs + Opus accuracy pass, then report-2026-11-25.md.
