@@ -1,6 +1,8 @@
 // Rung 3: how the time is measured (design.md 2a). It draws and takes input;
 // the received signal and every score come from Python (mechanism/signal.py).
 // The only arithmetic here is scaling numbers to pixels.
+import { whenPythonReady } from "./startup.js";
+import { say } from "./say.js";
 
 // Every tunable number lives here.
 export const signalConfig = {
@@ -16,20 +18,22 @@ export const signalConfig = {
 };
 
 const SVG = "http://www.w3.org/2000/svg";
+const RECEIVED_LABEL = "The received signal: the satellite's pattern plus noise, one value per chip.";
+const SCORES_LABEL = "The match score at every shift. A tall peak means the phone found the signal's timing.";
 const PLOT_HEIGHT = 120; // the viewBox of both graphs is (number of chips) wide and 120 high
 
 // Layout for this section only. Colours, fonts and radii come from theme.css.
 const STYLE = `
-.signal-step { display: grid; gap: var(--s-5); }
+.signal-step { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
 .signal-step .intro { display: grid; gap: var(--s-2); }
-.signal-step .grid { display: grid; grid-template-columns: 1fr; gap: var(--s-5); }
+.signal-step .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
 @media (min-width: 760px) { .signal-step .grid { grid-template-columns: 1.4fr 1fr; align-items: start; } }
 .signal-step .stack { display: grid; gap: var(--s-4); }
 .signal-step .plot { width: 100%; height: 120px; display: block; margin-top: var(--s-2); }
 .signal-step .axis { display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--text-muted); }
 .signal-step .received { fill: none; stroke: var(--text); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .signal-step .scores { fill: none; stroke: var(--text-muted); stroke-width: 1; vector-effect: non-scaling-stroke; }
-.signal-step .mark-true { stroke: var(--text-faint); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.signal-step .mark-true { stroke: var(--text-muted); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
 .signal-step .mark-best { stroke: currentColor; stroke-width: 2; vector-effect: non-scaling-stroke; }
 .signal-step .key { font-size: var(--text-sm); }
 .signal-step .readout { padding: var(--s-4); display: grid; gap: var(--s-2); }
@@ -37,7 +41,12 @@ const STYLE = `
 .signal-step .big { font-size: var(--text-xl); }
 .signal-step .badge[hidden] { display: none; }
 .signal-step .note { font-size: var(--text-sm); color: var(--text-muted); min-height: 1.5em; }
+.signal-step .note:empty { min-height: 0; }
+.signal-step .note[data-el="msg-slider"]:empty { min-height: 1.5em; }
+.signal-step h3.label { margin-bottom: var(--s-3); }
 .signal-step .highlight { border-color: var(--accent); padding: var(--s-4); }
+.signal-step .hint { font-size: var(--text-sm); font-weight: 500; color: var(--text); }
+.signal-step .slider-head { flex-wrap: wrap; column-gap: var(--s-3); }
 .signal-step .btn { touch-action: manipulation; }
 .signal-step .btn:disabled, .signal-step input[type="range"]:disabled { opacity: 0.4; cursor: not-allowed; }
 .signal-step .btn:disabled:hover { border-color: var(--line-strong); }
@@ -50,8 +59,8 @@ export function mountSignalStep(container) {
   const root = container.lastElementChild;
   const find = (name) => root.querySelector(`[data-el="${name}"]`);
   const el = {
-    status: find("status"), slider: find("noise"), sliderValue: find("noise-value"), msgSlider: find("msg-slider"),
-    reset: find("reset"), receivedLine: find("received-line"), scoresLine: find("scores-line"),
+    status: find("status"), hint: find("hint"), clipNote: find("clip-note"), receivedPlot: find("received-plot"), scoresPlot: find("scores-plot"), slider: find("noise"), sliderValue: find("noise-value"), msgSlider: find("msg-slider"),
+    reset: find("reset"), msgReset: find("msg-reset"), receivedLine: find("received-line"), scoresLine: find("scores-line"),
     trueMark: find("true-mark"), bestMark: find("best-mark"), bestGroup: find("best-group"),
     bestDelay: find("best-delay"), trueDelay: find("true-delay"), peak: find("peak"),
     badge: find("badge"), sentence: find("sentence"),
@@ -61,25 +70,20 @@ export function mountSignalStep(container) {
   let noise = signalConfig.noise.start;
   let running = false;
   let rerun = false;
+  let hintDone = false; // once the user has touched the slider, the hint stays hidden
 
   setupControls();
   start();
 
   // ---------- start up ----------
 
-  async function start() {
-    try {
-      const bridge = await import("./bridge.js"); // may be missing: a failure here must not break the page
-      await bridge.loadMechanism((text) => { el.status.textContent = text; });
-      callPython = bridge.callPython;
-    } catch (error) {
-      console.error(error);
-      el.status.textContent = "The calculation engine could not load, so the controls stay off. Reload the page to try again.";
-      return;
-    }
-    el.status.textContent = "";
-    setControlsDisabled(false);
-    update();
+  function start() {
+    whenPythonReady(el.status, (call) => {
+      callPython = call;
+      setControlsDisabled(false);
+      el.hint.hidden = hintDone;
+      update();
+    });
   }
 
   // ---------- controls ----------
@@ -93,6 +97,9 @@ export function mountSignalStep(container) {
     el.slider.value = Math.round((startValue - min) / step);
     el.slider.addEventListener("input", () => {
       noise = Number(el.slider.value) * step + min;
+      el.hint.hidden = true;
+      hintDone = true;
+      el.msgReset.textContent = "";
       showNoiseValue();
       update();
     });
@@ -101,6 +108,7 @@ export function mountSignalStep(container) {
       el.slider.value = Math.round((startValue - min) / step);
       showNoiseValue();
       update();
+      say(el.msgReset, "Back to the start: no noise.");
     });
     el.trueDelay.textContent = `${signalConfig.trueDelayChips} chips`;
     drawMark(el.trueMark, signalConfig.trueDelayChips);
@@ -114,9 +122,8 @@ export function mountSignalStep(container) {
   }
 
   function showNoiseValue() {
-    const words = noise === 0 ? "No noise" : `Noise is ${noise.toFixed(1)}× the signal`;
-    el.sliderValue.textContent = words;
-    el.slider.setAttribute("aria-valuetext", words);
+    el.sliderValue.textContent = noise === 0 ? "No noise" : `${noise.toFixed(1)}× the signal`;
+    el.slider.setAttribute("aria-valuetext", noise === 0 ? "No noise" : `Noise ${noise.toFixed(1)} times the signal`);
   }
 
   // ---------- one run: ask Python, then draw ----------
@@ -133,7 +140,7 @@ export function mountSignalStep(container) {
       } while (rerun);
     } catch (error) {
       console.error(error);
-      el.msgSlider.textContent = "Something went wrong while calculating, so the picture may be out of date.";
+      say(el.msgSlider, "Something went wrong while calculating, so the picture may be out of date.");
     } finally {
       running = false;
     }
@@ -152,7 +159,7 @@ export function mountSignalStep(container) {
 
   function failed(result) {
     if (!result || !result.error) return false;
-    el.msgSlider.textContent = result.error; // Python's own plain sentence
+    say(el.msgSlider, result.error); // Python's own plain sentence
     return true;
   }
 
@@ -193,6 +200,13 @@ export function mountSignalStep(container) {
     el.badge.className = `badge is-${level}`;
     el.badge.textContent = levelWords[level];
     el.sentence.textContent = sentenceFor(level, usedNoise);
+    // Noise peaks regularly pass the graph's edge once the noise is more than half the graph's range.
+    el.clipNote.textContent = usedNoise * 2 > receivedLimit
+      ? "The noise is now taller than this graph, so its peaks are cut off at the top and bottom." : "";
+    const noiseWords = `${usedNoise.toFixed(1)} times the signal`;
+    el.receivedPlot.setAttribute("aria-label", `${RECEIVED_LABEL} Noise ${noiseWords}.`);
+    el.scoresPlot.setAttribute("aria-label",
+      `${SCORES_LABEL} Best match at shift ${result.best_delay_chips}; the real delay is ${signalConfig.trueDelayChips}.`);
   }
 
   // One point per chip: x is the chip number, y is the value scaled into the graph (cut off at the edges).
@@ -225,20 +239,20 @@ const PAGE_HTML = `
   <header class="intro">
     <h2 id="signal-title">How does the phone measure the time?</h2>
     <p class="muted">The satellite's signal is a known pattern of 1023 steps, called chips. The phone slides its own copy along what it hears and scores the match at every shift.</p>
-    <p class="note" data-el="status" role="status" aria-live="polite">Loading the maths…</p>
   </header>
 
   <div class="grid">
     <div class="card">
       <h3 class="label">What the phone hears</h3>
-      <svg class="plot" viewBox="0 0 1023 120" preserveAspectRatio="none" role="img"
+      <svg class="plot" data-el="received-plot" viewBox="0 0 1023 120" preserveAspectRatio="none" role="img"
         aria-label="The received signal: the satellite's pattern plus noise, one value per chip.">
         <polyline class="received" data-el="received-line" points=""/>
       </svg>
       <div class="axis" aria-hidden="true"><span>chip 0</span><span>chip 1022</span></div>
+      <p class="key muted" data-el="clip-note" role="status" aria-live="polite"></p>
 
       <h3 class="label" style="margin-top: var(--s-5)">How well the code matches at each shift</h3>
-      <svg class="plot" viewBox="0 0 1023 120" preserveAspectRatio="none" role="img"
+      <svg class="plot" data-el="scores-plot" viewBox="0 0 1023 120" preserveAspectRatio="none" role="img"
         aria-label="The match score at every shift. A tall peak means the phone found the signal's timing.">
         <line class="mark-true" data-el="true-mark"/>
         <polyline class="scores" data-el="scores-line" points=""/>
@@ -249,13 +263,15 @@ const PAGE_HTML = `
     </div>
 
     <div class="card stack">
+      <p class="note" data-el="status" role="status" aria-live="polite">Loading the maths…</p>
+      <p class="hint" data-el="hint" hidden>Drag this slider to bury the signal in noise, until the phone loses it.</p>
       <div class="slider inset highlight">
         <div class="slider-head">
           <label for="signal-noise">Add noise</label>
           <span class="num" data-el="noise-value">No noise</span>
         </div>
         <input id="signal-noise" data-el="noise" type="range" disabled>
-        <p class="note" data-el="msg-slider" role="status"></p>
+        <p class="note" data-el="msg-slider" role="status" aria-live="polite"></p>
       </div>
 
       <div class="inset readout">
@@ -264,10 +280,13 @@ const PAGE_HTML = `
         <div class="readout-row"><span class="muted">Real delay</span><span class="num" data-el="true-delay">–</span></div>
         <div class="readout-row"><span class="muted">Peak stands out by</span><span class="num" data-el="peak">–</span></div>
         <div><span class="badge is-ok" data-el="badge" hidden></span></div>
-        <p class="note" data-el="sentence" role="status"></p>
+        <p class="note" data-el="sentence" role="status" aria-live="polite"></p>
       </div>
 
-      <div><button class="btn" data-el="reset" type="button" disabled>Reset</button></div>
+      <div>
+        <button class="btn" data-el="reset" type="button" disabled>Reset</button>
+        <p class="note" style="margin-top: var(--s-2)" data-el="msg-reset" role="status" aria-live="polite"></p>
+      </div>
     </div>
   </div>
 </section>`;

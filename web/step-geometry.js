@@ -1,6 +1,9 @@
 // Rung 2: geometry (design.md 2a). It draws and takes input; every number comes from Python.
 // The only arithmetic here: Math.hypot for the position error, the slider-to-angle blend,
 // and the sky drawing scale.
+import { whenPythonReady } from "./startup.js";
+import { say } from "./say.js";
+import { formatMetres } from "./format.js";
 
 // Every tunable number for this step. All of these are provisional until Icarus confirms them.
 export const geometryConfig = {
@@ -30,22 +33,29 @@ export const geometryConfig = {
 const SVG = "http://www.w3.org/2000/svg";
 const SKY_SIZE = 240; // the sky SVG viewBox is 240 by 240
 const SKY_RADIUS = 110; // horizon circle radius in that box
+const SKY_LABEL = "Sky diagram. The edge is the horizon and the centre is straight overhead. Four dots are the satellites.";
 const LEVEL_WORDS = { ok: "Good fix", warn: "Fix is off", bad: "Fix is far off" };
 
 // Layout for this section only. Colours, fonts and radii come from theme.css.
 const STYLE = `
-.geo { display: grid; gap: var(--s-5); }
-.geo-grid { display: grid; grid-template-columns: 1fr; gap: var(--s-5); }
+.geo { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
+.geo-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
 @media (min-width: 760px) { .geo-grid { grid-template-columns: 1fr 1fr; align-items: start; } }
-.geo-stack { display: grid; gap: var(--s-4); }
+.geo-stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
 .geo-sky { width: 100%; max-width: 320px; aspect-ratio: 1; display: block; margin: 0 auto; }
 .geo-sky .sky-sat { transition: none; }
 .geo-sky text { fill: var(--text-muted); font: 500 var(--text-xs) var(--font-mono); }
 .geo-note { font-size: var(--text-sm); color: var(--text-muted); min-height: 1.5em; }
+.geo-note:empty { min-height: 0; }
+.geo-note[data-id="msg-slider"]:empty { min-height: 1.5em; }
+.geo h3.label { margin-bottom: var(--s-3); }
 .geo-highlight { border-color: var(--accent); padding: var(--s-4); }
-.geo-readout { padding: var(--s-4); display: grid; gap: var(--s-2); }
+.geo-readout { padding: var(--s-4); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-2); }
 .geo-big { font-size: var(--text-xl); }
 .geo .badge[hidden] { display: none; }
+.geo .hint { font-size: var(--text-sm); font-weight: 500; color: var(--text); }
+.geo .slider-head { flex-wrap: wrap; column-gap: var(--s-3); }
+.geo-closing { max-width: 60ch; }
 .geo .btn { touch-action: manipulation; }
 .geo input[type="range"] { touch-action: pan-y; }
 .geo .btn:disabled, .geo input[type="range"]:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -57,40 +67,44 @@ const PAGE = `
   <header class="geo-stack" style="gap: var(--s-2)">
     <h2>Does it matter where the satellites are?</h2>
     <p class="muted">Same four satellites, same clock error, same noise. Only the layout changes.</p>
-    <p class="geo-note" data-id="status" role="status" aria-live="polite">Loading the maths…</p>
   </header>
   <div class="geo-grid">
     <section class="card" aria-labelledby="geo-sky-title">
       <h3 class="label" id="geo-sky-title">Sky, seen from below</h3>
       <svg class="geo-sky" data-id="sky" viewBox="0 0 ${SKY_SIZE} ${SKY_SIZE}" role="img"
-           aria-label="Sky diagram. The edge is the horizon and the centre is straight overhead. Four dots are the satellites."></svg>
+           aria-label="${SKY_LABEL}"></svg>
       <p class="geo-note" style="margin-top: var(--s-3)">Edge is the horizon, centre is straight overhead.</p>
     </section>
     <section class="card geo-stack" aria-label="Controls and results">
+      <p class="geo-note" data-id="status" role="status" aria-live="polite">Loading the maths…</p>
+      <p class="hint" data-id="hint" hidden>Drag this slider to push the four satellites into one patch of sky.</p>
       <div class="slider inset geo-highlight">
         <div class="slider-head">
           <label for="geo-bunch">Bunch the satellites</label>
           <span class="num" data-id="slider-value">0 % bunched</span>
         </div>
         <input id="geo-bunch" data-id="slider" type="range" value="0" disabled>
-        <p class="geo-note" data-id="msg-slider" role="status"></p>
+        <p class="geo-note" data-id="msg-slider" role="status" aria-live="polite"></p>
       </div>
       <div class="inset geo-readout">
         <span class="label">DOP</span>
         <span class="num geo-big" data-id="dop">–</span>
-        <p class="geo-note" style="min-height: 0">How much the satellites' layout multiplies measurement errors. Lower is better.</p>
-        <p class="geo-note" data-id="msg-dop" role="status"></p>
+        <p class="geo-note" style="min-height: 0">DOP (dilution of precision): how much the satellites' layout multiplies measurement errors. Lower is better.</p>
+        <p class="geo-note" data-id="msg-dop" role="status" aria-live="polite"></p>
       </div>
       <div class="inset geo-readout">
         <span class="label">Position off by</span>
         <span class="num geo-big" data-id="error">–</span>
         <div><span class="badge is-ok" data-id="badge" hidden></span></div>
-        <p class="geo-note" data-id="msg-error" role="status"></p>
+        <p class="geo-note" data-id="msg-error" role="status" aria-live="polite"></p>
       </div>
-      <p>Spread out, the same errors barely move the fix. Bunched, they multiply. But all of this error began with time, so next: how does the phone measure it at all?</p>
-      <div><button class="btn" data-id="reset" type="button" disabled>Reset</button></div>
+      <div>
+        <button class="btn" data-id="reset" type="button" disabled>Reset</button>
+        <p class="geo-note" style="margin-top: var(--s-2)" data-id="msg-reset" role="status" aria-live="polite"></p>
+      </div>
     </section>
   </div>
+  <p class="geo-closing">Spread out, the same errors barely move the fix. Bunched, they multiply. But all of this error began with time, so next: how does the phone measure it at all?</p>
 </div>`;
 
 export function mountGeometryStep(container) {
@@ -103,9 +117,9 @@ export function mountGeometryStep(container) {
   container.innerHTML = PAGE;
   const $ = (id) => container.querySelector(`[data-id="${id}"]`);
   const el = {
-    status: $("status"), sky: $("sky"), slider: $("slider"), sliderValue: $("slider-value"),
+    status: $("status"), hint: $("hint"), sky: $("sky"), slider: $("slider"), sliderValue: $("slider-value"),
     msgSlider: $("msg-slider"), dop: $("dop"), msgDop: $("msg-dop"),
-    error: $("error"), badge: $("badge"), msgError: $("msg-error"), reset: $("reset"),
+    error: $("error"), badge: $("badge"), msgError: $("msg-error"), reset: $("reset"), msgReset: $("msg-reset"),
   };
   const { receiver, spread, bunched } = geometryConfig;
 
@@ -113,6 +127,7 @@ export function mountGeometryStep(container) {
   let receiverPoint = null; // true receiver position, from Python
   let running = false;
   let rerun = false;
+  let hintDone = false; // once the user has touched the slider, the hint stays hidden
 
   el.slider.min = 0;
   el.slider.max = geometryConfig.slider_steps;
@@ -120,35 +135,33 @@ export function mountGeometryStep(container) {
   el.slider.value = 0;
   buildSky();
   showSlider();
-  el.slider.addEventListener("input", () => { showSlider(); update(); });
-  el.reset.addEventListener("click", () => { el.slider.value = 0; showSlider(); update(); });
+  el.slider.addEventListener("input", () => { el.hint.hidden = true; hintDone = true; el.msgReset.textContent = ""; showSlider(); update(); });
+  el.reset.addEventListener("click", () => {
+    el.slider.value = 0;
+    showSlider();
+    update();
+    say(el.msgReset, "Back to the start: satellites spread out.");
+  });
   start();
 
   // ---------- start up ----------
 
-  async function start() {
-    let bridge;
-    try {
-      bridge = await import("./bridge.js"); // may be missing: a failure here must not break the page
-      await bridge.loadMechanism((text) => { el.status.textContent = text; });
-    } catch (error) {
-      console.error(error);
-      el.status.textContent = "The calculation engine could not load, so the controls stay off. Reload the page to try again.";
-      return;
-    }
-    callPython = bridge.callPython;
-    try {
-      receiverPoint = await callPython("coords.latlon_to_xyz", [receiver.lat_deg, receiver.lon_deg]);
-      if (receiverPoint.error) throw new Error(receiverPoint.error);
-    } catch (error) {
-      console.error(error);
-      el.status.textContent = "The calculation engine loaded but could not place the phone, so the controls stay off.";
-      return;
-    }
-    el.status.textContent = "";
-    el.slider.disabled = false;
-    el.reset.disabled = false;
-    update();
+  function start() {
+    whenPythonReady(el.status, async (call) => {
+      callPython = call;
+      try {
+        receiverPoint = await callPython("coords.latlon_to_xyz", [receiver.lat_deg, receiver.lon_deg]);
+        if (receiverPoint.error) throw new Error(receiverPoint.error);
+      } catch (error) {
+        console.error(error);
+        el.status.textContent = "The calculation engine loaded but could not place the phone, so the controls stay off.";
+        return;
+      }
+      el.slider.disabled = false;
+      el.reset.disabled = false;
+      el.hint.hidden = hintDone;
+      update();
+    });
   }
 
   // ---------- the slider and the sky (drawing only) ----------
@@ -168,6 +181,7 @@ export function mountGeometryStep(container) {
   function showSlider() {
     el.sliderValue.textContent = `${Math.round(bunchAmount() * 100)}\u00a0% bunched`;
     el.slider.setAttribute("aria-valuetext", el.sliderValue.textContent);
+    el.sky.setAttribute("aria-label", `${SKY_LABEL} ${el.sliderValue.textContent}.`);
     drawSky(currentSky()); // instant, no easing: the sky follows the slider every frame
   }
 
@@ -217,7 +231,8 @@ export function mountGeometryStep(container) {
   }
 
   async function runOnce() {
-    el.msgSlider.textContent = el.msgDop.textContent = el.msgError.textContent = "";
+    el.msgDop.textContent = el.msgError.textContent = "";
+    const position = Number(el.slider.value); // the slider position this run is about
     const sky = currentSky(); // the layout this run is about, even if the slider moves meanwhile
     try {
       const sats = [];
@@ -238,16 +253,16 @@ export function mountGeometryStep(container) {
       const local = await callPython("mapview.to_local", [receiver.lat_deg, receiver.lon_deg, point]);
       if (failed(local)) return;
       const errorM = Math.hypot(local.east_m, local.north_m, local.up_m);
-      requestAnimationFrame(() => showResult(dop.pdop, errorM));
+      requestAnimationFrame(() => showResult(dop.pdop, errorM, position));
     } catch (error) {
       console.error(error);
-      el.msgSlider.textContent = "Something went wrong in the calculation, so the numbers below may be out of date.";
+      say(el.msgSlider, "Something went wrong in the calculation, so the numbers below may be out of date.");
     }
   }
 
   function failed(result) {
     if (!result || !result.error) return false;
-    el.msgSlider.textContent = result.error; // Python's own plain sentence
+    say(el.msgSlider, result.error); // Python's own plain sentence
     return true;
   }
 
@@ -259,10 +274,22 @@ export function mountGeometryStep(container) {
     return "bad";
   }
 
-  function showResult(pdop, errorM) {
+  function stateSentence(level, position) {
+    if (position === 0) return "Spread across the sky: small measurement errors stay small.";
+    if (level === "ok") return "Still a good fix, but DOP is climbing. Keep dragging.";
+    if (level === "warn") return "The same small measurement errors now move the fix by tens of metres.";
+    return "Bunched together: the same small measurement errors now throw the fix far off.";
+  }
+
+  function showResult(pdop, errorM, position) {
     const level = errorLevel(errorM);
-    el.dop.textContent = new Intl.NumberFormat("en", { maximumFractionDigits: 1 }).format(pdop);
-    el.error.textContent = `${new Intl.NumberFormat("en", { maximumFractionDigits: 1 }).format(errorM)}\u00a0m`;
+    const dopText = new Intl.NumberFormat("en", { maximumFractionDigits: 1 }).format(pdop);
+    const sentence = stateSentence(level, position);
+    if (el.msgSlider.textContent !== sentence) say(el.msgSlider, sentence); // only when the words change
+    const percent = Math.round(position / geometryConfig.slider_steps * 100);
+    el.sky.setAttribute("aria-label", `Sky diagram. Satellites ${percent} % bunched. DOP ${dopText}.`);
+    el.dop.textContent = dopText;
+    el.error.textContent = formatMetres(errorM);
     el.badge.hidden = false;
     el.badge.className = `badge is-${level}`;
     el.badge.textContent = LEVEL_WORDS[level];

@@ -5,21 +5,38 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0a0a0a">
 <title>How does your phone know where you are?</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<!-- Same Pyodide address as PYODIDE_BASE in web/bridge.js: change both together. -->
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/pyodide/v314.0.8/full/pyodide.mjs" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="web/theme.css">
 <style>
   /* Layout for this page only. Colours, fonts and radii come from theme.css. */
-  main { max-width: 1100px; margin: 0 auto; padding: var(--s-6) var(--s-4); display: grid; gap: var(--s-5); }
+  main { max-width: 1100px; margin: 0 auto; padding: var(--s-6) var(--s-4); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
+  /* Grid columns may shrink below their content, so nothing is cut off at 200 % zoom. */
+  .intro, .stack, .readout, .slider { grid-template-columns: minmax(0, 1fr); }
+  .slider-head { flex-wrap: wrap; column-gap: var(--s-3); }
   .intro { display: grid; gap: var(--s-2); }
   h1 { text-wrap: balance; }
-  .grid { display: grid; grid-template-columns: 1fr; gap: var(--s-5); }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
   @media (min-width: 760px) { .grid { grid-template-columns: 1.1fr 1fr; align-items: start; } }
   .stack { display: grid; gap: var(--s-4); }
   .map { width: 100%; aspect-ratio: 1; display: block; }
   .map-frame { fill: none; stroke: var(--line-strong); }
-  .map-true { stroke: var(--text-faint); fill: none; }
+  .map-true { stroke: var(--text-muted); stroke-width: 1.5; fill: none; }
+  .map-wait { fill: var(--text-muted); font: 400 14px var(--font-sans); }
+  .intro p { max-width: 60ch; }
+  .map-key { list-style: none; margin: var(--s-3) 0 0; padding: 0; display: grid; gap: var(--s-1); font-size: var(--text-sm); color: var(--text-muted); }
+  .map-key li { display: flex; align-items: center; gap: var(--s-2); }
+  .map-key svg { width: 24px; height: 12px; flex: none; }
+  .is-ok-sample { color: var(--text); }
+  .guide-target { border: 1px solid transparent; border-radius: var(--r-inner); padding: var(--s-4); }
+  .guide-target.highlight { border-color: var(--accent); }
+  .hint { font-size: var(--text-sm); font-weight: 500; color: var(--text); opacity: 0; transition: opacity var(--dur-small) ease; }
+  .hint-done { font-size: var(--text-sm); color: var(--text); opacity: 0; transition: opacity var(--dur-small) ease; }
+  .hint.is-shown, .hint-done.is-shown { opacity: 1; }
   .map-line { stroke: var(--text-muted); stroke-width: 1.5; fill: none; transition: opacity var(--dur-small) ease; }
   .map-line.is-hidden { opacity: 0; }
   .map-dot { fill: currentColor; fill-opacity: 0.25; stroke: currentColor; stroke-width: 2; }
@@ -29,22 +46,39 @@
   .readout { padding: var(--s-4); display: grid; gap: var(--s-2); }
   .big { font-size: var(--text-xl); }
   .note { font-size: var(--text-sm); color: var(--text-muted); min-height: 1.5em; }
+  /* An empty message line takes no room, except where a control sits below it: those keep their height so nothing moves when words appear. */
+  .note:empty { min-height: 0; }
+  #msg-slider:empty, #msg-readout:empty, #msg-solve:empty, #msg-switch:empty { min-height: 1.5em; }
+  h2.label, h3.label { margin-bottom: var(--s-3); }
   .switches { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--s-4); }
+  @media (max-width: 359px) { .switches { grid-template-columns: minmax(0, 1fr); } }
   .actions { display: flex; flex-wrap: wrap; gap: var(--s-3); }
   .btn:disabled, input:disabled + .toggle-track, input[type="range"]:disabled { opacity: 0.4; cursor: not-allowed; }
   .btn:disabled:hover { border-color: var(--line-strong); }
   .btn-primary:disabled:hover { border-color: var(--accent); }
   .btn { touch-action: manipulation; }
   input[type="range"] { touch-action: pan-y; }
-  .link-line { font-size: var(--text-lg); text-wrap: balance; }
+  /* 3:1 against the card for the slider track and the switch outline when off (was 1.7:1). */
+  input[type="range"]::-webkit-slider-runnable-track { background: var(--text-muted); }
+  input[type="range"]::-moz-range-track { background: var(--text-muted); }
+  .toggle input:not(:checked) + .toggle-track { box-shadow: inset 0 0 0 1px var(--text-muted); }
+  /* theme.css's reduced-motion rule does not reach pseudo-elements: stop the switch knob and slider thumb moving. */
+  @media (prefers-reduced-motion: reduce) {
+    .toggle-track::after { transition-property: background-color; }
+    input[type="range"]::-webkit-slider-thumb { transition: none; }
+  }
+  /* 18 px (0.9 of --text-lg), no max-width: WebKit reports no first paint while the CDN is slow with 16 px text or a capped width here (test_speed). */
+  .link-line { font-size: calc(var(--text-lg) * 0.9); color: var(--text-muted); text-wrap: balance; }
+  .link-line strong { color: var(--text); }
+  #step-geometry, #step-signal, #step-relativity { margin-top: var(--s-6); }
 </style>
 </head>
 <body>
 <main>
   <header class="intro">
     <h1>How does your phone know where you are?</h1>
-    <p class="muted">Make the phone's clock wrong and watch its position move.</p>
-    <p class="note" id="status" role="status" aria-live="polite">Loading the maths…</p>
+    <p>Each satellite's signal says when it left. Your phone times the trip, and travel time × the speed of light = distance. Each distance draws one line on the map, and you are where the lines meet.</p>
+    <p class="muted">That only works if the phone's clock is right. Make it wrong and watch what happens.</p>
   </header>
 
   <div class="grid">
@@ -55,41 +89,55 @@
         <g class="map-true" id="map-true"></g>
         <g id="map-lines"></g>
         <g id="map-dot" class="is-ok" style="display: none"><circle class="map-dot" r="9"/></g>
+        <text id="map-wait" class="map-wait" x="200" y="200" text-anchor="middle">The map appears when Python has loaded.</text>
       </svg>
-      <p class="map-caption muted" id="map-caption"></p>
+      <ul class="map-key" aria-label="Map key">
+        <li><svg viewBox="0 0 24 12" aria-hidden="true"><line class="map-line" x1="1" y1="6" x2="23" y2="6"/></svg> A distance line: one satellite says you are somewhere on it</li>
+        <li><svg viewBox="0 0 24 12" aria-hidden="true"><circle class="map-dot is-ok-sample" cx="12" cy="6" r="4"/></svg> Where the phone thinks it is</li>
+        <li><svg viewBox="0 0 24 12" aria-hidden="true"><path class="map-true" d="M6 6h12M12 0v12"/></svg> Where it really is</li>
+      </ul>
+      <p class="map-caption muted" id="map-caption" role="status" aria-live="polite"></p>
     </section>
 
     <section class="card stack" aria-label="Controls">
-      <div class="slider inset highlight" style="padding: var(--s-4)">
+      <p class="note" id="status" role="status" aria-live="polite">Loading the maths…</p>
+      <div class="slider inset guide-target highlight" id="block-slider">
+        <p class="hint" id="hint-1" hidden>Step 1. Drag this slider to the right.</p>
         <div class="slider-head">
           <label for="clock">Make the phone's clock wrong</label>
           <span class="num" id="clock-value">0.00 µs</span>
         </div>
         <input id="clock" type="range" value="0" disabled>
-        <p class="note" id="msg-slider" role="status"></p>
+        <p class="note" id="msg-slider" role="status" aria-live="polite"></p>
       </div>
 
       <div class="inset readout">
         <span class="label">Position off by</span>
         <span class="num big" id="error-value">–</span>
         <div><span class="badge is-ok" id="error-badge" hidden></span></div>
-        <p class="note" id="msg-readout"></p>
+        <p class="note" id="msg-readout" role="status" aria-live="polite"></p>
+      </div>
+
+      <div class="stack guide-target" id="block-solve" style="gap: var(--s-2)">
+        <p class="hint" id="hint-2" hidden>Step 2. The lines no longer meet. Press this button.</p>
+        <button class="btn btn-primary" id="solve" type="button" aria-pressed="false" disabled>Let the phone solve for its clock</button>
+        <p class="note" id="msg-solve" role="status" aria-live="polite"></p>
+      </div>
+
+      <div class="stack guide-target" id="block-switches" style="gap: var(--s-1)">
+        <p class="hint" id="hint-3" hidden>Step 3. Now switch one satellite off.</p>
+        <span class="label" id="switch-label">Satellites</span>
+        <div class="switches" id="switches" role="group" aria-labelledby="switch-label"></div>
+        <p class="note" id="msg-switch" role="status" aria-live="polite"></p>
       </div>
 
       <div class="stack" style="gap: var(--s-2)">
-        <button class="btn btn-primary" id="solve" type="button" disabled>Let the phone solve for its clock</button>
-        <p class="note" id="msg-solve" role="status"></p>
+        <div class="actions">
+          <button class="btn" id="reset" type="button" disabled>Reset</button>
+        </div>
+        <p class="note" id="msg-reset" role="status" aria-live="polite"></p>
       </div>
-
-      <div class="stack" style="gap: var(--s-1)">
-        <span class="label" id="switch-label">Satellites</span>
-        <div class="switches" id="switches" role="group" aria-labelledby="switch-label"></div>
-        <p class="note" id="msg-switch" role="status"></p>
-      </div>
-
-      <div class="actions">
-        <button class="btn" id="reset" type="button" disabled>Reset</button>
-      </div>
+      <p class="hint-done" id="hint-done" role="status" aria-live="polite" hidden>That is the main idea: the phone needs four satellites because its own clock is a fourth unknown. Keep playing, or scroll on.</p>
     </section>
   </div>
 
