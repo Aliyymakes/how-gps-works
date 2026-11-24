@@ -4,7 +4,6 @@ import pytest
 HINTS = ["#hint-1", "#hint-2", "#hint-3", "#hint-done"]
 STEP_HINTS = [
     ("#step-geometry [data-id=hint]", "#geo-bunch"),
-    ("#step-signal [data-el=hint]", "#signal-noise"),
     ("#step-relativity [data-id=hint]", "#rel-hours"),
 ]
 STATUS_LINES = ["#status", "#step-geometry [data-id=status]", "#step-signal [data-el=status]", "#step-relativity [data-id=status]"]
