@@ -2,6 +2,8 @@
 // The only arithmetic here: Math.hypot for the position error, and the map's metres-to-pixels scaling.
 import { trackPointerLight, loadSavedTheme } from "./theme.js";
 import * as config from "./config.js";
+import { whenPythonReady } from "./startup.js";
+import { say } from "./say.js";
 
 const SVG = "http://www.w3.org/2000/svg";
 const MAP_SIZE = 400; // the SVG viewBox is 400 by 400
@@ -11,7 +13,7 @@ const el = {
   status: $("status"), slider: $("clock"), sliderValue: $("clock-value"),
   errorValue: $("error-value"), badge: $("error-badge"), solve: $("solve"), reset: $("reset"),
   switches: $("switches"), lines: $("map-lines"), dot: $("map-dot"), caption: $("map-caption"),
-  msgSlider: $("msg-slider"), msgReadout: $("msg-readout"), msgSolve: $("msg-solve"), msgSwitch: $("msg-switch"),
+  msgSlider: $("msg-slider"), msgReadout: $("msg-readout"), msgSolve: $("msg-solve"), msgSwitch: $("msg-switch"), msgReset: $("msg-reset"),
 };
 
 let callPython = null; // set when the bridge has loaded
@@ -20,6 +22,7 @@ let allSatellites = []; // from Python, with ids from config.js
 const state = { clockErrorS: 0, mode: "trusted", on: config.satellites.map(() => true) };
 let running = false;
 let rerun = false;
+let lastCause = "start"; // what the newest wanted run is about
 
 loadSavedTheme();
 trackPointerLight();
@@ -29,27 +32,19 @@ start();
 
 // ---------- start up ----------
 
-async function start() {
-  let bridge;
-  try {
-    bridge = await import("./bridge.js"); // may be missing: a failure here must not break the page
-    await bridge.loadMechanism((text) => { el.status.textContent = text; });
-  } catch (error) {
-    console.error(error);
-    el.status.textContent = "The calculation engine could not load, so the controls stay off. Reload the page to try again.";
-    return;
-  }
-  callPython = bridge.callPython;
-  try {
-    await buildScene();
-  } catch (error) {
-    console.error(error);
-    el.status.textContent = "The calculation engine loaded but could not set up the satellites, so the controls stay off.";
-    return;
-  }
-  el.status.textContent = "";
-  setControlsDisabled(false);
-  update("start");
+function start() {
+  whenPythonReady(el.status, async (call) => {
+    callPython = call;
+    try {
+      await buildScene();
+    } catch (error) {
+      console.error(error);
+      el.status.textContent = "Python loaded, but the satellites could not be set up, so the controls stay off. Reload the page to try again.";
+      return;
+    }
+    setControlsDisabled(false);
+    update("start");
+  });
 }
 
 async function buildScene() {
@@ -88,13 +83,16 @@ function setupControls() {
   });
 
   el.slider.addEventListener("input", () => {
+    const wasSolved = state.mode === "solved";
     state.clockErrorS = Number(el.slider.value) * config.clockSlider.step_s + config.clockSlider.min_s;
     state.mode = "trusted"; // moving the slider again goes back to trusting the clock
+    showMode();
     showClockValue();
-    update("slider");
+    update(wasSolved ? "slider-back" : "slider");
   });
   el.solve.addEventListener("click", () => {
     state.mode = "solved";
+    showMode();
     update("solve");
   });
   el.reset.addEventListener("click", resetAll);
@@ -114,8 +112,17 @@ function resetAll() {
   state.on = config.satellites.map(() => true);
   el.slider.value = 0;
   el.switches.querySelectorAll("input").forEach((box) => { box.checked = true; });
+  showMode();
   showClockValue();
   update("reset");
+}
+
+// The solve button shows which mode the page is in (design: a state, not the next action, once solved).
+function showMode() {
+  const solved = state.mode === "solved";
+  el.solve.setAttribute("aria-pressed", String(solved));
+  el.solve.textContent = solved ? "The phone is solving for its clock" : "Let the phone solve for its clock";
+  el.solve.classList.toggle("btn-primary", !solved);
 }
 
 function showClockValue() {
@@ -128,19 +135,22 @@ function showClockValue() {
 // Python calls are async. If one is running, remember that a newer run is wanted and do it once after.
 async function update(cause) {
   if (!callPython) return;
+  lastCause = cause;
   if (running) { rerun = true; return; }
   running = true;
   try {
     do {
       rerun = false;
       try {
-        await runOnce(cause);
+        await runOnce(lastCause);
       } catch (error) {
         console.error(error);
-        el.msgSolve.textContent = "Something went wrong in the calculation. Press Reset to start again.";
+        say(el.msgSolve, "Something went wrong in the calculation. Press Reset to start again.");
+        hideAllLines();
         showNoFix();
       }
     } while (rerun);
+    if (lastCause === "reset") say(el.msgReset, "Back to the start: clock right, all four satellites on.");
   } finally {
     running = false;
   }
@@ -149,14 +159,12 @@ async function update(cause) {
 async function runOnce(cause) {
   const solveClock = state.mode === "solved";
   const sats = allSatellites.filter((_, i) => state.on[i]);
-  const slot = { slider: el.msgSlider, solve: el.msgSolve, switch: el.msgSwitch }[cause] || el.msgSolve;
+  const slot = { slider: el.msgSlider, "slider-back": el.msgSlider, switch: el.msgSwitch }[cause] || el.msgSolve;
   clearMessages();
+  if (cause === "slider-back") say(el.msgSlider, "Back to trusting the clock. Press the button below to solve for it again.");
 
-  if (solveClock && sats.length < 4) {
-    // Do not call the solver: it cannot work, and the page says why. There is no fix to show.
-    el.msgSwitch.textContent = "Four things are unknown (east, north, up and the clock), but three satellites give only three measurements.";
-    hideSwitchedOffLines(sats);
-    showNoFix();
+  if (sats.length < (solveClock ? 4 : 3)) {
+    await refuse(sats, solveClock, slot); // the page decides by itself: the solver cannot work here
     return;
   }
 
@@ -179,26 +187,53 @@ async function runOnce(cause) {
 
 function failed(result, slot) {
   if (!result || !result.error) return false;
-  slot.textContent = result.error; // Python's own plain sentence
+  say(slot, result.error); // Python's own plain sentence
+  hideAllLines();
   showNoFix();
   return true;
 }
 
 function clearMessages() {
-  for (const node of [el.msgSlider, el.msgReadout, el.msgSolve, el.msgSwitch]) node.textContent = "";
+  for (const node of [el.msgSlider, el.msgReadout, el.msgSolve, el.msgSwitch, el.msgReset]) node.textContent = "";
+}
+
+// ---------- refusing: too few satellites ----------
+
+function countWords(n) {
+  if (n === 0) return "no satellites are";
+  return `only ${n} satellite${n === 1 ? " is" : "s are"}`;
+}
+
+// No dot, no metres value, no badge. The map shows just the distance lines of the satellites that are on.
+async function refuse(sats, solveClock, slot) {
+  const n = sats.length;
+  say(el.msgSwitch, solveClock
+    ? `Can't solve: four things are unknown (east, north, up and the clock), but ${countWords(n)} on, and each satellite gives one measurement. Turn a satellite back on.`
+    : `Can't find a position: three things are unknown (east, north, up), but ${countWords(n)} on. Turn a satellite back on.`);
+  say(el.msgReadout, "No position: see the message under the satellite switches.");
+  showNoFix();
+  let lines = [];
+  if (n > 0) {
+    const ranges = await callPython("scenario.make_pseudoranges", [receiverPoint, sats, state.clockErrorS]);
+    if (failed(ranges, slot)) return;
+    lines = await callPython("mapview.distance_lines", [config.receiver.lat_deg, config.receiver.lon_deg, sats, ranges, 0, config.mapHalfWidthM, config.lineSamples]);
+    if (failed(lines, slot)) return;
+  }
+  el.caption.textContent = captionFor(true, lines);
+  requestAnimationFrame(() => drawLines(lines));
 }
 
 // ---------- words ----------
 
 function showWords(solution, errorM, solveClock) {
   if (solveClock) {
-    el.msgSolve.textContent = describeClock(solution.clock_error_s);
+    say(el.msgSolve, describeClock(solution.clock_error_s) + " The lines meet again.");
   } else {
-    el.msgReadout.textContent = errorLevel(errorM) === "ok"
+    say(el.msgReadout, errorLevel(errorM) === "ok"
       ? "The distance lines meet at the dot."
-      : "The phone trusts its clock, so the distance lines miss each other.";
+      : "The phone trusts its clock, so the distance lines miss each other.");
   }
-  if (solution.converged === false) el.msgReadout.textContent = "The solver did not settle on an answer.";
+  if (solution.converged === false) say(el.msgReadout, "The solver did not settle on an answer.");
 }
 
 function describeClock(clockErrorS) {
@@ -238,9 +273,17 @@ function draw(lines, local, errorM) {
   el.badge.hidden = false;
   el.badge.className = `badge is-${level}`;
   el.badge.textContent = levelWords[level];
-  el.caption.textContent = inside
+  el.caption.textContent = captionFor(inside, lines);
+}
+
+// The map sentence, plus how many distance lines have left the map (design: the picture says what it hides).
+function captionFor(inside, lines) {
+  let words = inside
     ? `The map is about ${config.mapHalfWidthM * 2 / 1000} km wide. North is up.`
     : "The phone's position is off the edge of this map.";
+  const off = lines.filter((line) => !line.inside).length;
+  if (off > 0) words += ` ${off} of the ${lines.length} distance lines ${off === 1 ? "has" : "have"} moved off the edge of this map.`;
+  return words;
 }
 
 // When the page refuses to solve: no metres value, no badge, no dot (issue #40).
@@ -271,10 +314,9 @@ function drawLines(lines) {
   for (const [id, node] of known) if (!wanted.has(id)) node.classList.add("is-hidden");
 }
 
-// Fade out the lines of satellites that are switched off, keeping the rest as they were.
-function hideSwitchedOffLines(sats) {
-  const onIds = new Set(sats.map((sat) => sat.id));
-  for (const node of el.lines.children) if (!onIds.has(node.dataset.id)) node.classList.add("is-hidden");
+// A picture must never outlive its numbers: hide every distance line.
+function hideAllLines() {
+  requestAnimationFrame(() => drawLines([]));
 }
 
 // The true position is always the middle of the map.

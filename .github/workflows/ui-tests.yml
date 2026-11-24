@@ -1,0 +1,15 @@
+name: ui-tests
+# Manual only: these tests open the page in real browsers and download Python from a CDN.
+on:
+  workflow_dispatch:
+jobs:
+  ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: pip install -r requirements-ui.txt
+      - run: python -m playwright install --with-deps chromium webkit
+      - run: UI_TESTS=1 python -m pytest tests/ui -q
