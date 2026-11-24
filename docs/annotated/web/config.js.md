@@ -35,7 +35,7 @@ A comment: the next line is the phone's true position, in Jakarta.
 ```js
 export const receiver = { lat_deg: -6.2, lon_deg: 106.8 }; // placeholder, provisional
 ```
-`const receiver` makes a named, unchangeable value. `export` lets other files import it. The curly brackets make an object: labelled values. `lat_deg: -6.2` is the latitude in degrees (how far north or south of the equator; the minus sign means south), and `lon_deg: 106.8` is the longitude in degrees (how far east of the zero line through Greenwich). The text after `//` is a comment. Without this line the page would not know where the phone is, and the other files would fail when they ask for `config.receiver`.
+`const receiver` makes a named, unchangeable value. `export` lets other files import it. The curly brackets make an object: labelled values. `lat_deg: -6.2` is the latitude in degrees (how far north or south of the equator; the minus sign means south), and `lon_deg: 106.8` is the longitude in degrees (how far east of the zero line through Greenwich). The text after `//` is a comment. Where it is used: `buildScene` in [`web/first-screen.js`](first-screen.js.md) passes these two numbers to `coords.latlon_to_xyz` (a Python function) to get the phone's position in space, and [`web/step-relativity.js`](step-relativity.js.md) does the same when it sets up its section. Without this line the page would not know where the phone is, and the other files would fail when they ask for `config.receiver`.
 
 ```js
 // Four satellites spread around the sky. Elevation stays between 15 and 65 degrees.

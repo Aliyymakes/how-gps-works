@@ -286,7 +286,7 @@ A comment explaining the mapping used next.
     return [1 - 2 * b for b in _logic_bits(prn)]
 ```
 
-Builds the final list in one line: for each bit `b` from `_logic_bits(prn)`, work out `1 - 2 * b`. This is the formula that turns a 0 into +1 and a 1 into -1:
+Builds the final list in one line (a list of 1023 chips, one per bit): for each bit `b` from `_logic_bits(prn)`, work out `1 - 2 * b`. This is the formula that turns a 0 into +1 and a 1 into -1:
 - b = 0: 1 - 2 * 0 = 1 - 0 = +1
 - b = 1: 1 - 2 * 1 = 1 - 2 = -1
 
@@ -310,7 +310,7 @@ A note describing it.
     code = ca_code(prn)
 ```
 
-Gets the clean +1/-1 code for this satellite. This may be an error dictionary if `prn` was bad.
+Gets the clean +1/-1 code for this satellite by calling `ca_code`, which is defined earlier in this same file. The result may be an error dictionary if `prn` was bad; the next two lines check for that and pass the error straight back.
 
 ```python
     if isinstance(code, dict):

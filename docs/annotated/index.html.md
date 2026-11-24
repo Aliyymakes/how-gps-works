@@ -422,7 +422,7 @@ The card's heading `Ground map`, with `id="map-title"` for the line above to poi
 ```html
       <svg class="map" id="map" viewBox="0 0 400 400" role="img" aria-label="Ground map. Each satellite draws a distance line. The dot is where the phone thinks it is.">
 ```
-Opens an `<svg>`, the map. SVG is a way to draw shapes with text commands inside a page, so the drawing stays sharp at any size. `viewBox="0 0 400 400"` sets its inner coordinates: 0 to 400 across and down, regardless of the pixel size on screen; the code scales positions to this. `role="img"` tells screen readers to treat it as one picture, and `aria-label` is the description they read: `Ground map. Each satellite draws a distance line. The dot is where the phone thinks it is.`
+Opens an `<svg>`, the map. SVG is a way to draw shapes with text commands inside a page, so the drawing stays sharp at any size. `viewBox="0 0 400 400"` sets its inner coordinates: 0 to 400 across and down, regardless of the pixel size on screen; the code scales positions to this: `MAP_SIZE` (400) in [`web/first-screen.js`](web/first-screen.js.md) is the size every map position is scaled to. `role="img"` tells screen readers to treat it as one picture, and `aria-label` is the description they read: `Ground map. Each satellite draws a distance line. The dot is where the phone thinks it is.`
 
 ```html
         <rect class="map-frame" x="0.5" y="0.5" width="399" height="399"/>
@@ -532,7 +532,7 @@ Closes the row.
 ```html
         <input id="clock" type="range" value="0" disabled>
 ```
-The slider itself: an `<input>` of `type="range"`, a draggable bar. `value="0"` starts it at the left end. `disabled` keeps it switched off until Python has loaded. No range is written here: the code sets the smallest value to 0, the largest to 60 and the step to 1. With the clock settings in [`web/config.js`](web/config.js.md) (0 to 3 microseconds in steps of 0.05) that is 3e-6 / 5e-8 = 60 steps, and each step is 0.05 microseconds.
+The slider itself: an `<input>` of `type="range"`, a draggable bar. `value="0"` starts it at the left end. `disabled` keeps it switched off until Python has loaded. What switches it on: `start()` in [`web/first-screen.js`](web/first-screen.js.md) waits (through `whenPythonReady`) for Python, builds the scene with `buildScene`, then calls `setControlsDisabled(false)`. No range is written here: `setupControls` in the same file sets the smallest value to 0, the largest to 60 and the step to 1. With the clock settings in [`web/config.js`](web/config.js.md) (0 to 3 microseconds in steps of 0.05) that is 3e-6 / 5e-8 = 60 steps, and each step is 0.05 microseconds.
 
 ```html
         <p class="note" id="msg-slider" role="status" aria-live="polite"></p>

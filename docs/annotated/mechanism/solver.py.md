@@ -127,7 +127,7 @@ If so, stop and report it. The `f"..."` is a sentence with `{needed}` swapped fo
     # Start at the Earth's centre with no clock error.
     x, y, z = 0.0, 0.0, 0.0
 ```
-Sets the first guess for the position to the very centre of the Earth: x, y and z all 0.0. The solver does not need to start near the answer, so a fixed starting point keeps it simple and always the same. Without a starting guess there would be nothing to improve.
+Sets the first guess for the position to the very centre of the Earth: x, y and z all 0.0. The solver does not need to start near the answer, so a fixed starting point keeps it simple and always the same. The guess is saved as the first step a few lines below (`steps = [_save_step(...)]`). Without a starting guess there would be nothing to improve.
 
 ```python
     clock_m = 0.0  # Store clock error as extra distance for easier maths.

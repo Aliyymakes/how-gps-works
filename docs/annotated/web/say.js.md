@@ -32,7 +32,7 @@ Starts a function (a named recipe) called `say`. It is given two things: `node`,
 ```js
   node.textContent = text;
 ```
-Sets the words inside the element to `text`. `textContent` is the element's text; setting it replaces whatever was there. The browser treats it as plain words, never as page code, which is safe. Without this line the message would never appear.
+Sets the words inside the element to `text`. `textContent` is the element's text; setting it replaces whatever was there. The browser treats it as plain words, never as page code, which is safe. This happens before the animate check below, so the text is already set by the time any flash is tried. Without this line the message would never appear.
 
 ```js
   if (text && node.animate) node.animate([{ opacity: 0.3 }, { opacity: 1 }], { duration: 160, easing: "ease" });
