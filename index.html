@@ -27,10 +27,10 @@
   .map-card .readout { align-content: start; }
   .figure-strip svg { display: block; width: 100%; }
   .figure-strip .figure-narrow { height: 64px; }
-  .figure-strip .figure-wide { display: none; height: 96px; }
+  .figure-strip .figure-wide { display: none; height: 76px; }
   .figure :is(rect, line, path, circle) { vector-effect: non-scaling-stroke; }
-  /* The pulse runs three times along the line, then rests at the phone's end of it (reduced motion: it only rests). */
-  .fig-pulse { fill: var(--text); stroke: none; transform: translateX(var(--travel)); animation: fig-travel 1.6s linear 3; }
+  /* The pulse runs once along the line, then rests at the phone's end of it (reduced motion: it only rests). */
+  .fig-pulse { fill: var(--text); stroke: none; transform: translateX(var(--travel)); animation: fig-travel 1.2s linear 0.4s 1 backwards; }
   @keyframes fig-travel { from { transform: translateX(0); opacity: 0; } 15% { opacity: 1; } to { transform: translateX(var(--travel)); opacity: 1; } }
   @media (prefers-reduced-motion: reduce) { .fig-pulse { animation: none; } }
   .figure-strip { min-height: 64px; } /* the drawing is added by a script: keep its room so nothing below moves */
@@ -47,15 +47,17 @@
     .map-card .readout { padding: 0; background: none; border: 0; gap: var(--s-1); }
     .map-card .note { font-size: var(--text-xs); }
     .map-card .big { line-height: 1.2; }
-    .map-card #msg-readout { min-height: 4.5em; } /* three lines, so the card never changes height while the slider moves */
+    .map .map-wait { font-size: 30px; }
   }
   @media (max-width: 759px) and (min-height: 600px) {
     .map-card { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; }
     /* A focused control is never scrolled in under the sticky card. --sticky-h is set in first-screen.js. */
     .controls :is(input, button) { scroll-margin-top: calc(var(--sticky-h, 220px) + var(--s-3)); }
+    .controls #clock { scroll-margin-top: calc(var(--sticky-h, 220px) + 7rem); }
+    .controls :is(input, button) { scroll-margin-bottom: var(--s-6); }
   }
   @media (min-width: 760px) {
-    .figure-strip { min-height: 96px; }
+    .figure-strip { min-height: 76px; }
     .figure-strip .figure-narrow { display: none; }
     .figure-strip .figure-wide { display: block; }
     .grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-template-areas: "looking ." "map controls" "notes controls"; grid-template-rows: auto auto 1fr; column-gap: var(--s-5); row-gap: 0; align-items: start; }
@@ -64,7 +66,7 @@
     .controls { grid-area: controls; }
     .map-notes { grid-area: notes; margin-top: var(--s-4); }
     /* The map is capped so the number under it stays on a laptop screen; the result is one compact row. */
-    .map-card .map { width: min(100%, 420px); margin: 0 auto; }
+    .map-card .map { width: min(100%, 420px, max(240px, calc(100vh - 400px))); margin: 0 auto; }
     .map-card .readout { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--s-4); }
     .map-card .readout #msg-readout { flex-basis: 100%; }
   }
@@ -145,7 +147,7 @@
         <g class="map-true" id="map-true"></g>
         <g id="map-lines"></g>
         <g id="map-dot" class="is-ok" style="display: none"><circle class="map-dot" r="9"/></g>
-        <text id="map-wait" class="map-wait" x="200" y="240" text-anchor="middle">The map appears when Python has loaded.</text>
+        <text id="map-wait" class="map-wait" x="200" y="252" text-anchor="middle"><tspan x="200">The map appears when </tspan><tspan x="200" dy="1.3em">Python has loaded.</tspan></text>
       </svg>
       <div class="inset readout">
         <span class="label">Position off by</span>

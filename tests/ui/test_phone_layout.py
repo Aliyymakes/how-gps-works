@@ -86,11 +86,14 @@ def test_the_sticky_card_never_covers_the_focused_control(open_page):
           const node = document.activeElement;
           const r = (node.closest("label") || node).getBoundingClientRect();
           const card = document.querySelector(".map-card").getBoundingClientRect();
-          return { id: node.id, top: r.top, cardBottom: card.bottom, inControls: !!node.closest(".controls") };
+          const msg = document.getElementById("msg-slider").getBoundingClientRect();
+          return { id: node.id, top: r.top, msgTop: msg.top, cardBottom: card.bottom, inControls: !!node.closest(".controls") };
         }""")
         if focused["inControls"]:
             seen.add(focused["id"] or "switch")
             assert focused["top"] >= focused["cardBottom"] - 1, focused
+            if focused["id"] == "clock":  # the line above the slider (hint or message) is not hidden by the card either
+                assert focused["msgTop"] >= focused["cardBottom"] - 1, focused
 
     for _ in range(14):  # down through the controls and on into the next section
         page.keyboard.press(forward)

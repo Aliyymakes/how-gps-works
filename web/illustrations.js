@@ -40,7 +40,7 @@ export function firstScreenFigure() {
     + arrowAndLine(176, 198, 354, 18)
     + text(198, 46, "one distance =") + text(198, 60, "one line on the map")
     + `</svg>`;
-  const wide = `<svg class="figure figure-wide" viewBox="0 0 640 96" preserveAspectRatio="xMinYMid meet" role="img" aria-label="${WORDS}">`
+  const wide = `<svg class="figure figure-wide" viewBox="0 0 640 76" preserveAspectRatio="xMinYMid meet" role="img" aria-label="${WORDS}">`
     + satellite(20, 28) + signalLine(46, 290, 28) + phone(296, 16)
     + text(0, 66, "travel time × speed of light = distance")
     + arrowAndLine(350, 380, 630, 28)
