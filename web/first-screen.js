@@ -26,6 +26,8 @@ let rerun = false;
 let lastCause = "start"; // what the newest wanted run is about
 let lastAnimate = false; // true when the newest run came from a mouse or touch press on the solve button
 let guideStep = 1; // 1 slider, 2 solve button, 3 satellite switches, 4 done
+let backMessage = false; // true from the first slider move after a solve, until another control is used
+const BACK_WORDS = "Back to trusting the clock. Press the button below to solve for it again.";
 const lastPoints = new Map(); // pixel points last drawn for each distance line, by id
 let lastDot = null; // pixel position of the dot, or null while it is hidden
 let glideFrame = 0;
@@ -94,6 +96,7 @@ function setupControls() {
     const wasSolved = state.mode === "solved";
     state.clockErrorS = Number(el.slider.value) * config.clockSlider.step_s + config.clockSlider.min_s;
     state.mode = "trusted"; // moving the slider again goes back to trusting the clock
+    if (wasSolved) backMessage = true;
     showMode();
     showClockValue();
     update(wasSolved ? "slider-back" : "slider");
@@ -172,8 +175,10 @@ async function runOnce(cause) {
   const solveClock = state.mode === "solved";
   const sats = allSatellites.filter((_, i) => state.on[i]);
   const slot = { slider: el.msgSlider, "slider-back": el.msgSlider, switch: el.msgSwitch }[cause] || el.msgSolve;
-  clearMessages();
-  if (cause === "slider-back") say(el.msgSlider, "Back to trusting the clock. Press the button below to solve for it again.");
+  if (cause !== "slider" && cause !== "slider-back") backMessage = false; // any other action clears it
+  const keepBack = backMessage && el.msgSlider.textContent === BACK_WORDS; // a drag must not erase it
+  clearMessages(keepBack);
+  if (backMessage && !keepBack) say(el.msgSlider, BACK_WORDS);
 
   if (sats.length < (solveClock ? 4 : 3)) {
     await refuse(sats, solveClock, slot); // the page decides by itself: the solver cannot work here
@@ -196,6 +201,8 @@ async function runOnce(cause) {
   const animate = cause === "solve" && lastAnimate;
   requestAnimationFrame(() => draw(lines, local, errorM, animate));
   showWords(solution, errorM, solveClock);
+  // Back to trusting the clock at step 3: step 3 no longer makes sense, so step back to 2 (and from there maybe 1).
+  if (guideStep === 3 && !solveClock) { guideStep = 2; showGuide(); }
   if (guideStep === 1 && !solveClock && errorLevel(errorM) !== "ok") nextGuideStep();
   else if (guideStep === 2 && solveClock) nextGuideStep();
   // Step 2's hint says "the lines no longer meet": if they meet again (slider back, or Reset), go back to step 1.
@@ -210,8 +217,11 @@ function failed(result, slot) {
   return true;
 }
 
-function clearMessages() {
-  for (const node of [el.msgSlider, el.msgReadout, el.msgSolve, el.msgSwitch, el.msgReset]) node.textContent = "";
+function clearMessages(keepSliderMessage) {
+  for (const node of [el.msgSlider, el.msgReadout, el.msgSolve, el.msgSwitch, el.msgReset]) {
+    if (node === el.msgSlider && keepSliderMessage) continue;
+    node.textContent = "";
+  }
 }
 
 // ---------- refusing: too few satellites ----------
@@ -229,7 +239,7 @@ async function refuse(sats, solveClock, slot) {
     : `Can't find a position: three things are unknown (east, north, up), but ${countWords(n)} on. Turn a satellite back on.`);
   say(el.msgReadout, "No position: see the message under the satellite switches.");
   showNoFix();
-  if (guideStep === 3 && solveClock) nextGuideStep();
+  if (guideStep < 4 && solveClock) { guideStep = 4; showGuide(); } // the user has seen the idea: go straight to done
   let lines = [];
   if (n > 0) {
     const ranges = await callPython("scenario.make_pseudoranges", [receiverPoint, sats, state.clockErrorS]);
@@ -417,6 +427,11 @@ function showGuide() {
       void node.offsetWidth; // let the browser see opacity 0 first, so the fade runs
       node.classList.add("is-shown");
     }
+  }
+  const closing = $("hint-done");
+  if (guideStep === 4 && closing.getBoundingClientRect().bottom > window.innerHeight) {
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    closing.scrollIntoView({ block: "nearest", behavior: calm ? "auto" : "smooth" }); // only when the closing line appears below the window
   }
 }
 

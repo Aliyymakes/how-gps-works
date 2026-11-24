@@ -141,6 +141,7 @@ export function mountRelativityStep(container) {
     el.slider.disabled = false;
     el.reset.disabled = false;
     el.hint.hidden = hintDone;
+    if (!hintDone) el.hint.classList.add("is-shown"); // index.html's .hint rule fades it in only with this class
     update();
   }
 

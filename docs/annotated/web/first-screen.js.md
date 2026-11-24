@@ -130,6 +130,16 @@ let guideStep = 1; // 1 slider, 2 solve button, 3 satellite switches, 4 done
 Which hint is showing in the guided path: 1 for the slider, 2 for the solve button, 3 for the satellite switches, 4 for finished. It starts at 1.
 
 ```js
+let backMessage = false; // true from the first slider move after a solve, until another control is used
+```
+Whether the sentence "Back to trusting the clock..." should be on screen. It turns on when the slider is moved after a solve and off when any other control is used. Without it, the next step of a drag would wipe the sentence.
+
+```js
+const BACK_WORDS = "Back to trusting the clock. Press the button below to solve for it again.";
+```
+That sentence, kept in one place so the code can both write it and check whether it is still there.
+
+```js
 const lastPoints = new Map(); // pixel points last drawn for each distance line, by id
 ```
 A `Map` (with a capital M) is JavaScript's built-in lookup table: it stores a value under a key, much like the dict in the [primer](../how-to-read-code.md#a-dict-python-or-object-javascript). It has nothing to do with the ground map on the page, or with the `.map(...)` used above, which makes a new list from an old one. Here the key is a satellite's id and the value is the list of map points that were last drawn for its distance line. It is kept so that the glide knows where each line was before. `new Map()` makes an empty one.
@@ -306,12 +316,13 @@ Listens for the `input` event on the slider, which fires continuously while the 
 
 ```js
     state.mode = "trusted"; // moving the slider again goes back to trusting the clock
+    if (wasSolved) backMessage = true;
     showMode();
     showClockValue();
     update(wasSolved ? "slider-back" : "slider");
   });
 ```
-The mode goes back to `"trusted"`, because moving the slider again means "trust the clock". `showMode()` updates the button, `showClockValue()` updates the microsecond text, and `update(...)` redraws. The cause given is `"slider-back"` if the page had been solved, otherwise `"slider"`. `a ? b : c` is a short if-else: pick `b` when `a` is true, otherwise `c`. The cause decides which message is shown. The `});` closes the listener.
+The mode goes back to `"trusted"`, because moving the slider again means "trust the clock". If the page had been solved, `backMessage` is switched on, so the "Back to trusting the clock" sentence will be shown and kept. `showMode()` updates the button, `showClockValue()` updates the microsecond text, and `update(...)` redraws. The cause given is `"slider-back"` if the page had been solved, otherwise `"slider"`. `a ? b : c` is a short if-else: pick `b` when `a` is true, otherwise `c`. The cause decides which message is shown. The `});` closes the listener.
 
 ```js
   el.solve.addEventListener("click", (event) => {
@@ -462,10 +473,12 @@ Builds the list of satellites that are switched on. `filter` keeps an item when 
 Picks which message line this run writes to. The object maps a cause to a line: `"slider"` and `"slider-back"` to the slider line, `"switch"` to the switch line. `[cause]` looks up the cause. `|| el.msgSolve` means "or, if there is no match, use the solve line", which is the case for `"solve"`, `"reset"` and `"start"`.
 
 ```js
-  clearMessages();
-  if (cause === "slider-back") say(el.msgSlider, "Back to trusting the clock. Press the button below to solve for it again.");
+  if (cause !== "slider" && cause !== "slider-back") backMessage = false; // any other action clears it
+  const keepBack = backMessage && el.msgSlider.textContent === BACK_WORDS; // a drag must not erase it
+  clearMessages(keepBack);
+  if (backMessage && !keepBack) say(el.msgSlider, BACK_WORDS);
 ```
-`clearMessages()` empties every message line, so old sentences do not stay. If the cause is `"slider-back"`, the slider line says `Back to trusting the clock. Press the button below to solve for it again.`
+A run caused by anything but the slider (solve, a switch, Reset, the start) turns `backMessage` off. `keepBack` is true when the sentence is wanted and is already on the slider line. `clearMessages(keepBack)` empties every message line so old sentences do not stay, but leaves the slider line alone when `keepBack` is true. That is what keeps the sentence through a whole drag: each step of the drag runs this code, and without `keepBack` each step would erase it. If the sentence is wanted but not on screen yet, the last line says it: `Back to trusting the clock. Press the button below to solve for it again.`
 
 ```js
   if (sats.length < (solveClock ? 4 : 3)) {
@@ -517,10 +530,12 @@ Python spreads those 40 points along the part of each line near the map and keep
 `animate` is `true` only when the cause is `"solve"` and the newest press was a real mouse or touch press with motion allowed. `requestAnimationFrame(...)` is given a function and asks the browser to run it just before the next time it redraws the screen (the next frame), which keeps drawing smooth and in step with the display. So `draw` runs in the next frame. `showWords` writes the sentences.
 
 ```js
+  // Back to trusting the clock at step 3: step 3 no longer makes sense, so step back to 2 (and from there maybe 1).
+  if (guideStep === 3 && !solveClock) { guideStep = 2; showGuide(); }
   if (guideStep === 1 && !solveClock && errorLevel(errorM) !== "ok") nextGuideStep();
   else if (guideStep === 2 && solveClock) nextGuideStep();
 ```
-Moves the guided path forward. Step 1 (slider) completes when the page trusts the clock and the error is no longer `"ok"` (the lines have stopped meeting). Step 2 (solve button) completes when the mode is solved. `else if` means "otherwise, if".
+Moves the guided path. First the comment and the line under it: if the guide is at step 3 (switch a satellite off) and the page is back to trusting the clock (the slider moved, or Reset), step 3 makes no sense any more, so the guide goes back to step 2. The lines below then run with step 2, so if the lines meet again it goes on back to step 1. Then forward: step 1 (slider) completes when the page trusts the clock and the error is no longer `"ok"` (the lines have stopped meeting). Step 2 (solve button) completes when the mode is solved. `else if` means "otherwise, if".
 
 ```js
   // Step 2's hint says "the lines no longer meet": if they meet again (slider back, or Reset), go back to step 1.
@@ -545,11 +560,14 @@ function failed(result, slot) {
 Then it hides every line and clears the readout so the picture never shows an old answer, and returns `true` so the caller stops. The closing brace ends `failed`.
 
 ```js
-function clearMessages() {
-  for (const node of [el.msgSlider, el.msgReadout, el.msgSolve, el.msgSwitch, el.msgReset]) node.textContent = "";
+function clearMessages(keepSliderMessage) {
+  for (const node of [el.msgSlider, el.msgReadout, el.msgSolve, el.msgSwitch, el.msgReset]) {
+    if (node === el.msgSlider && keepSliderMessage) continue;
+    node.textContent = "";
+  }
 }
 ```
-`clearMessages` goes through the five message lines in a list (`for (const node of [...])` repeats for each) and sets each one's text to an empty string, which empties it.
+`clearMessages` goes through the five message lines in a list (`for (const node of [...])` repeats for each) and sets each one's text to an empty string, which empties it. The one exception: when `keepSliderMessage` is true, the slider line is skipped (`continue` jumps to the next line in the list). Without the exception the drag would erase the sentence.
 
 ```js
 // ---------- refusing: too few satellites ----------
@@ -581,9 +599,9 @@ Writes a sentence in the switch message line. If solving for the clock it is `Ca
 ```js
   say(el.msgReadout, "No position: see the message under the satellite switches.");
   showNoFix();
-  if (guideStep === 3 && solveClock) nextGuideStep();
+  if (guideStep < 4 && solveClock) { guideStep = 4; showGuide(); } // the user has seen the idea: go straight to done
 ```
-The readout line says `No position: see the message under the satellite switches.` `showNoFix()` hides the dot, the metres number and the badge. If the guided path is at step 3 and the page was solving for the clock, the guide moves on to the next step.
+The readout line says `No position: see the message under the satellite switches.` `showNoFix()` hides the dot, the metres number and the badge. If the guided path is before the end and the page was solving for the clock, the guide jumps straight to step 4, the closing line: the reader has now seen the "Can't solve" message, which is the idea the guide is teaching. `showGuide()` redraws the hints.
 
 ```js
   let lines = [];
@@ -956,6 +974,11 @@ Goes through the four hints and the step each belongs to (`hint-1` is step 1, `h
       void node.offsetWidth; // let the browser see opacity 0 first, so the fade runs
       node.classList.add("is-shown");
     }
+  }
+  const closing = $("hint-done");
+  if (guideStep === 4 && closing.getBoundingClientRect().bottom > window.innerHeight) {
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    closing.scrollIntoView({ block: "nearest", behavior: calm ? "auto" : "smooth" }); // only when the closing line appears below the window
   }
 }
 ```
