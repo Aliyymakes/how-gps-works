@@ -6,13 +6,14 @@ import { say } from "./say.js";
 
 // Layout for this section only. Colours, fonts and radii come from theme.css.
 const STYLE = `
-.rel { display: grid; gap: var(--s-4); }
+.rel { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
+.rel-stack { grid-template-columns: minmax(0, 1fr); }
 .rel-note { font-size: var(--text-sm); color: var(--text-muted); min-height: 1.5em; }
-.rel-card { padding: var(--s-4); display: grid; gap: var(--s-4); }
+.rel-card { padding: var(--s-4); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
 .rel-highlight { border-color: var(--accent); padding: var(--s-4); }
 .rel-readout { padding: var(--s-4); display: grid; gap: var(--s-2); }
 .rel-big { font-size: var(--text-xl); }
-.rel-pair { display: grid; grid-template-columns: 1fr; gap: var(--s-4); }
+.rel-pair { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
 @media (min-width: 760px) { .rel-pair { grid-template-columns: 1fr 1fr; } }
 .rel .hint { font-size: var(--text-sm); font-weight: 500; color: var(--text); }
 .rel .slider-head { flex-wrap: wrap; column-gap: var(--s-3); }

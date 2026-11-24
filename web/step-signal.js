@@ -24,16 +24,16 @@ const PLOT_HEIGHT = 120; // the viewBox of both graphs is (number of chips) wide
 
 // Layout for this section only. Colours, fonts and radii come from theme.css.
 const STYLE = `
-.signal-step { display: grid; gap: var(--s-5); }
+.signal-step { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
 .signal-step .intro { display: grid; gap: var(--s-2); }
-.signal-step .grid { display: grid; grid-template-columns: 1fr; gap: var(--s-5); }
+.signal-step .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
 @media (min-width: 760px) { .signal-step .grid { grid-template-columns: 1.4fr 1fr; align-items: start; } }
 .signal-step .stack { display: grid; gap: var(--s-4); }
 .signal-step .plot { width: 100%; height: 120px; display: block; margin-top: var(--s-2); }
 .signal-step .axis { display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--text-muted); }
 .signal-step .received { fill: none; stroke: var(--text); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .signal-step .scores { fill: none; stroke: var(--text-muted); stroke-width: 1; vector-effect: non-scaling-stroke; }
-.signal-step .mark-true { stroke: var(--text-faint); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.signal-step .mark-true { stroke: var(--text-muted); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
 .signal-step .mark-best { stroke: currentColor; stroke-width: 2; vector-effect: non-scaling-stroke; }
 .signal-step .key { font-size: var(--text-sm); }
 .signal-step .readout { padding: var(--s-4); display: grid; gap: var(--s-2); }
