@@ -17,3 +17,4 @@ One line per entry, added at the end: `- YYYY-MM-DD | source | purpose: command`
 - 2026-11-24 | GitHub Pages | live page: https://aliyymakes.github.io/how-gps-works/ ; rebuilds on every merge to main; check a file with `curl -s -o /dev/null -w '%{http_code}' <url>`
 - 2026-11-24 | .venv | browser tools live in the repo's virtual environment: run anything that needs Playwright with `.venv/bin/python` (Chromium and WebKit are installed; never commit `.venv/`)
 - 2026-11-24 | tests/ui | UI tests in real browsers: `UI_TESTS=1 .venv/bin/python -m pytest tests/ui -q` (Chromium and WebKit, about 90 s; CDN files cached in tests/ui/.cdn-cache/)
+- 2026-11-24 | tests/test_annotations.py | check the line-by-line docs: `python -m pytest -q tests/test_annotations.py` (fails naming the file and line when code and docs drift)
