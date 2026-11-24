@@ -6,13 +6,13 @@ Source: `web/first-screen.js`
 This is the code behind the first screen of the page: a clock slider, a "solve" button, four satellite switches and a small ground map. It reads what the visitor does, asks the Python mechanism for the numbers, and draws the answer: lines on the map, a dot, a readout in metres and plain sentences. It does no satellite maths of its own.
 
 ## Which files it talks to
-- `web/theme.js`: gives `loadSavedTheme` (light or dark look) and `trackPointerLight` (a soft glow that follows the mouse over cards).
-- `web/config.js`: the placeholder numbers (where the phone is, the four satellites, map size, slider range, colour limits).
-- `web/startup.js`: gives `whenPythonReady`, which waits until Python has loaded and shows the loading and failure words.
-- `web/say.js`: gives `say`, which writes a sentence into a message line and flashes it.
-- `web/format.js`: gives `formatMetres`, the one rule for showing a distance in metres.
-- `index.html`: holds every element this file looks up by its `id` (the slider, buttons, map, message lines, hints). Colours and fades for the classes used here are in its `<style>` part.
-- `web/bridge.js`: not imported here. `startup.js` loads it, and the `call` function it hands over is what this file calls `callPython`.
+- [`web/theme.js`](theme.js.md): gives `loadSavedTheme` (light or dark look) and `trackPointerLight` (a soft glow that follows the mouse over cards).
+- [`web/config.js`](config.js.md): the placeholder numbers (where the phone is, the four satellites, map size, slider range, colour limits).
+- [`web/startup.js`](startup.js.md): gives `whenPythonReady`, which waits until Python has loaded and shows the loading and failure words.
+- [`web/say.js`](say.js.md): gives `say`, which writes a sentence into a message line and flashes it.
+- [`web/format.js`](format.js.md): gives `formatMetres`, the one rule for showing a distance in metres.
+- [`index.html`](../index.html.md): holds every element this file looks up by its `id` (the slider, buttons, map, message lines, hints). Layout and fades for the classes used here are in its `<style>` part; the colours come from [`web/theme.css`](theme.css.md).
+- [`web/bridge.js`](bridge.js.md): not imported here. [`startup.js`](startup.js.md) loads it, and the `call` function it hands over is what this file calls `callPython`.
 - Python functions it calls, by name: `coords.latlon_to_xyz` ([coords.py](../mechanism/coords.py.md)), `coords.satellite_from_sky` ([coords.py](../mechanism/coords.py.md)), `scenario.make_pseudoranges` ([scenario.py](../mechanism/scenario.py.md)), `solver.solve_position` ([solver.py](../mechanism/solver.py.md)), `mapview.to_local` and `mapview.distance_lines` ([mapview.py](../mechanism/mapview.py.md)). The shapes of what goes in and comes out are in `docs/interface.md`.
 
 ## In three lines
@@ -33,17 +33,17 @@ Two comments (a comment is a note for people; the computer skips it). They say t
 ```js
 import { trackPointerLight, loadSavedTheme } from "./theme.js";
 ```
-Brings in two functions from `theme.js`. `loadSavedTheme` sets the page to the light or dark look the visitor chose last time, and `trackPointerLight` makes the card glow follow the mouse. `import` is how one file borrows from another (see "An import" in the primer). Without this line the two calls near the bottom would fail.
+Brings in two functions from [`theme.js`](theme.js.md). `loadSavedTheme` sets the page to the light or dark look the visitor chose last time, and `trackPointerLight` makes the card glow follow the mouse. `import` is how one file borrows from another (see [An import](../how-to-read-code.md#an-import)). Without this line the two calls near the bottom would fail.
 
 ```js
 import * as config from "./config.js";
 ```
-Brings in everything from `config.js` under one name, `config`. `import * as config` means "all the exported things, gathered under the name `config`". Later lines write `config.receiver` or `config.mapHalfWidthM`. Without it the page would not know where the phone or the satellites are.
+Brings in everything from [`config.js`](config.js.md) under one name, `config`. `import * as config` means "all the exported things, gathered under the name `config`". Later lines write `config.receiver` or `config.mapHalfWidthM`. Without it the page would not know where the phone or the satellites are.
 
 ```js
 import { whenPythonReady } from "./startup.js";
 ```
-Brings in `whenPythonReady` from `startup.js`. The page runs the maths in Python inside the browser, and that takes a few seconds to download. This function waits for it. Without it the page could ask Python for answers before Python exists.
+Brings in `whenPythonReady` from [`startup.js`](startup.js.md). The page runs the maths in Python inside the browser, and that takes a few seconds to download. This function waits for it. Without it the page could ask Python for answers before Python exists.
 
 ```js
 import { say } from "./say.js";
@@ -63,12 +63,12 @@ A name for the web address `http://www.w3.org/2000/svg`. SVG is the browser's wa
 ```js
 const MAP_SIZE = 400; // the SVG viewBox is 400 by 400
 ```
-The map is drawn in a square that is 400 units wide and 400 units tall (the comment says this matches the SVG `viewBox`, the SVG's own coordinate box in `index.html`). It is the number used to turn metres into map positions later. Without it the scaling lines could not work.
+The map is drawn in a square that is 400 units wide and 400 units tall (the comment says this matches the SVG `viewBox`, the SVG's own coordinate box in [`index.html`](../index.html.md)). It is the number used to turn metres into map positions later. Without it the scaling lines could not work.
 
 ```js
 const $ = (id) => document.getElementById(id);
 ```
-Makes a tiny shortcut named `$`. `$("clock")` means "find the element on the page whose `id` is `clock`". The DOM is the browser's live model of the page: every heading, button and slider is an element in it, and `document.getElementById` fetches one by its `id` (a unique name written in `index.html`). The `(id) => ...` part is a short way to write a function: it takes `id` and hands back the element. Without it every lookup would be written out in full.
+Makes a tiny shortcut named `$`. `$("clock")` means "find the element on the page whose `id` is `clock`". The DOM is the browser's live model of the page: every heading, button and slider is an element in it, and `document.getElementById` fetches one by its `id` (a unique name written in [`index.html`](../index.html.md)). The `(id) => ...` part is a short way to write a function: it takes `id` and hands back the element. Without it every lookup would be written out in full.
 
 ```js
 const el = {
@@ -118,7 +118,7 @@ Remembers what the newest wanted run is about: `"start"`, `"slider"`, `"solve"`,
 ```js
 let lastAnimate = false; // true when the newest run came from a mouse or touch press on the solve button
 ```
-Remembers whether the newest run came from a real mouse or touch press on the solve button, which is the only case that plays the gliding animation.
+Remembers whether the newest run came from a real mouse or touch press on the solve button by a visitor who has not asked for less motion. That is the only case that plays the gliding animation.
 
 ```js
 let guideStep = 1; // 1 slider, 2 solve button, 3 satellite switches, 4 done
@@ -198,12 +198,12 @@ Starts `buildScene`, also `async` so it can wait for Python. It sets up the phon
 ```js
   const { lat_deg, lon_deg } = config.receiver;
 ```
-Takes the latitude and longitude of the phone out of `config.receiver` as two named values. The `{ lat_deg, lon_deg }` form is called destructuring: it picks named items out of an object in one step. In `config.js` they are -6.2 and 106.8 degrees (Jakarta). Without them Python could not be asked where the phone is.
+Takes the latitude and longitude of the phone out of `config.receiver` as two named values. The `{ lat_deg, lon_deg }` form is called destructuring: it picks named items out of an object in one step. In [`config.js`](config.js.md) they are -6.2 and 106.8 degrees (Jakarta). Without them Python could not be asked where the phone is.
 
 ```js
   receiverPoint = await callPython("coords.latlon_to_xyz", [lat_deg, lon_deg]);
 ```
-Asks Python to turn latitude and longitude into x, y, z metres from the Earth's centre. `callPython("coords.latlon_to_xyz", [lat_deg, lon_deg])` means: call the Python function `latlon_to_xyz` in `coords.py` with those two numbers, and wait (`await`) for the answer. See [coords.py](../mechanism/coords.py.md). The answer is stored in `receiverPoint`.
+Asks Python to turn latitude and longitude into x, y, z metres from the Earth's centre. `callPython("coords.latlon_to_xyz", [lat_deg, lon_deg])` means: call the Python function `latlon_to_xyz` in [`coords.py`](../mechanism/coords.py.md) with those two numbers, and wait (`await`) for the answer. See [coords.py](../mechanism/coords.py.md). The answer is stored in `receiverPoint`.
 
 ```js
   if (receiverPoint.error) throw new Error(receiverPoint.error);
@@ -218,12 +218,12 @@ Empties the satellite list, so building the scene twice never doubles it.
 ```js
   for (const sat of config.satellites) {
 ```
-A loop: it repeats the lines inside the braces once for each item in `config.satellites`, calling the current item `sat`. There are four items in `config.js`.
+A loop: it repeats the lines inside the braces once for each item in `config.satellites`, calling the current item `sat`. There are four items in [`config.js`](config.js.md).
 
 ```js
     const point = await callPython("coords.satellite_from_sky", [lat_deg, lon_deg, sat.azimuth_deg, sat.elevation_deg]);
 ```
-Asks Python where that satellite is: `coords.satellite_from_sky` is given the phone's latitude and longitude, and the satellite's compass direction (`azimuth_deg`) and height above the horizon (`elevation_deg`). It returns x, y, z in metres. See [coords.py](../mechanism/coords.py.md). Worked example: satellite 1 has azimuth 10 degrees and elevation 60 degrees (from `config.js`), so it is nearly north and high in the sky.
+Asks Python where that satellite is: `coords.satellite_from_sky` is given the phone's latitude and longitude, and the satellite's compass direction (`azimuth_deg`) and height above the horizon (`elevation_deg`). It returns x, y, z in metres. See [coords.py](../mechanism/coords.py.md). Worked example: satellite 1 has azimuth 10 degrees and elevation 60 degrees (from [`config.js`](config.js.md)), so it is nearly north and high in the sky.
 
 ```js
     if (point.error) throw new Error(point.error);
@@ -405,7 +405,7 @@ Starts `update`, `async`. It takes the reason `cause` and a yes/no `animate` tha
   lastAnimate = animate;
   if (running) { rerun = true; return; }
 ```
-`cancelGlide()` finishes any glide in progress. The next two lines remember the newest `cause` and `animate`. `if (running) { rerun = true; return; }` says: if a run is already going, just note that another is wanted and leave. The running one will pick it up. Without this lines of the same run could overlap and draw an old answer over a new one.
+`cancelGlide()` finishes any glide in progress. The next two lines remember the newest `cause` and `animate`. `if (running) { rerun = true; return; }` says: if a run is already going, just note that another is wanted and leave. The running one will pick it up. Without this, two runs could overlap and an old answer could be drawn over a new one.
 
 ```js
   running = true;
@@ -492,7 +492,7 @@ Takes the phone's latitude and longitude again, and picks the solved x, y, z out
   const lines = await callPython("mapview.distance_lines", [lat_deg, lon_deg, sats, ranges, assumedClockS, config.mapHalfWidthM, config.lineSamples]);
   if (failed(lines, slot)) return;
 ```
-`assumedClockS` is the clock error the page tells Python to subtract when drawing the lines: Python's solved clock error when solving, otherwise 0 (the phone trusts its clock). Then `mapview.distance_lines` is asked for the lines: for each satellite, the points on the ground where its measured distance would put the phone. Its inputs are the phone's latitude and longitude, the satellites, the distances, `assumedClockS`, the map half-width (1000 m) and the number of points per line (40). It returns one entry per satellite with `id`, `points` and `inside`. See [mapview.py](../mechanism/mapview.py.md). Another error check follows.
+`assumedClockS` is the clock error the page tells Python to subtract when drawing the lines: Python's solved clock error when solving, otherwise 0 (the phone trusts its clock). Then `mapview.distance_lines` is asked for the lines: for each satellite, the points on the ground where its measured distance would put the phone. Its inputs are the phone's latitude and longitude, the satellites, the distances, `assumedClockS`, the map half-width (1000 m) and the number of sample points (40). Python spreads those 40 points along the part of each line near the map and keeps only the ones that land inside it, so a line comes back with fewer points (with the page's numbers, 26 to 32) or none. It returns one entry per satellite with `id`, `points` and `inside`. See [mapview.py](../mechanism/mapview.py.md). Another error check follows.
 
 ```js
   const errorM = Math.hypot(local.east_m, local.north_m, local.up_m);
@@ -500,7 +500,7 @@ Takes the phone's latitude and longitude again, and picks the solved x, y, z out
   requestAnimationFrame(() => draw(lines, local, errorM, animate));
   showWords(solution, errorM, solveClock);
 ```
-`Math.hypot(a, b, c)` gives the straight-line length sqrt(a squared + b squared + c squared), here the size of the position error. Worked example: east 3, north 4, up 12 gives sqrt(9 + 16 + 144) = sqrt(169) = 13 m. `animate` is `true` only when the cause is `"solve"` and the newest press was a real mouse or touch press. `requestAnimationFrame(callback)` asks the browser to run the callback just before it next paints the screen, which keeps drawing smooth and in step with the display. So `draw` runs in the next frame. `showWords` writes the sentences.
+`Math.hypot(a, b, c)` gives the straight-line length sqrt(a squared + b squared + c squared), here the size of the position error. Worked example: east 3, north 4, up 12 gives sqrt(9 + 16 + 144) = sqrt(169) = 13 m. `animate` is `true` only when the cause is `"solve"` and the newest press was a real mouse or touch press with motion allowed. `requestAnimationFrame(callback)` asks the browser to run the callback just before it next paints the screen, which keeps drawing smooth and in step with the display. So `draw` runs in the next frame. `showWords` writes the sentences.
 
 ```js
   if (guideStep === 1 && !solveClock && errorLevel(errorM) !== "ok") nextGuideStep();
@@ -595,7 +595,7 @@ Then ask Python for the lines, with an assumed clock error of 0 (the page does n
   requestAnimationFrame(() => { drawLines(lines); describeMap(lines.length, null); });
 }
 ```
-Writes the caption under the map using `captionFor`. The `true` says the position counts as on the map. Then in the next frame it draws the lines and sets the map's spoken description to say there is no position (`describeMap(lines.length, null)`). The brace ends `refuse`.
+Writes the caption under the map using `captionFor`. The `true` picks the normal opening sentence (`The map is about 2 km wide. North is up.`), since there is no dot that could be off the edge. Then in the next frame it draws the lines and sets the map's spoken description to say there is no position (`describeMap(lines.length, null)`). The brace ends `refuse`.
 
 ```js
 // ---------- words ----------
@@ -656,7 +656,7 @@ function errorLevel(errorM) {
   return "bad";
 }
 ```
-`errorLevel` sorts an error in metres into three words using the limits in `config.js`: below 10 m is `"ok"`, below 100 m is `"warn"`, otherwise `"bad"`. Worked examples: 3 m gives `ok`, 40 m gives `warn`, 500 m gives `bad`. The words are used for colours and the badge text.
+`errorLevel` sorts an error in metres into three words using the limits in [`config.js`](config.js.md): below 10 m is `"ok"`, below 100 m is `"warn"`, otherwise `"bad"`. Worked examples: 3 m gives `ok`, 40 m gives `warn`, 500 m gives `bad`. The words are used for colours and the badge text.
 
 ```js
 const levelWords = { ok: "Good fix", warn: "Fix is off", bad: "Fix is far off" };
@@ -892,7 +892,7 @@ A comment: give a point list exactly `config.lineSamples` points (40) by linear 
   });
 }
 ```
-Returns the point a fraction `f` of the way from point `low` to point `high`, for the x and the y. Worked example: if point 4 has x 100 and point 5 has x 130, then 100 + (130 - 100) x 0.615 = 118.45. For the last `i` (39) `at` is 9 and `high` is capped at 9, so the last point is the old last point exactly.
+Returns the point a fraction `f` of the way from point `low` to point `high`, for the x and the y. Worked example: if point 4 has x 100 and point 5 has x 130, then 100 + (130 - 100) x 0.615 = 118.45. For the last `i` (39) `at` is 9 and `high` is capped at 9, so the last new point is exactly the list's own last point.
 
 ```js
 function blend2(from, to, f) { return from + (to - from) * f; }
@@ -953,7 +953,7 @@ function nextGuideStep() {
   showGuide();
 }
 ```
-`nextGuideStep` adds 1 to `guideStep` and shows the hint for the new step. The comment says Reset does not bring back a finished path, because Reset never lowers `guideStep`.
+`nextGuideStep` adds 1 to `guideStep` and shows the hint for the new step. The comment says Reset does not bring back a finished path: nothing ever lowers `guideStep` once it has passed step 2. (The one step back is in `runOnce`, from step 2 to step 1, when the lines meet again.)
 
 ```js
 // A picture must never outlive its numbers: hide every distance line.

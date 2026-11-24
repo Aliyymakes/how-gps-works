@@ -6,7 +6,7 @@ Source: `web/say.js`
 This file holds one small tool, `say`, that puts a sentence into a message line on the page and makes that line flash briefly. The flash means that pressing something always gives a visible answer, even when the words are the same as last time.
 
 ## Which files it talks to
-- `web/step-geometry.js`, `web/first-screen.js`, `web/step-relativity.js` and `web/step-signal.js`: each imports `say` and uses it for their message lines. In `web/step-geometry.js` it writes the messages under the slider, the Reset button and for errors.
+- [`web/step-geometry.js`](step-geometry.js.md), [`web/first-screen.js`](first-screen.js.md), [`web/step-relativity.js`](step-relativity.js.md) and [`web/step-signal.js`](step-signal.js.md): each imports `say` and uses it for their message lines. In [`web/step-geometry.js`](step-geometry.js.md) it writes the messages under the slider, the Reset button and for errors.
 - It uses nothing from other files. It uses `node.animate`, a built-in browser tool for short animations.
 
 ## In three lines

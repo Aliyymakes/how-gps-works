@@ -6,9 +6,9 @@ Source: `web/startup.js`
 The page's calculations run in Python, and Python has to be downloaded into the browser first. That can take a while, and it can fail if the internet connection is bad. This file is the one place that handles the waiting. It shows the same progress words in every section, shows the same failure words and a shared "Try again" button, and tells each section when it is safe to start.
 
 ## Which files it talks to
-- `web/bridge.js`: the file that actually downloads Python and the mechanism code. This file loads it on demand (see `loadBridge`) and takes two things from it: `loadMechanism` (does the download, reports progress) and `callPython` (asks a Python function to run).
-- `web/first-screen.js`, `web/step-geometry.js`, `web/step-signal.js` and `web/step-relativity.js`: each calls `whenPythonReady` once. They are annotated on their own pages, for example [`step-relativity.js`](step-relativity.js.md).
-- `web/theme.css`: gives the "Try again" button its look through the class `btn`.
+- [`web/bridge.js`](bridge.js.md): the file that actually downloads Python and the mechanism code. This file loads it on demand (see `loadBridge`) and takes two things from it: `loadMechanism` (does the download, reports progress) and `callPython` (asks a Python function to run).
+- [`web/first-screen.js`](first-screen.js.md), [`web/step-geometry.js`](step-geometry.js.md), [`web/step-signal.js`](step-signal.js.md) and [`web/step-relativity.js`](step-relativity.js.md): each calls `whenPythonReady` once. They are annotated on their own pages, for example [`step-relativity.js`](step-relativity.js.md).
+- [`web/theme.css`](theme.css.md): gives the "Try again" button its look through the class `btn`.
 - The Python files themselves (`mechanism/*.py`) are not called here; this file only waits until they are ready.
 
 ## In three lines
@@ -29,12 +29,12 @@ New to code? See [how to read code](../how-to-read-code.md). Browser words used 
 // bridge.js is imported inside attempt(), not at the top: if that file fails to download,
 // a top-level import would stop this whole file, and the page would wait forever.
 ```
-Four comment lines (the browser ignores them). They explain the design. The last two matter most: if `bridge.js` were imported at the very top and that download failed, this whole file would fail to load too, so nothing would ever show an error or a "Try again" button. By loading `bridge.js` later, inside a function that can catch the failure, the page can say what went wrong.
+Four comment lines (the browser ignores them). They explain the design. The last two matter most: if [`bridge.js`](bridge.js.md) were imported at the very top and that download failed, this whole file would fail to load too, so nothing would ever show an error or a "Try again" button. By loading [`bridge.js`](bridge.js.md) later, inside a function that can catch the failure, the page can say what went wrong.
 
 ```js
 let callPython = null; // set once the bridge has loaded
 ```
-Makes a box called `callPython` holding `null` (nothing yet). `let` means the content may be replaced later, and it will be, once `bridge.js` has loaded. Sections need this function to ask Python for answers. Without the box there would be nowhere to keep it.
+Makes a box called `callPython` holding `null` (nothing yet). `let` means the content may be replaced later, and it will be, once [`bridge.js`](bridge.js.md) has loaded. Sections need this function to ask Python for answers. Without the box there would be nowhere to keep it.
 
 ```js
 const FAILURE_WORDS = "Python could not be downloaded, so nothing here can calculate yet. Check your internet connection, then press Try again.";
@@ -272,7 +272,7 @@ Makes a new, empty `<button>` element in memory. `document` is the page, and `cr
 ```js
   button.className = "btn";
 ```
-Gives it the style class `btn`, which `theme.css` styles as the page's standard button. Without it the button would look plain.
+Gives it the style class `btn`, which [`theme.css`](theme.css.md) styles as the page's standard button. Without it the button would look plain.
 
 ```js
   button.type = "button";

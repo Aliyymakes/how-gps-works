@@ -6,7 +6,7 @@ Source: `web/format.js`
 This file holds one small tool that turns a number of metres into the text the page shows, for example `1,235 m`. Every readout on the page that shows metres uses it, so they all look the same. It does no measuring and no maths of its own, only the writing of the number.
 
 ## Which files it talks to
-- `web/first-screen.js`, `web/step-geometry.js` and `web/step-relativity.js`: each imports `formatMetres` and uses it for their metre readouts. In `web/step-geometry.js` it writes the "Position off by" number.
+- [`web/first-screen.js`](first-screen.js.md), [`web/step-geometry.js`](step-geometry.js.md) and [`web/step-relativity.js`](step-relativity.js.md): each imports `formatMetres` and uses it for their metre readouts. In [`web/step-geometry.js`](step-geometry.js.md) it writes the "Position off by" number.
 - It uses nothing from other files. It uses `Intl.NumberFormat`, a number-writing tool that is built into every browser.
 
 ## In three lines

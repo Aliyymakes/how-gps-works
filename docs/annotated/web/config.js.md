@@ -6,10 +6,10 @@ Source: `web/config.js`
 This file is a list of settings. It holds the numbers the first screen and the relativity section share: where the phone is, where the four satellites are, how big the map is, and how far the sliders go. It contains no calculations. Keeping every number in one place means the team can change one number here and the page follows.
 
 ## Which files it talks to
-- `web/first-screen.js`: imports everything here (`import * as config from "./config.js"`) to place the phone and satellites, size the map and set the clock slider.
-- `web/step-relativity.js`: imports it too, for the receiver, the satellites, the error colour limits, the hours slider and the phone clock error.
+- [`web/first-screen.js`](first-screen.js.md): imports everything here (`import * as config from "./config.js"`) to place the phone and satellites, size the map and set the clock slider.
+- [`web/step-relativity.js`](step-relativity.js.md): imports it too, for the receiver, the satellites, the error colour limits, the hours slider and the phone clock error.
 - `docs/interface.md`: defines what the mechanism expects for a receiver and a satellite (`lat_deg`, `lon_deg`, `azimuth_deg`, `elevation_deg`). The names below match it.
-- `mechanism/mapview.py` (see [mapview.py](../mechanism/mapview.py.md)): receives `mapHalfWidthM` and `lineSamples` when the page asks it for distance lines.
+- [`mechanism/mapview.py`](../mechanism/mapview.py.md) (see [mapview.py](../mechanism/mapview.py.md)): receives `mapHalfWidthM` and `lineSamples` when the page asks it for distance lines.
 - It uses no other file and nothing from outside.
 
 ## In three lines
@@ -82,7 +82,7 @@ The map reaches 1000 metres each way from the phone. Worked example: from -1000 
 ```js
 export const lineSamples = 40; // points per distance line, placeholder
 ```
-Each distance line on the map is drawn as 40 points joined together. More points give a smoother curve but more work; fewer give a rougher one. The number is sent to the mechanism when the page asks for the lines.
+The mechanism spreads 40 points along the part of each distance line near the map, then keeps only the points that land inside the map, so a drawn line has 40 points or fewer (with the numbers in this file, 26 to 32). If too few land inside, it tries again with more. More points give a smoother curve but more work. The number is sent to the mechanism when the page asks for the lines.
 
 ```js
 // Clock error slider, stored in seconds. 0 to 3 microseconds in steps of 0.05 microseconds.
@@ -118,7 +118,7 @@ The relativity slider counts hours of drift. It runs from 0 to 24 hours in steps
 // Zero, so at 0 hours both ways of solving agree and show 0 m. A 1 microsecond phone clock error would put
 // about 500 m on the "trusted clock" result before any drift happens.
 ```
-Two comments explaining the next number. The relativity section solves twice: once trusting the phone's clock and once working out the clock error. With a clock error of zero, both agree at 0 m at 0 hours. A 1 microsecond clock error would already give a result about 500 m out on the "trusted clock" side before any drift, which would hide the effect the slider is meant to show. (The 500 m figure is taken from the comment, not recomputed here.)
+Two comments explaining the next number. The relativity section solves twice: once trusting the phone's clock and once working out the clock error. With a clock error of zero, both agree at 0 m at 0 hours. A 1 microsecond clock error would already give a result about 500 m out on the "trusted clock" side before any drift, which would hide the effect the slider is meant to show. Recomputed with the mechanism and the receiver and satellites above: a 1 microsecond clock error puts the trusted-clock result about 520 m out, so "about 500 m" holds.
 
 ```js
 export const relativityPhoneClockErrorS = 0; // placeholder, provisional: the phone's own clock error

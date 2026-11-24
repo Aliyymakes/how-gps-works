@@ -6,10 +6,10 @@ Source: `index.html`
 This is the page itself, the one file a visitor opens. It holds the words, the map drawing, the slider, the buttons and the switches, plus the page's own layout rules. It does not do any maths or react to clicks: it only lays things out. The JavaScript files it loads at the bottom find these pieces by their `id` names and make them work.
 
 ## Which files it talks to
-- `web/theme.css`: the shared look (colours, fonts, cards, buttons, switches). This file only adds layout on top. See `docs/ui-guide.md`.
-- `web/bridge.js`: the address of Pyodide is repeated here in a `modulepreload` line so the download can start early. See [bridge.js explained](web/bridge.js.md).
-- `web/first-screen.js`: finds the ids below (`map`, `clock`, `solve`, `switches` and so on) and drives the first screen. It calls Python's solver through the bridge: `solver.solve_position` ([solver.py explained](mechanism/solver.py.md)), `scenario.make_pseudoranges`, `mapview.distance_lines`.
-- `web/step-geometry.js`, `web/step-signal.js`, `web/step-relativity.js`: each fills the empty `<div>` placed for it near the bottom.
+- [`web/theme.css`](web/theme.css.md): the shared look (colours, fonts, cards, buttons, switches). This file only adds layout on top. See `docs/ui-guide.md`.
+- [`web/bridge.js`](web/bridge.js.md): the address of Pyodide is repeated here in a `modulepreload` line so the download can start early. See [bridge.js explained](web/bridge.js.md).
+- [`web/first-screen.js`](web/first-screen.js.md): finds the ids below (`map`, `clock`, `solve`, `switches` and so on) and drives the first screen. It calls Python through the bridge: `coords.latlon_to_xyz` and `coords.satellite_from_sky` ([coords.py](mechanism/coords.py.md)), `scenario.make_pseudoranges` ([scenario.py](mechanism/scenario.py.md)), `solver.solve_position` ([solver.py explained](mechanism/solver.py.md)), and `mapview.to_local` and `mapview.distance_lines` ([mapview.py](mechanism/mapview.py.md)).
+- [`web/step-geometry.js`](web/step-geometry.js.md), [`web/step-signal.js`](web/step-signal.js.md), [`web/step-relativity.js`](web/step-relativity.js.md): each fills the empty `<div>` placed for it near the bottom.
 - Outside the repo: Google Fonts (the two typefaces) and the Pyodide download address.
 
 ## In three lines
@@ -21,7 +21,7 @@ New to code? See [how to read code](how-to-read-code.md). A few web ideas used a
 
 - The page is built from *elements*. An element is written as a start tag and an end tag around its contents, like `<p>words</p>`. Extra information goes inside the start tag as *attributes*, like `id="map"` (a unique name) or `class="note"` (a label shared by many elements, used by CSS and JavaScript to find them). The nested structure of elements is called the DOM.
 - *CSS* is the list of rules that says how elements look. A rule is `selector { property: value; }`: the selector says which elements, each property line says one thing about them.
-- A *CSS variable* is a named value written `--name: ...` and used as `var(--name)`. The names here (`--s-4`, `--text-muted`, and so on) are defined in `web/theme.css`, so one change there changes every use. In `theme.css`, `--s-1` to `--s-6` are spaces of 4, 8, 12, 16, 24 and 32 pixels.
+- A *CSS variable* is a named value written `--name: ...` and used as `var(--name)`. The names here (`--s-4`, `--text-muted`, and so on) are defined in [`web/theme.css`](web/theme.css.md), so one change there changes every use. In [`theme.css`](web/theme.css.md), `--s-1` to `--s-6` are spaces of 4, 8, 12, 16, 24 and 32 pixels.
 - *Screen readers* are programs that read a page aloud for blind people. They use the structure of the page, and extra `aria-...` attributes (ARIA) that describe what something is or when it changes.
 
 ## The code, line by line
@@ -34,7 +34,7 @@ Tells the browser this is a modern HTML page (HTML is the language web pages are
 ```html
 <html lang="en" data-theme="dark">
 ```
-Opens the `<html>` element that wraps everything. `lang="en"` says the page is in English, so screen readers pronounce it correctly and browsers can offer translation. `data-theme="dark"` is a custom attribute that `theme.css` reads to choose the dark colours (it also has a light set). It is the default look.
+Opens the `<html>` element that wraps everything. `lang="en"` says the page is in English, so screen readers pronounce it correctly and browsers can offer translation. `data-theme="dark"` is a custom attribute that [`theme.css`](web/theme.css.md) reads to choose the dark colours (it also has a light set). It is the default look.
 
 ```html
 <head>
@@ -69,12 +69,12 @@ Asks the browser to open a network connection to `cdn.jsdelivr.net`, where Pyodi
 ```html
 <!-- Same Pyodide address as PYODIDE_BASE in web/bridge.js: change both together. -->
 ```
-A comment, written `<!-- ... -->`. It warns that the web address on the next line must match `PYODIDE_BASE` in `web/bridge.js`, and both must be changed together.
+A comment, written `<!-- ... -->`. It warns that the web address on the next line must match `PYODIDE_BASE` in [`web/bridge.js`](web/bridge.js.md), and both must be changed together.
 
 ```html
 <link rel="modulepreload" href="https://cdn.jsdelivr.net/pyodide/v314.0.8/full/pyodide.mjs" crossorigin>
 ```
-`modulepreload` asks the browser to start downloading the Pyodide loader script now, while the page is still being read, instead of waiting until the JavaScript asks for it. This saves time on the slow first visit. The address must be identical to the one in `bridge.js`, or the early download is wasted.
+`modulepreload` asks the browser to start downloading the Pyodide loader script now, while the page is still being read, instead of waiting until the JavaScript asks for it. This saves time on the slow first visit. The address must be identical to the one in [`bridge.js`](web/bridge.js.md), or the early download is wasted.
 
 ```html
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -90,7 +90,7 @@ Loads the two typefaces: Instrument Sans (weights 400, 500, 600, for normal text
 ```html
 <link rel="stylesheet" href="web/theme.css">
 ```
-Loads the shared style sheet, `web/theme.css`: colours, fonts, cards, buttons and switches. The page's layout rules below rely on its CSS variables.
+Loads the shared style sheet, [`web/theme.css`](web/theme.css.md): colours, fonts, cards, buttons and switches. The page's layout rules below rely on its CSS variables.
 
 ```html
 <style>
@@ -100,7 +100,7 @@ Opens a `<style>` element: CSS written directly in the page. These rules are onl
 ```html
   /* Layout for this page only. Colours, fonts and radii come from theme.css. */
 ```
-A CSS comment, written `/* ... */`. It says what this style block is for: layout only, since colours, fonts and rounded-corner sizes come from `theme.css`.
+A CSS comment, written `/* ... */`. It says what this style block is for: layout only, since colours, fonts and rounded-corner sizes come from [`theme.css`](web/theme.css.md).
 
 ```html
   main { max-width: 1100px; margin: 0 auto; padding: var(--s-6) var(--s-4); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
@@ -220,7 +220,7 @@ The caption under the map gets 12 pixels of space above and small text.
 ```html
   .badge[hidden] { display: none; }
 ```
-The `hidden` attribute normally hides an element. But `.badge` in `theme.css` sets `display: inline-flex`, and a stylesheet rule overrides the browser's built-in hiding, so the badge would show even when marked `hidden`. This rule puts the hiding back, only for badges that have the attribute.
+The `hidden` attribute normally hides an element. But `.badge` in [`theme.css`](web/theme.css.md) sets `display: inline-flex`, and a stylesheet rule overrides the browser's built-in hiding, so the badge would show even when marked `hidden`. This rule puts the hiding back, only for badges that have the attribute.
 
 ```html
   .highlight { border-color: var(--accent); }
@@ -281,7 +281,7 @@ How anything switched off (`:disabled`) looks: a disabled button, a disabled sat
 ```html
   .btn:disabled:hover { border-color: var(--line-strong); }
 ```
-A disabled button should not react to the mouse. `theme.css` makes buttons get an accent border on hover; this puts the normal border (`--line-strong`) back for disabled ones.
+A disabled button should not react to the mouse. [`theme.css`](web/theme.css.md) makes buttons get an accent border on hover; this puts the normal border (`--line-strong`) back for disabled ones.
 
 ```html
   .btn-primary:disabled:hover { border-color: var(--accent); }
@@ -317,7 +317,7 @@ When a switch is off (`:not(:checked)`), its track gets a 1 pixel inner outline 
 ```html
   /* theme.css's reduced-motion rule does not reach pseudo-elements: stop the switch knob and slider thumb moving. */
 ```
-A comment: `theme.css` already slows motion for people who ask for less movement, but its rule does not reach the knob and the slider thumb (they are drawn as "pseudo-elements", parts that are not their own elements), so the next rules stop them moving.
+A comment: [`theme.css`](web/theme.css.md) already slows motion for people who ask for less movement, but its rule does not reach the knob and the slider thumb (they are drawn as "pseudo-elements", parts that are not their own elements), so the next rules stop them moving.
 
 ```html
   @media (prefers-reduced-motion: reduce) {
@@ -397,7 +397,7 @@ The first paragraph (`<p>`) tells the whole idea in one go: each satellite's sig
 ```html
     <p class="muted">That only works if the phone's clock is right. Make it wrong and watch what happens.</p>
 ```
-A second paragraph with the class `muted` (a muted colour from `theme.css`): `That only works if the phone's clock is right. Make it wrong and watch what happens.`
+A second paragraph with the class `muted` (a muted colour from [`theme.css`](web/theme.css.md)): `That only works if the phone's clock is right. Make it wrong and watch what happens.`
 
 ```html
   </header>
@@ -482,7 +482,7 @@ Closes the list.
 ```html
       <p class="map-caption muted" id="map-caption" role="status" aria-live="polite"></p>
 ```
-The caption under the map: empty at the start, filled in by the code (for example saying whether the lines meet at the dot). `role="status"` and `aria-live="polite"` make a screen reader read out any change to it when it next has a pause, without cutting off what it is saying. The pattern is repeated on every message line below.
+The caption under the map: empty at the start, filled in by the code with how wide the map is (for example `The map is about 2 km wide. North is up.`), or that the phone's position is off the edge, plus how many distance lines have moved off the map. `role="status"` and `aria-live="polite"` make a screen reader read out any change to it when it next has a pause, without cutting off what it is saying. The pattern is repeated on every message line below.
 
 ```html
     </section>
@@ -502,7 +502,7 @@ The status line, shown first: `Loading the maths…`. The code changes it while 
 ```html
       <div class="slider inset guide-target highlight" id="block-slider">
 ```
-Opens the slider block. `slider` and `inset` are look classes from `theme.css`, and `guide-target highlight` make it the first step of the guide, with the highlight border visible from the start. `id="block-slider"` lets the code switch the highlight.
+Opens the slider block. `slider` and `inset` are look classes from [`theme.css`](web/theme.css.md), and `guide-target highlight` make it the first step of the guide, with the highlight border visible from the start. `id="block-slider"` lets the code switch the highlight.
 
 ```html
         <p class="hint" id="hint-1" hidden>Step 1. Drag this slider to the right.</p>
@@ -532,7 +532,7 @@ Closes the row.
 ```html
         <input id="clock" type="range" value="0" disabled>
 ```
-The slider itself: an `<input>` of `type="range"`, a draggable bar. `value="0"` starts it at the left end. `disabled` keeps it switched off until Python has loaded. No range is written here: the code sets the smallest value to 0, the largest to 60 and the step to 1. With the clock settings in `web/config.js` (0 to 3 microseconds in steps of 0.05) that is 3e-6 / 5e-8 = 60 steps, and each step is 0.05 microseconds.
+The slider itself: an `<input>` of `type="range"`, a draggable bar. `value="0"` starts it at the left end. `disabled` keeps it switched off until Python has loaded. No range is written here: the code sets the smallest value to 0, the largest to 60 and the step to 1. With the clock settings in [`web/config.js`](web/config.js.md) (0 to 3 microseconds in steps of 0.05) that is 3e-6 / 5e-8 = 60 steps, and each step is 0.05 microseconds.
 
 ```html
         <p class="note" id="msg-slider" role="status" aria-live="polite"></p>
@@ -562,7 +562,7 @@ The error number, big and in the number font, starting as an en dash `–` (no v
 ```html
         <div><span class="badge is-ok" id="error-badge" hidden></span></div>
 ```
-A box holding the badge, a small pill. The `badge` look and `is-ok` colour come from `theme.css`. It is `hidden` until there is a result, and the code then writes words such as `Good fix` into it and changes the colour class.
+A box holding the badge, a small pill. The `badge` look and `is-ok` colour come from [`theme.css`](web/theme.css.md). It is `hidden` until there is a result, and the code then writes words such as `Good fix` into it and changes the colour class.
 
 ```html
         <p class="note" id="msg-readout" role="status" aria-live="polite"></p>
@@ -617,7 +617,7 @@ A plain label, `Satellites`, with an id so the next line can point to it. It is 
 ```html
         <div class="switches" id="switches" role="group" aria-labelledby="switch-label"></div>
 ```
-The container for the switches. It starts empty: the code creates one switch per satellite in `config.js` (four). `role="group"` says its contents belong together, and `aria-labelledby="switch-label"` names the group `Satellites` for screen readers.
+The container for the switches. It starts empty: the code creates one switch per satellite in [`config.js`](web/config.js.md) (four). `role="group"` says its contents belong together, and `aria-labelledby="switch-label"` names the group `Satellites` for screen readers.
 
 ```html
         <p class="note" id="msg-switch" role="status" aria-live="polite"></p>
@@ -687,7 +687,7 @@ A link sentence between the first screen and the next section. The words: `Solvi
 ```html
   <div id="step-geometry"></div>
 ```
-The empty holder for the geometry section. `web/step-geometry.js` fills it.
+The empty holder for the geometry section. [`web/step-geometry.js`](web/step-geometry.js.md) fills it.
 
 ```html
   <p class="link-line">Good geometry only helps if the phone can read each distance in the first place, <strong>but</strong> the signal is buried in noise. <strong>Therefore</strong> the phone has to dig out the timing.</p>
@@ -697,7 +697,7 @@ The link sentence before the signal section: `Good geometry only helps if the ph
 ```html
   <div id="step-signal"></div>
 ```
-The empty holder for the signal section, filled by `web/step-signal.js`.
+The empty holder for the signal section, filled by [`web/step-signal.js`](web/step-signal.js.md).
 
 ```html
   <p class="link-line">The phone can now read the time from each satellite, <strong>but</strong> the satellites' own clocks drift too. <strong>Therefore</strong> let us see whether that drift can move the position.</p>
@@ -707,7 +707,7 @@ The link sentence before the last section: `The phone can now read the time from
 ```html
   <div id="step-relativity"></div>
 ```
-The empty holder for the relativity section, filled by `web/step-relativity.js`.
+The empty holder for the relativity section, filled by [`web/step-relativity.js`](web/step-relativity.js.md).
 
 ```html
 </main>
@@ -717,7 +717,7 @@ Closes `<main>`.
 ```html
 <script type="module" src="web/first-screen.js"></script>
 ```
-Loads `web/first-screen.js` as a JavaScript *module* (`type="module"`). A module may import other files and runs only after the page has been read, so the elements above already exist when it looks for them. It brings the first screen to life: finds the ids, loads Python, and wires up the slider, button and switches.
+Loads [`web/first-screen.js`](web/first-screen.js.md) as a JavaScript *module* (`type="module"`). A module may import other files and runs only after the page has been read, so the elements above already exist when it looks for them. It brings the first screen to life: finds the ids, loads Python, and wires up the slider, button and switches.
 
 ```html
 <script type="module">
@@ -729,7 +729,7 @@ Opens a second module, this time with the code written right in the page, betwee
   import { mountSignalStep } from "./web/step-signal.js";
   import { mountRelativityStep } from "./web/step-relativity.js";
 ```
-Three `import` lines. Each brings one function from another file: `mountGeometryStep` from `web/step-geometry.js`, `mountSignalStep` from `web/step-signal.js` and `mountRelativityStep` from `web/step-relativity.js`. The `./` starts the address from this page's folder. Without these lines the three sections would never appear.
+Three `import` lines. Each brings one function from another file: `mountGeometryStep` from [`web/step-geometry.js`](web/step-geometry.js.md), `mountSignalStep` from [`web/step-signal.js`](web/step-signal.js.md) and `mountRelativityStep` from [`web/step-relativity.js`](web/step-relativity.js.md). The `./` starts the address from this page's folder. Without these lines the three sections would never appear.
 
 ```html
   mountGeometryStep(document.getElementById("step-geometry"));

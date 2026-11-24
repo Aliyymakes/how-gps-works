@@ -6,11 +6,11 @@ Source: `web/bridge.js`
 The page is written in JavaScript, but all the position maths is written in Python. A web browser cannot run Python by itself. This file is the go-between (the "bridge"): it downloads a copy of Python that runs inside the browser tab, puts the team's Python files into it, and offers one simple function, `callPython`, that the rest of the page uses to run a Python function and get its answer back.
 
 ## Which files it talks to
-- `mechanism/__init__.py`, `constants.py`, `coords.py`, `scenario.py`, `solver.py`, `mapview.py`, `geometry.py`, `signal.py`, `relativity.py`: all nine are downloaded and copied into Python's file system (see the list at the top of the file). Which one runs is decided by the text the page passes to `callPython`.
-- `web/startup.js`: loads this file (inside `attempt()`) and hands the page its `callPython`. See the page-side contract in `docs/interface.md` ("The page side").
-- `web/first-screen.js`, `web/step-geometry.js`, `web/step-signal.js`, `web/step-relativity.js`: every call from the page to Python goes through `callPython`, for example `solver.solve_position` ([solver.py explained](../mechanism/solver.py.md)), `coords.latlon_to_xyz` ([coords.py](../mechanism/coords.py.md)) and `mapview.distance_lines` ([mapview.py](../mechanism/mapview.py.md)).
-- `web/bridge-test.html`: the test page that uses `evalPython`.
-- `index.html`: repeats the Pyodide web address in a `<link rel="modulepreload">` so the download can start early. See [index.html explained](../index.html.md).
+- [`mechanism/__init__.py`](../mechanism/__init__.py.md), [`constants.py`](../mechanism/constants.py.md), [`coords.py`](../mechanism/coords.py.md), [`scenario.py`](../mechanism/scenario.py.md), [`solver.py`](../mechanism/solver.py.md), [`mapview.py`](../mechanism/mapview.py.md), [`geometry.py`](../mechanism/geometry.py.md), [`signal.py`](../mechanism/signal.py.md), [`relativity.py`](../mechanism/relativity.py.md): all nine are downloaded and copied into Python's file system (see the list at the top of the file). Which one runs is decided by the text the page passes to `callPython`.
+- [`web/startup.js`](startup.js.md): loads this file (inside `loadBridge()`, which `attempt()` runs) and hands the page its `callPython`. See the page-side contract in `docs/interface.md` ("The page side").
+- [`web/first-screen.js`](first-screen.js.md), [`web/step-geometry.js`](step-geometry.js.md), [`web/step-signal.js`](step-signal.js.md), [`web/step-relativity.js`](step-relativity.js.md): every call from the page to Python goes through `callPython`, for example `solver.solve_position` ([solver.py explained](../mechanism/solver.py.md)), `coords.latlon_to_xyz` ([coords.py](../mechanism/coords.py.md)) and `mapview.distance_lines` ([mapview.py](../mechanism/mapview.py.md)).
+- [`web/bridge-test.html`](bridge-test.html.md): the test page that uses `evalPython`.
+- [`index.html`](../index.html.md): repeats the Pyodide web address in a `<link rel="modulepreload">` so the download can start early. See [index.html explained](../index.html.md).
 - Outside the repo: Pyodide itself, downloaded from the address `cdn.jsdelivr.net`.
 
 ## In three lines
@@ -26,7 +26,7 @@ New to code? See [how to read code](../how-to-read-code.md).
 
 **The virtual file system.** Python programs find their other files by reading a disk. A browser tab has no disk Python may use. So Pyodide gives Python a pretend disk that lives only in the tab's memory: the virtual file system, reached from JavaScript as `pyodide.FS`. This file creates a folder in it and writes the nine `mechanism` files into that folder as text. When the Python code says `import mechanism.solver`, Python looks in that pretend folder and finds the file we wrote. The pretend disk is empty again every time the page is reloaded, so the files are written again on every visit.
 
-**Why text goes in and out.** JavaScript and Python store numbers and lists differently. The easiest safe way to move data between them is JSON, a plain-text format both understand: a list of numbers looks like `[1, 2.5, 3]` and a labelled record looks like `{"x_m": 1.5}`. The bridge turns every argument into JSON text, Python turns it back into Python values, runs the function, turns the answer into JSON text, and JavaScript turns that back into JavaScript values. That is why the Python functions return plain Python numbers and lists (see `_save_step` in solver.py).
+**Why text goes in and out.** JavaScript and Python store numbers and lists differently. The easiest safe way to move data between them is JSON, a plain-text format both understand: a list of numbers looks like `[1, 2.5, 3]` and a labelled record looks like `{"x_m": 1.5}`. The bridge turns every argument into JSON text, Python turns it back into Python values, runs the function, turns the answer into JSON text, and JavaScript turns that back into JavaScript values. That is why the Python functions return plain Python numbers and lists (see `_save_step` in [solver.py](../mechanism/solver.py.md)).
 
 ## The code, line by line
 
@@ -41,7 +41,7 @@ A comment block (lines starting `//` are notes for people; the computer skips th
 // Pinned Pyodide version (ships Python 3.14.2). index.html repeats this address in its
 // <link rel="modulepreload">: change both together.
 ```
-A comment: the exact version of Pyodide is fixed (pinned) on purpose, so the page behaves the same for everyone and does not change when a newer Pyodide appears. The same address is written again in `index.html` (a `<link rel="modulepreload">`), and the comment warns that both must be changed together. If only one were changed, the early download would fetch a different file from the one the page really uses and would be wasted.
+A comment: the exact version of Pyodide is fixed (pinned) on purpose, so the page behaves the same for everyone and does not change when a newer Pyodide appears. The same address is written again in [`index.html`](../index.html.md) (a `<link rel="modulepreload">`), and the comment warns that both must be changed together. If only one were changed, the early download would fetch a different file from the one the page really uses and would be wasted.
 
 ```js
 const PYODIDE_BASE = 'https://cdn.jsdelivr.net/pyodide/v314.0.8/full/';
@@ -59,12 +59,12 @@ const MECHANISM_FILES = [
   'mapview.py', 'geometry.py', 'signal.py', 'relativity.py',
 ];
 ```
-`MECHANISM_FILES` is a list (square brackets) of the nine file names of the Python `mechanism` package, in quotes, separated by commas. The list is run through to download each one and to write each one into the pretend disk. `__init__.py` is the file that tells Python that the folder is a package that can be imported as `mechanism`. A file that is not on this list is never copied, so `import` would fail for it.
+`MECHANISM_FILES` is a list (square brackets) of the nine file names of the Python `mechanism` package, in quotes, separated by commas. The list is run through to download each one and to write each one into the pretend disk. [`__init__.py`](../mechanism/__init__.py.md) is the file that tells Python that the folder is a package that can be imported as `mechanism`. A file that is not on this list is never copied, so `import` would fail for it.
 
 ```js
 const MECHANISM_DIR = '/home/pyodide/mechanism';
 ```
-The folder, inside the pretend disk, where the files will be written. `/home/pyodide` is a folder that Pyodide provides, and `mechanism` is the package folder created inside it. The folder name `mechanism` matters: Python code and the helper below say `mechanism.solver`, which means "the file `solver.py` inside the folder called `mechanism`".
+The folder, inside the pretend disk, where the files will be written. `/home/pyodide` is a folder that Pyodide provides, and `mechanism` is the package folder created inside it. The folder name `mechanism` matters: Python code and the helper below say `mechanism.solver`, which means "the file [`solver.py`](../mechanism/solver.py.md) inside the folder called `mechanism`".
 
 ```js
 let pyodide = null;
@@ -94,7 +94,7 @@ A comment: every caller gets every progress message, even when it was a differen
 ```js
 export function loadMechanism(onStatus = () => {}) {
 ```
-Starts the function `loadMechanism`. `export` means other files may import it (`startup.js` does). It takes one input, `onStatus`: the status function. The part `= () => {}` gives it a default: if nobody passes one, it is a function that does nothing, so the code below can always call it safely. The function returns the loading promise, so a caller can wait until everything is ready (`await`).
+Starts the function `loadMechanism`. `export` means other files may import it ([`startup.js`](startup.js.md) does). It takes one input, `onStatus`: the status function. The part `= () => {}` gives it a default: if nobody passes one, it is a function that does nothing, so the code below can always call it safely. The function returns the loading promise, so a caller can wait until everything is ready (`await`).
 
 ```js
   if (!listeners.includes(onStatus)) listeners.push(onStatus);
@@ -169,7 +169,7 @@ Closes `tell`.
 ```js
 async function fetchText(name) {
 ```
-Starts `fetchText`, which downloads one file as text. `async` marks a function that can wait for things (the network) using `await`; it always returns a Promise. `name` is the file name, for example `solver.py`.
+Starts `fetchText`, which downloads one file as text. `async` marks a function that can wait for things (the network) using `await`; it always returns a Promise. `name` is the file name, for example [`solver.py`](../mechanism/solver.py.md).
 
 ```js
   let response;
@@ -184,7 +184,7 @@ Makes an empty box `response` for the server's reply. It is declared out here so
 ```js
     response = await fetch(new URL('../mechanism/' + name, import.meta.url));
 ```
-`fetch(...)` asks the network for a file; `await` waits until the reply starts to arrive. The address is made by `new URL('../mechanism/' + name, import.meta.url)`. `import.meta.url` is the address of `bridge.js` itself, which is in the `web` folder. `../` means "go up one folder", so `solver.py` becomes the address of `mechanism/solver.py` next to the `web` folder, wherever the site is hosted. A fixed web address could not work on both a local test copy and the final published page.
+`fetch(...)` asks the network for a file; `await` waits until the reply starts to arrive. The address is made by `new URL('../mechanism/' + name, import.meta.url)`. `import.meta.url` is the address of `bridge.js` itself, which is in the `web` folder. `../` means "go up one folder", so [`solver.py`](../mechanism/solver.py.md) becomes the address of [`mechanism/solver.py`](../mechanism/solver.py.md) next to the `web` folder, wherever the site is hosted. A fixed web address could not work on both a local test copy and the final published page.
 
 ```js
   } catch {
@@ -249,7 +249,7 @@ Adds a do-nothing failure handler `.catch(() => {})`. Reason (from the comment):
 ```js
   pyodide = await loadPyodide({ indexURL: PYODIDE_BASE, packages: ['numpy'] });
 ```
-`loadPyodide(...)` downloads and starts Python and waits until it is ready. `indexURL` tells it where the rest of its files are (the same folder). `packages: ['numpy']` also downloads numpy, the maths library that `solver.py` and others use. The running Python is saved in the variable `pyodide`. This is the slow step. Without `numpy` here, `import numpy` in the mechanism files would fail.
+`loadPyodide(...)` downloads and starts Python and waits until it is ready. `indexURL` tells it where the rest of its files are (the same folder). `packages: ['numpy']` also downloads numpy, the maths library that [`solver.py`](../mechanism/solver.py.md) and others use. The running Python is saved in the variable `pyodide`. This is the slow step. Without `numpy` here, `import numpy` in the mechanism files would fail.
 
 ```js
   tell('Step 2 of 2: loading our GPS code…');
@@ -269,7 +269,7 @@ Creates the folder `/home/pyodide/mechanism` inside the pretend disk. `FS` is th
 ```js
   MECHANISM_FILES.forEach((name, i) => pyodide.FS.writeFile(MECHANISM_DIR + '/' + name, texts[i]));
 ```
-Writes the files. `forEach` runs the small function once for every name, and `i` is the position in the list (0, 1, 2, ...). For `i = 4` the name is `solver.py`, and `texts[4]` is its downloaded text, so this writes the text to `/home/pyodide/mechanism/solver.py`. The `(name, i) => ...` form is a short way of writing a function. After this line the pretend disk holds the team's nine files.
+Writes the files. `forEach` runs the small function once for every name, and `i` is the position in the list (0, 1, 2, ...). For `i = 4` the name is [`solver.py`](../mechanism/solver.py.md), and `texts[4]` is its downloaded text, so this writes the text to `/home/pyodide/mechanism/solver.py`. The `(name, i) => ...` form is a short way of writing a function. After this line the pretend disk holds the team's nine files.
 
 ```js
   // The folder holding the package must be on sys.path.
@@ -344,7 +344,7 @@ Python. Stops with the error `unknown function: mechanism.` plus the full target
 ```js
     return json.dumps(function(*json.loads(args_json)))
 ```
-Python. The real call, read from the inside out. `json.loads(args_json)` turns the JSON text back into a Python list. The star in `function(*...)` spreads that list into separate inputs, so `[a, b, c]` becomes `function(a, b, c)`. Python runs the function. `json.dumps(...)` turns the answer into JSON text. `return` hands that text back. Worked example: the page passes `"solver.solve_position"` and the text `[sats, ranges, true]` (really the full lists); Python calls `solve_position(sats, ranges, True)`, and the returned dictionary comes back as JSON text. If the answer held a numpy number, `json.dumps` would refuse it, which is why the mechanism files convert to plain numbers first (see [solver.py explained](../mechanism/solver.py.md)).
+Python. The real call, read from the inside out. `json.loads(args_json)` turns the JSON text back into a Python list. The star in `function(*...)` spreads that list into separate inputs, so `[a, b, c]` becomes `function(a, b, c)`. Python runs the function. `json.dumps(...)` turns the answer into JSON text. `return` hands that text back. Worked example: the page passes `"solver.solve_position"` and the text `[sats, ranges, true]` (really the full lists); Python calls `solve_position(sats, ranges, True)`, and the returned dictionary comes back as JSON text. If the answer held certain numpy values (an array, or numpy's own whole numbers or true/false values), `json.dumps` would refuse them, which is why the mechanism files convert to plain numbers first (see [solver.py explained](../mechanism/solver.py.md)).
 
 ```js
 `);
@@ -354,7 +354,7 @@ JavaScript again. The backtick closes the template string and `)` closes the `ru
 ```js
   tell('Ready.');
 ```
-Announces the last sentence, `Ready.`. Sections show it, then use the Python code.
+Announces the last sentence, `Ready.`. In practice [`startup.js`](startup.js.md) empties the status lines straight after, as soon as the load finishes, so it is hardly seen. Then the sections start using the Python code.
 
 ```js
 }
@@ -429,7 +429,7 @@ Closes `callPython`.
 ```js
 // Debug helper for the test page only: evaluates one Python expression, returns it as a JS value.
 ```
-A comment: `evalPython` is a debugging tool for the test page only (`web/bridge-test.html`). It evaluates a single Python expression and returns the answer as a JavaScript value. The real page does not use it.
+A comment: `evalPython` is a debugging tool for the test page only ([`web/bridge-test.html`](bridge-test.html.md)). It evaluates a single Python expression and returns the answer as a JavaScript value. The real page does not use it.
 
 ```js
 export function evalPython(expression) {
