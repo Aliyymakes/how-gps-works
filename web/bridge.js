@@ -4,7 +4,7 @@
 
 // Pinned Pyodide version (ships Python 3.14.2). index.html repeats this address in its
 // <link rel="modulepreload">: change both together.
-const PYODIDE_BASE = 'https://cdn.jsdelivr.net/pyodide/v314.0.8/full/';
+const PYODIDE_BASE = new URL('../vendor/pyodide/v314.0.8/full/', import.meta.url).href;
 
 // Files of the `mechanism` package. A file that cannot be fetched makes the whole load fail.
 const MECHANISM_FILES = [
