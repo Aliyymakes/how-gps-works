@@ -2,7 +2,7 @@
 // satellite's pattern by hand, then lets the phone try every shift. It draws and takes input;
 // the code, the received signal and every score come from Python (mechanism/signal.py).
 // The only arithmetic here is scaling numbers to pixels and one sign comparison per step
-// (is the copy's value on the same side of zero as the heard value?), which only picks a fill.
+// (is the copy's value on the same side of zero as the heard value?), which only picks a shade.
 import { whenPythonReady } from "./startup.js";
 import { say } from "./say.js";
 
@@ -57,8 +57,8 @@ const STYLE = `
 .signal-step .row-name { font: 500 13px var(--font-sans); fill: var(--text-muted); stroke: none; }
 .signal-step .sent { fill: none; stroke: var(--text-muted); stroke-width: 1.5; stroke-linejoin: miter; }
 .signal-step .received { fill: none; stroke: var(--text); stroke-width: 1.5; stroke-linejoin: miter; }
-.signal-step .cell { fill: var(--text); }
-.signal-step .cell.is-dim { fill: var(--text-muted); opacity: 0.4; }
+.signal-step .cell { fill: none; stroke: var(--text); stroke-width: 1.5; stroke-linecap: square; }
+.signal-step .cell.is-dim { stroke: var(--text-muted); opacity: 0.4; }
 .signal-step .copy-outline { fill: none; stroke: none; }
 .signal-step[data-guide="1"] .copy-outline { stroke: var(--accent); stroke-width: 1.5; }
 .signal-step .bracket { stroke: var(--text-muted); stroke-width: 1; fill: none; }
@@ -78,6 +78,10 @@ const STYLE = `
 .signal-step .plot-area .bar { fill: var(--text); }
 .signal-step .plot-full { height: 120px; }
 .signal-step .plot-close { height: 96px; }
+/* Short until the search runs, then they grow to full height. */
+.signal-step:not(.is-searched) .plot-full, .signal-step:not(.is-searched) .plot-close { height: 60px; }
+.signal-step .plot-area { transition: height 300ms ease; }
+.signal-step .plot-area svg, .signal-step [data-el="closeup-rest-wrap"] { height: 100%; }
 .signal-step .scores { fill: none; stroke: var(--text-muted); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .signal-step [data-reveal="hidden"] { clip-path: inset(0 100% 0 0); }
 .signal-step [data-reveal="running"] { clip-path: inset(0 0 0 0); transition: clip-path var(--reveal-ms, 1000ms) linear; }
@@ -119,7 +123,7 @@ const STYLE = `
 .signal-step .btn:disabled, .signal-step input[type="range"]:disabled { opacity: 0.4; cursor: not-allowed; }
 .signal-step .btn:disabled:hover { border-color: var(--line-strong); }
 .signal-step input[type="range"] { touch-action: pan-y; }
-@media (prefers-reduced-motion: reduce) { .signal-step [data-reveal] { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { .signal-step [data-reveal], .signal-step .plot-area { transition: none !important; } }
 `;
 
 export function mountSignalStep(container) {
@@ -183,7 +187,7 @@ export function mountSignalStep(container) {
   function buildStaticParts() {
     const cells = [];
     for (let i = 0; i < signalConfig.windowChips; i += 1) {
-      cells.push(`<rect class="cell" x="${i * CHIP + 0.5}" width="${CHIP - 1}" height="${WAVE / signalConfig.receivedLimit}"/>`);
+      cells.push(`<path class="cell" d=""/>`);
     }
     el.copyCells.innerHTML = cells.join("");
     el.cells = [...el.copyCells.children];
@@ -250,6 +254,7 @@ export function mountSignalStep(container) {
       el.shift.value = shift;
       visited.clear();
       searched = false;
+      root.classList.remove("is-searched");
       guide = 1;
       el.msgSearch.textContent = "";
       el.bestDelay.textContent = "–";
@@ -321,6 +326,7 @@ export function mountSignalStep(container) {
   function search(atOnce) {
     if (!result) return;
     searched = true;
+    root.classList.add("is-searched"); // the two score plots grow to full height
     moveGuideTo(3);
     drawResult();
     drawCloseup();
@@ -465,17 +471,22 @@ export function mountSignalStep(container) {
     drawCopyRow();
   }
 
-  // The copy row: each step is a block, lit where its sign agrees with the heard value above it, dim where it does not.
+  // The copy row: a square wave like the rows above, drawn one step at a time so each step can be
+  // lit where its sign agrees with the heard value above it, and dim where it does not.
   function drawCopyRow() {
     if (!code || !received) return;
     const unit = WAVE / signalConfig.receivedLimit;
     let agree = 0;
+    let lastY = null;
     el.cells.forEach((cell, index) => {
       const value = copyValue(index);
       const lit = (value > 0) === (received[index] > 0);
       if (lit) agree += 1;
-      cell.setAttribute("y", value > 0 ? ROW_MID.copy - unit : ROW_MID.copy);
+      const y = ROW_MID.copy - value * unit;
+      const fromY = lastY === null ? y : lastY; // the step's upright edge starts at the previous step's height
+      cell.setAttribute("d", `M${index * CHIP},${fromY} V${y} H${(index + 1) * CHIP}`);
       cell.classList.toggle("is-dim", !lit);
+      lastY = y;
     });
     const x = shift * CHIP;
     el.bracket.style.display = shift === 0 ? "none" : "";

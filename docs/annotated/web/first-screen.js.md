@@ -177,9 +177,10 @@ A comment used as a heading to group the functions that follow. The rows of dash
 ```js
 function start() {
   whenPythonReady(el.status, async (call) => {
+    $("load-note").hidden = true; // only needed while loading
     callPython = call;
 ```
-Starts the function `start`. It calls `whenPythonReady`, giving it two things: the status line (where loading words and errors are shown) and a function to run when Python is ready. That second function is written `async (call) => { ... }`. `async` means it may pause to wait for slow things. The first line inside stores the received `call` function in `callPython`, so the rest of the file can ask Python for things.
+Starts the function `start`. It calls `whenPythonReady`, giving it two things: the status line (where loading words and errors are shown) and a function to run when Python is ready. That second function is written `async (call) => { ... }`. `async` means it may pause to wait for slow things. The first line inside hides the line "The first visit can take up to a minute on a phone." (setting `hidden` to true takes it off the page), since loading is over. The next line stores the received `call` function in `callPython`, so the rest of the file can ask Python for things.
 
 ```js
     try {

@@ -16,7 +16,7 @@ This file builds the third section of the page, "How does the phone measure the 
 ## In three lines
 1. When the page loads, `mountSignalStep` adds the section's HTML and style, waits for Python, and fetches the satellite's pattern once. After that, every change of the noise slider asks Python for the heard signal and for the score of every shift.
 2. Sliding the phone's copy (the slider, the keyboard, or dragging the row) does not call Python again. It only reads the score for that shift from the last answer. The search button reveals the scores of all shifts that Python had already worked out.
-3. The only arithmetic in JavaScript is turning values into pixel positions, one yes/no check per step (is the copy's value on the same side of zero as the heard value, which only decides how a block is shaded), and choosing "Found", "Barely found" or "Lost" by comparing numbers Python returned.
+3. The only arithmetic in JavaScript is turning values into pixel positions, one yes/no check per step (is the copy's value on the same side of zero as the heard value, which only decides how a step of the copy row is shaded), and choosing "Found", "Barely found" or "Lost" by comparing numbers Python returned.
 
 New to code? See [how to read code](../how-to-read-code.md). Ideas used here for the first time are explained where they appear.
 
@@ -29,9 +29,9 @@ New to code? See [how to read code](../how-to-read-code.md). Ideas used here for
 // satellite's pattern by hand, then lets the phone try every shift. It draws and takes input;
 // the code, the received signal and every score come from Python (mechanism/signal.py).
 // The only arithmetic here is scaling numbers to pixels and one sign comparison per step
-// (is the copy's value on the same side of zero as the heard value?), which only picks a fill.
+// (is the copy's value on the same side of zero as the heard value?), which only picks a shade.
 ```
-Five comments (lines starting with `//` are notes for people; the computer skips them). "Rung 3" is the third step of the page's story. `design.md` is the project's spec. They say that this file only draws and listens, that Python provides the pattern, the heard signal and every score, and that the only arithmetic here is scaling to pixels plus one check per step that only decides whether a block is drawn bright or dim. Nothing breaks without them.
+Five comments (lines starting with `//` are notes for people; the computer skips them). "Rung 3" is the third step of the page's story. `design.md` is the project's spec. They say that this file only draws and listens, that Python provides the pattern, the heard signal and every score, and that the only arithmetic here is scaling to pixels plus one check per step that only decides whether a step of the copy row is drawn bright or dim. Nothing breaks without them.
 
 ```js
 import { whenPythonReady } from "./startup.js";
@@ -258,14 +258,14 @@ The top wave (what the satellite sends): no fill, a grey line 1.5 units thick, w
 The middle wave (what the phone hears): the same but in the main text colour, so it stands out from the grey one.
 
 ```js
-.signal-step .cell { fill: var(--text); }
+.signal-step .cell { fill: none; stroke: var(--text); stroke-width: 1.5; stroke-linecap: square; }
 ```
-Each block of the phone's copy row is filled with the main text colour (bright).
+Each step of the phone's copy row is a short line (no fill), drawn like the two waves above it: 1.5 units thick in the main text colour (bright). `stroke-linecap: square` makes each line's ends stick out a little, so the corner where one step meets the next has no gap.
 
 ```js
-.signal-step .cell.is-dim { fill: var(--text-muted); opacity: 0.4; }
+.signal-step .cell.is-dim { stroke: var(--text-muted); opacity: 0.4; }
 ```
-A block that also has the class `is-dim` is grey and 40 percent solid (faded). Those are the steps where the copy disagrees with what the phone hears.
+A step that also has the class `is-dim` is grey and 40 percent solid (faded). Those are the steps where the copy disagrees with what the phone hears.
 
 ```js
 .signal-step .copy-outline { fill: none; stroke: none; }
@@ -356,7 +356,23 @@ Each bar of the close-up graph is filled with the text colour.
 .signal-step .plot-full { height: 120px; }
 .signal-step .plot-close { height: 96px; }
 ```
-The full graph's box is 120 px high and the close-up's is 96 px, the same as their pictures.
+The full graph's box is 120 px high and the close-up's is 96 px, the same as their pictures. These are the heights after the search.
+
+```js
+/* Short until the search runs, then they grow to full height. */
+.signal-step:not(.is-searched) .plot-full, .signal-step:not(.is-searched) .plot-close { height: 60px; }
+```
+Until the section has the class `is-searched` (`:not(...)` means "without"), both graph boxes are only 60 px high, so two mostly empty boxes do not take up the page. `search` adds the class and the reset button removes it.
+
+```js
+.signal-step .plot-area { transition: height 300ms ease; }
+```
+When the height changes, it changes smoothly over 300 ms instead of jumping.
+
+```js
+.signal-step .plot-area svg, .signal-step [data-el="closeup-rest-wrap"] { height: 100%; }
+```
+The pictures inside each box (and the box that wraps the close-up's bars) fill the box's height, so they shrink and grow with it. The pictures use `preserveAspectRatio="none"`, so they stretch to fit.
 
 ```js
 .signal-step .scores { fill: none; stroke: var(--text-muted); stroke-width: 1; vector-effect: non-scaling-stroke; }
@@ -544,9 +560,9 @@ When the mouse is over a disabled button, its outline does not change. A working
 A slider is an `input` of type `range`. On a touch screen, `pan-y` lets the finger scroll the page up and down when it starts on the slider, while left and right drags move the slider.
 
 ```js
-@media (prefers-reduced-motion: reduce) { .signal-step [data-reveal] { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { .signal-step [data-reveal], .signal-step .plot-area { transition: none !important; } }
 ```
-Some people set their device to avoid animation. This rule applies to them: the reveal's smooth change is switched off (`!important` makes sure this wins over the other rule). The JavaScript also skips the animation for them (see `startReveal`).
+Some people set their device to avoid animation. This rule applies to them: the reveal's smooth change and the graphs' growing are switched off (`!important` makes sure this wins over the other rule). The JavaScript also skips the animation for them (see `startReveal`).
 
 ```js
 `;
@@ -601,7 +617,7 @@ Makes a small helper called `find`. An arrow function (`(name) => ...`) is a sho
 ```
 Makes an object called `el` that holds every element the code will touch, each under a short name. Doing the search once here, instead of at every use, is quicker and keeps names in one place. In groups:
 - The top: `status` the "Loading the maths…" line, `hint` the guide hint, `clipNote` the warning that noise is cut off.
-- The rows picture: `rows` the whole drawing, `sentLine` and `receivedLine` the two waves, `copyCells` the group that will hold the 40 blocks of the copy row, `bracket`, `bracketLine` and `bracketText` the bracket under the copy row and its words, `copyHit` the invisible rectangle that catches dragging.
+- The rows picture: `rows` the whole drawing, `sentLine` and `receivedLine` the two waves, `copyCells` the group that will hold the 40 steps of the copy row, `bracket`, `bracketLine` and `bracketText` the bracket under the copy row and its words, `copyHit` the invisible rectangle that catches dragging.
 - The hand controls: `shift` the slider that slides the copy, `shiftValue` its words, `handScore` the match score, `meter` the bar under it, `handSentence` the sentence ("Lined up..." or "Not lined up yet...").
 - The search: `search` the button, `msgSearch` its message line.
 - The close-up graph: `closeupTries` holds the bars for shifts tried by hand, `closeupRest` the bars for all 40 shifts after the search, and `closeupRestWrap` is the box around the latter that the reveal animation clips.
@@ -747,7 +763,7 @@ Starts the function that builds the parts of the rows picture that are the same 
 ```js
     const cells = [];
 ```
-An empty list to collect the blocks of the copy row.
+An empty list to collect the steps of the copy row.
 
 ```js
     for (let i = 0; i < signalConfig.windowChips; i += 1) {
@@ -755,9 +771,9 @@ An empty list to collect the blocks of the copy row.
 A loop that counts `i` from 0 up to 39 (while `i` is less than 40, adding 1 each time round).
 
 ```js
-      cells.push(`<rect class="cell" x="${i * CHIP + 0.5}" width="${CHIP - 1}" height="${WAVE / signalConfig.receivedLimit}"/>`);
+      cells.push(`<path class="cell" d=""/>`);
 ```
-For each chip, adds the text of one block (an SVG `rect`, a rectangle) to the list. It sits at `i * 10 + 0.5` units from the left and is `10 - 1 = 9` wide, so that there is a small gap between neighbours. Its height is `18 / 2 = 9`. The up-or-down position is set later, because it depends on whether the copy's value is +1 or -1.
+For each chip, adds the text of one empty SVG `path` (a line drawn from a list of moves in its `d` attribute) to the list. The moves are filled in later by `drawCopyRow`, because where the line goes depends on the copy's values and the shift.
 
 ```js
     }
@@ -772,7 +788,7 @@ Joins the 40 texts with nothing between them and puts them into the copy row's g
 ```js
     el.cells = [...el.copyCells.children];
 ```
-Takes the 40 block elements just made and keeps them in a list called `el.cells` (`...` spreads the group's children into a plain list). `drawCopyRow` goes through this list.
+Takes the 40 step elements just made and keeps them in a list called `el.cells` (`...` spreads the group's children into a plain list). `drawCopyRow` goes through this list.
 
 ```js
     el.trueDelay.textContent = "–";
@@ -1010,9 +1026,10 @@ Puts the phone's copy back at 0 and moves its slider there.
 ```js
       visited.clear();
       searched = false;
+      root.classList.remove("is-searched");
       guide = 1;
 ```
-Forgets the shifts tried by hand, forgets that the search was pressed, and sends the guide back to step 1.
+Forgets the shifts tried by hand, forgets that the search was pressed, takes away the class that makes the two graphs tall (so they shrink back to 60 px), and sends the guide back to step 1.
 
 ```js
       el.msgSearch.textContent = "";
@@ -1226,8 +1243,9 @@ If there is no result from Python yet, do nothing.
 
 ```js
     searched = true;
+    root.classList.add("is-searched"); // the two score plots grow to full height
 ```
-Remembers that the search has been pressed. The drawing functions use this to show all the shifts.
+Remembers that the search has been pressed. The drawing functions use this to show all the shifts. It also gives the section the class `is-searched`, so the two graph boxes grow from 60 px to their full height.
 
 ```js
     moveGuideTo(3);
@@ -1743,9 +1761,10 @@ Draws the bottom row too.
 Closes `drawRows`.
 
 ```js
-  // The copy row: each step is a block, lit where its sign agrees with the heard value above it, dim where it does not.
+  // The copy row: a square wave like the rows above, drawn one step at a time so each step can be
+  // lit where its sign agrees with the heard value above it, and dim where it does not.
 ```
-A comment. Each of the 40 steps of the copy row is a block. A block is bright where the copy and the heard signal are on the same side of zero (both positive, or both not), and dim where they disagree. When the copy is lined up, most blocks are bright; when it is far off, about half are.
+A comment. The copy row is a square wave, like the two rows above it, but it is drawn as 40 separate short lines, one per step, so that each step can have its own shade. A step is bright where the copy and the heard signal are on the same side of zero (both positive, or both not), and dim where they disagree. When the copy is lined up, most steps are bright; when it is far off, about half are.
 
 ```js
   function drawCopyRow() {
@@ -1760,17 +1779,18 @@ If the pattern or the heard signal has not arrived yet, there is nothing to draw
 ```js
     const unit = WAVE / signalConfig.receivedLimit;
 ```
-The block height again: 18 / 2 = 9.
+How far the wave goes above or below its middle line: 18 / 2 = 9 units, the same as the row of what the satellite sends.
 
 ```js
     let agree = 0;
+    let lastY = null;
 ```
-A counter for how many steps agree. It starts at 0.
+A counter for how many steps agree, starting at 0, and `lastY`, the height where the previous step ended. It starts as `null` (nothing), because the first step has no step before it.
 
 ```js
     el.cells.forEach((cell, index) => {
 ```
-Goes through the 40 blocks, one at a time.
+Goes through the 40 steps, one at a time.
 
 ```js
       const value = copyValue(index);
@@ -1788,14 +1808,29 @@ Compares two yes/no answers: is the copy's value above 0, and is the heard value
 If it agrees, add 1 to the counter.
 
 ```js
-      cell.setAttribute("y", value > 0 ? ROW_MID.copy - unit : ROW_MID.copy);
+      const y = ROW_MID.copy - value * unit;
 ```
-Places the block. For +1 it sits above the middle line (its top at 162 - 9 = 153, so it fills from 153 to 162). For -1 it sits below (from 162 to 171).
+The height of this step. The copy row's middle line is at 162 (in an SVG picture, smaller numbers are higher up). For +1 the step is at 162 - 9 = 153, above the line; for -1 it is at 162 + 9 = 171, below it.
+
+```js
+      const fromY = lastY === null ? y : lastY; // the step's upright edge starts at the previous step's height
+```
+Where this step's line starts. For the first step there is no previous step (`lastY` is `null`), so it starts at its own height. Otherwise it starts at the height where the previous step ended, so the upright edge joins the two.
+
+```js
+      cell.setAttribute("d", `M${index * CHIP},${fromY} V${y} H${(index + 1) * CHIP}`);
+```
+Writes the step's moves into its `d` attribute: `M` moves to the step's left edge (`index * 10`) at the previous height, `V` draws straight up or down to this step's height (when the value did not change, this line has no length), and `H` draws across to the step's right edge (`(index + 1) * 10`). Worked example: step 3 with the previous step at +1 and this one at -1 gives `M30,153 V171 H40`, a drop from 153 to 171 and then a line across to 40.
 
 ```js
       cell.classList.toggle("is-dim", !lit);
 ```
-`toggle` adds the class `is-dim` when the second value is true and removes it when it is false. So the block is dim exactly when it is not lit.
+`toggle` adds the class `is-dim` when the second value is true and removes it when it is false. So the step is dim exactly when it is not lit.
+
+```js
+      lastY = y;
+```
+Remembers this step's height for the next step's upright edge.
 
 ```js
     });

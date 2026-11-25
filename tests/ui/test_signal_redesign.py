@@ -227,3 +227,38 @@ def test_looking_line_is_above_the_picture_and_nothing_overflows_at_phone_width(
     settle(page)
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
     assert site.errors == []
+
+
+# Icarus's two fixes before merging PR #83.
+COPY_POINTS = """() => [...document.querySelectorAll('#step-signal .cell')].map((cell) => cell.getAttribute('d'))"""
+SENT_HEIGHTS = """() => [...new Set(document.querySelector('#step-signal [data-el=sent-line]').getAttribute('points')
+  .split(' ').map((pair) => pair.split(',')[1]))].sort()"""
+
+
+def test_the_copy_row_is_a_square_wave_like_the_rows_above(open_page):
+    page = open_page().page
+    assert page.locator(f"{SIG} rect.cell").count() == 0  # no blocks
+    paths = page.evaluate(COPY_POINTS)
+    assert len(paths) == 40 and all(d.startswith("M") and " V" in d and " H" in d for d in paths)
+    # The copy at shift 0 is the pattern itself, so it uses the same two heights as the sent row, moved down to its own row.
+    copy_heights = sorted({float(d.split(" V")[1].split(" ")[0]) for d in paths})
+    sent_heights = sorted(float(y) for y in page.evaluate(SENT_HEIGHTS))
+    assert copy_heights[1] - copy_heights[0] == sent_heights[1] - sent_heights[0]
+    # Each step's upright edge starts where the step before it ended.
+    for before, after in zip(paths, paths[1:]):
+        assert before.split(" V")[1].split(" ")[0] == after.split(",")[1].split(" ")[0]
+
+
+PLOT_HEIGHTS = "() => [...document.querySelectorAll('#step-signal .plot-area')].map((node) => Math.round(node.getBoundingClientRect().height))"
+
+
+def test_score_plots_are_short_until_the_search_then_grow(open_page):
+    page = open_page().page
+    page.emulate_media(reduced_motion="reduce")  # no height animation, so the sizes can be read at once
+    assert page.evaluate(PLOT_HEIGHTS) == [60, 60]
+    press_search(page)
+    settle(page)
+    assert page.evaluate(PLOT_HEIGHTS) == [96, 120]
+    page.locator(el("reset")).click()
+    settle(page)
+    assert page.evaluate(PLOT_HEIGHTS) == [60, 60]

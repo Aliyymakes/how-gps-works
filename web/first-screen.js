@@ -44,6 +44,7 @@ start();
 
 function start() {
   whenPythonReady(el.status, async (call) => {
+    $("load-note").hidden = true; // only needed while loading
     callPython = call;
     try {
       await buildScene();

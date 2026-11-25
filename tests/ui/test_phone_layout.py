@@ -167,3 +167,13 @@ def test_the_slider_stays_put_when_a_message_takes_over_the_hint_line(open_page)
     page.wait_for_timeout(600)
     assert page.locator("#msg-slider").text_content().startswith("Back to trusting")
     assert abs(box(page, "#clock")["top"] - start) <= 1
+
+
+def test_the_first_visit_note_shows_while_loading_and_goes_when_ready(open_page):
+    site = phone(open_page, cdn="cache", delay_ms=2000)  # the delay keeps Python loading while we look
+    page = site.page
+    page.wait_for_selector("#load-note", state="visible")
+    assert page.locator("#load-note").inner_text() == "The first visit can take up to a minute on a phone."
+    assert box(page, "#clock")["bottom"] <= SLIDER_LIMIT
+    site.wait_ready()
+    assert page.locator("#load-note").is_hidden()

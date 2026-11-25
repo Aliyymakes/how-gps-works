@@ -809,6 +809,11 @@ The slider itself: an `<input>` of `type="range"`, a draggable bar. `value="0"` 
 The status line, shown first: `Loading the maths…`. It has moved from the top of the controls card to just under the slider. The code changes it while Python loads and shows failure messages here. When it is empty it takes no room (see the `#status:empty` rule above).
 
 ```html
+        <p class="note" id="load-note">The first visit can take up to a minute on a phone.</p>
+```
+A second line under the status line, added at Icarus's request: the first load downloads Python and numpy, and on phones (WebKit, Safari's engine) a measured first load took a median of about 35 seconds. It is not a live region, because it never changes. `start()` in [`web/first-screen.js`](web/first-screen.js.md) hides it once Python is ready.
+
+```html
       </div>
 ```
 Closes the slider block.
