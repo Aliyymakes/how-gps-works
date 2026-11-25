@@ -1,4 +1,4 @@
-UI REDESIGN READY FOR ICARUS: PR #83
+UI REDESIGN MERGED: PR #83 (33da6c1), approved by Icarus 25 Nov 09:10 WIB
 
 # State log, plan 005
 
@@ -39,3 +39,6 @@ Live link: https://aliyymakes.github.io/how-gps-works/
 - 2026-11-25 | LEFT TO DO 5 | DONE. Screenshot-only reader test: first screen, geometry, signal, relativity all pass the ui-redesign.md criteria. Section crops retaken at scroll 0 (element screenshots caught sticky cards mid-section).
 - 2026-11-25 | LEFT TO DO 6 | DONE. After-screenshots in docs/ux-audit/redesign/after/ (28). PR #83 opened (closes #77), before/after pairs, WebKit 35 s cold load and interface.md gap at the top of the questions.
 - 2026-11-25 | LEFT TO DO 7-9 | WAITING: approval gate (Icarus), 16:00 WIB fallback, then post-merge docs + Opus accuracy pass, then report-2026-11-25.md.
+- 2026-11-25 09:10 WIB | LEFT TO DO 7 | Icarus approved PR #83 in chat with two fixes first (copy row as a square wave like the rows above; score charts about 60 px until the search, then grow) and one line under the loading message ("The first visit can take up to a minute on a phone."). Built in 888c43e with 6 new tests; full tests/ui 228 passed; annotations updated (54 pass); after-screenshots retaken plus a loading shot; signal screenshot reader test passes (still finds the empty charts unclear before the search).
+- 2026-11-25 09:30 WIB | LEFT TO DO 7 | DONE. PR #83 merged into main (merge commit 33da6c1) after CI passed. The 16:00 fallback was not needed.
+- 2026-11-25 | LEFT TO DO 8 | Branch 77-redesign-docs: Sonnet updated docs/onboarding (7 files), interview-prep, project-page and demo-script for the new page (132 non-UI tests pass); Opus accuracy pass running.
