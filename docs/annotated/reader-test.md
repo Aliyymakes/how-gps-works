@@ -145,3 +145,13 @@ Three round-1 non-passes were reader misses, where the docs already said the poi
 | 98 | index.html | 110 | "<input id="clock" type="range" value="0" disabled>". Why disabled and what enables it? | MISSING | PASS |  |
 | 99 | index.html | 152 | "<script type="module" src="web/first-screen.js"></script>". What does it start and what does t... | PASS |  |  |
 | 100 | index.html | 157 | "mountGeometryStep(document.getElementById("step-geometry"));". What does it do and where is th... | PASS |  |  |
+
+## Round for the redesigned page (25 Nov 2026, plan 005)
+
+After the UI redesign, the docs for index.html, theme.css, config.js, format.js, first-screen.js, illustrations.js (new), step-signal.js, step-relativity.js and step-geometry.js were rewritten. One agent wrote 20 new questions (R1 to R20) about changed lines, with an answer key and must-mention points built from the source code. A fresh reader answered them using only `docs/annotated/` and `docs/onboarding/`, without seeing the code or the key. The main session graded the answers.
+
+| PASS | VAGUE | WRONG | MISSING |
+|---|---|---|---|
+| 20 | 0 | 0 | 0 |
+
+Spread: step-signal.js 5, step-relativity.js 4, index.html 3, first-screen.js 2, illustrations.js 2, and one each for step-geometry.js, theme.css, config.js and format.js. The trap question (R3: the signal clip note first shows at noise 1.5, not 1.0, because the slider moves in 0.5 steps) was answered correctly from the documented rule. No doc needed changing.

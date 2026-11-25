@@ -4,7 +4,6 @@ import pytest
 HINTS = ["#hint-1", "#hint-2", "#hint-3", "#hint-done"]
 STEP_HINTS = [
     ("#step-geometry [data-id=hint]", "#geo-bunch"),
-    ("#step-signal [data-el=hint]", "#signal-noise"),
     ("#step-relativity [data-id=hint]", "#rel-hours"),
 ]
 STATUS_LINES = ["#status", "#step-geometry [data-id=status]", "#step-signal [data-el=status]", "#step-relativity [data-id=status]"]
@@ -46,7 +45,8 @@ def test_hints_of_sections_2_to_4_are_seen_then_hidden_after_first_input(open_pa
     assert page.locator(hint).is_visible()
     assert opacity(page, hint) == "1"
     page.locator(slider).focus()
-    page.keyboard.press("ArrowRight")
+    at_max = page.locator(slider).input_value() == page.locator(slider).get_attribute("max")  # relativity starts at its maximum
+    page.keyboard.press("ArrowLeft" if at_max else "ArrowRight")
     page.wait_for_timeout(500)
     assert page.locator(hint).is_hidden()
 

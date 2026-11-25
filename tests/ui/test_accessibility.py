@@ -144,10 +144,11 @@ def test_tab_visits_every_control_once_in_reading_order_with_a_focus_ring(open_p
       }
       return out;
     """)
-    assert len(expected) == 13  # 4 sliders, 1 solve button, 4 switches, 4 reset buttons
+    assert len(expected) == 15  # 5 sliders, 1 solve button, 4 switches, 4 reset buttons, 1 search button
     for a, b in zip(expected, expected[1:]):
         same_row = abs(a["top"] - b["top"]) <= 2
-        assert (same_row and b["left"] >= a["left"]) or b["top"] > a["top"], f"DOM order is not reading order: {a['name']} then {b['name']}"
+        next_column = b["left"] > a["left"] + 100  # the signal section's left card comes before its right card
+        assert (same_row and b["left"] >= a["left"]) or b["top"] > a["top"] or next_column, f"DOM order is not reading order: {a['name']} then {b['name']}"
     page.evaluate("document.activeElement && document.activeElement.blur(); window.scrollTo(0, 0)")
     visited = []
     problems = []
@@ -173,9 +174,10 @@ def test_every_control_works_from_the_keyboard(open_page, width):
         slider = page.locator(selector)
         slider.focus()
         before = slider.input_value()
-        page.keyboard.press("ArrowRight")
+        step = -1 if before == slider.get_attribute("max") else 1  # the relativity slider starts at its maximum
+        page.keyboard.press("ArrowLeft" if step < 0 else "ArrowRight")
         settle(page)
-        assert int(slider.input_value()) == int(before) + 1, f"{selector}: arrow key did not move the slider"
+        assert int(slider.input_value()) == int(before) + step, f"{selector}: arrow key did not move the slider"
     boxes = page.locator("#switches input")
     for key in ("Space", "Space"):
         was = boxes.first.is_checked()
@@ -197,7 +199,8 @@ def test_every_control_works_from_the_keyboard(open_page, width):
             page.locator(reset).focus()
             page.keyboard.press(key)
             settle(page)
-            assert page.locator(slider).input_value() == "0", f"{key} did not press {reset}"
+            start = "24" if slider == REL_SLIDER else "0"  # the relativity slider starts at one day
+            assert page.locator(slider).input_value() == start, f"{key} did not press {reset}"
 
 
 # 4. Contrast
@@ -382,10 +385,13 @@ def test_drawings_have_labels_that_follow_the_picture(open_page, width):
     labels = {
         "#map": (CLOCK, "#map"),
         "sky": (GEO_SLIDER, "#step-geometry svg"),
-        "received": (NOISE, "#step-signal svg >> nth=0"),
-        "scores": (NOISE, "#step-signal svg >> nth=1"),
+        "received": (NOISE, "#step-signal [data-el=rows]"),
+        "scores": (NOISE, "#step-signal [data-el=scores-plot]"),
     }
     for name, (slider, svg) in labels.items():
+        if name == "scores":
+            page.locator("#step-signal [data-el=search]").click()
+            settle(page)
         before = page.locator(svg).get_attribute("aria-label")
         half = slider_max(page, slider) // 2
         # The score graph's words only change when the best match moves, which takes a lot of noise.

@@ -18,3 +18,4 @@ One line per entry, added at the end: `- YYYY-MM-DD | source | purpose: command`
 - 2026-11-24 | .venv | browser tools live in the repo's virtual environment: run anything that needs Playwright with `.venv/bin/python` (Chromium and WebKit are installed; never commit `.venv/`)
 - 2026-11-24 | tests/ui | UI tests in real browsers: `UI_TESTS=1 .venv/bin/python -m pytest tests/ui -q` (Chromium and WebKit, about 90 s; CDN files cached in tests/ui/.cdn-cache/)
 - 2026-11-24 | tests/test_annotations.py | check the line-by-line docs: `python -m pytest -q tests/test_annotations.py` (fails naming the file and line when code and docs drift)
+- 2026-11-25 | tests/ui | on Windows: `$env:UI_TESTS=1; .venv\Scripts\python -m pytest tests/ui -q --timeout=120` (full suite 222 tests, about 15 min; pytest-timeout installed in .venv)

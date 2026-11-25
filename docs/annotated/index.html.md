@@ -3,19 +3,20 @@
 Source: `index.html`
 
 ## What this file is for
-This is the page itself, the one file a visitor opens. It holds the words, the map drawing, the slider, the buttons and the switches, plus the page's own layout rules. It does not do any maths or react to clicks: it only lays things out. The JavaScript files it loads at the bottom find these pieces by their `id` names and make them work.
+This is the page itself, the one file a visitor opens. It holds the words, the map drawing, the slider, the buttons and the switches, plus the page's own layout rules. It does not do any maths or react to clicks: it only lays things out. On a phone the map card stays pinned to the top of the screen while the controls scroll under it, so the number and the map are always in view. The JavaScript files it loads at the bottom find these pieces by their `id` names and make them work.
 
 ## Which files it talks to
 - [`web/theme.css`](web/theme.css.md): the shared look (colours, fonts, cards, buttons, switches). This file only adds layout on top. See `docs/ui-guide.md`.
 - [`web/bridge.js`](web/bridge.js.md): the address of Pyodide (a copy of Python that runs inside the browser; `bridge.js` downloads it) is repeated here in a `modulepreload` line so the download can start early. See [bridge.js explained](web/bridge.js.md).
+- [`web/illustrations.js`](web/illustrations.js.md): draws the small sketch under the heading (a satellite, a signal, a phone). A short script at the bottom of this file asks it for the drawing and puts it in the empty `figure-first` box.
 - [`web/first-screen.js`](web/first-screen.js.md): finds the ids below (`map`, `clock`, `solve`, `switches` and so on) and drives the first screen. It calls Python through the bridge: `coords.latlon_to_xyz` and `coords.satellite_from_sky` ([coords.py](mechanism/coords.py.md)), `scenario.make_pseudoranges` ([scenario.py](mechanism/scenario.py.md)), `solver.solve_position` ([solver.py explained](mechanism/solver.py.md)), and `mapview.to_local` and `mapview.distance_lines` ([mapview.py](mechanism/mapview.py.md)).
 - [`web/step-geometry.js`](web/step-geometry.js.md), [`web/step-signal.js`](web/step-signal.js.md), [`web/step-relativity.js`](web/step-relativity.js.md): each fills the empty `<div>` placed for it near the bottom.
 - Outside the repo: Google Fonts (the two typefaces) and the Pyodide download address.
 
 ## In three lines
-1. The head asks the browser to start downloading fonts, Pyodide and the shared style sheet early, and adds a few layout rules.
-2. The body is the first screen: a heading, a ground map with a legend, then the controls (clock slider, error readout, solve button, satellite switches, reset).
-3. Three more empty sections and three link sentences follow, and the scripts at the bottom fill the sections in.
+1. The head asks the browser to start downloading fonts, Pyodide and the shared style sheet early, and adds this page's layout rules (one layout for phones, another from 760 pixels wide).
+2. The body is the first screen: a "Part 1 of 4" label, a heading and a small sketch, one line saying what the map shows, the map card (the map and the error number), the controls (clock slider, solve button, satellite switches, reset), then the map key.
+3. Three more empty sections and three quiet link sentences follow, and the scripts at the bottom fill the sections in.
 
 New to code? See [how to read code](how-to-read-code.md). A few web ideas used a lot below:
 
@@ -103,9 +104,9 @@ Opens a `<style>` element: CSS written directly in the page. These rules are onl
 A CSS comment, written `/* ... */`. It says what this style block is for: layout only, since colours, fonts and rounded-corner sizes come from [`theme.css`](web/theme.css.md).
 
 ```html
-  main { max-width: 1100px; margin: 0 auto; padding: var(--s-6) var(--s-4); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
+  main { max-width: 1100px; margin: 0 auto; padding: var(--s-6) max(var(--s-4), env(safe-area-inset-right)) var(--s-6) max(var(--s-4), env(safe-area-inset-left)); display: grid; grid-template-columns: minmax(0, 1fr); --main-gap: var(--s-5); gap: var(--main-gap); }
 ```
-The rule for `main`, the page's main content. `max-width: 1100px` stops it getting wider than 1100 pixels on big screens. `margin: 0 auto` puts zero space above and below and splits the leftover space equally left and right, which centres it. `padding: var(--s-6) var(--s-4)` is space inside the edge: 32 pixels top and bottom, 16 on the sides. `display: grid` lays the children out as a grid, with a single column `minmax(0, 1fr)` (width from 0 up to all the space: see the next comment), and `gap: var(--s-5)` leaves 24 pixels between rows. Without it the page would stretch edge to edge.
+The rule for `main`, the page's main content. `max-width: 1100px` stops it getting wider than 1100 pixels on big screens. `margin: 0 auto` puts zero space above and below and splits the leftover space equally left and right, which centres it. `padding` is the space inside the edge, written as four values (top, right, bottom, left): 32 pixels top and bottom, and on each side `max(var(--s-4), env(safe-area-inset-...))`, which means "16 pixels, or more if the phone says its screen has a notch or a rounded corner there" (`max` picks the larger; `env(safe-area-inset-right)` is a number the phone supplies). `display: grid` lays the children out as a grid with a single column `minmax(0, 1fr)` (width from 0 up to all the space: see the next comment). `--main-gap: var(--s-5)` makes a new CSS variable of this page's own, 24 pixels, and `gap: var(--main-gap)` uses it as the space between rows. Keeping the gap in a variable lets other rules read it: the phone layout shrinks it, and the link sentences subtract it to get their spacing exactly right (see `.link-line` below). Without it the page would stretch edge to edge.
 
 ```html
   /* Grid columns may shrink below their content, so nothing is cut off at 200 % zoom. */
@@ -133,14 +134,226 @@ The intro block is a grid with 8 pixels between its pieces (`--s-2`).
 For the heading `h1`, `text-wrap: balance` makes the browser spread the words evenly across lines, so a heading that wraps does not leave one lonely word.
 
 ```html
-  .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
+  /* First screen. Phone order: the "looking at" line, the map card (sticky) with the result beside it, the controls, the map notes. */
 ```
-The `.grid` class (the two big cards: map and controls) is a grid with one shrinkable column and a 24 pixel gap. This is the layout for narrow screens such as phones: the cards stack.
+A comment describing the first screen's order on a phone, top to bottom: one line saying what you are looking at, the map card (which sticks to the top) with the result number beside the map, then the controls, then the map notes (the key). Nothing breaks without the comment.
 
 ```html
-  @media (min-width: 760px) { .grid { grid-template-columns: 1.1fr 1fr; align-items: start; } }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
 ```
-A *media query*: `@media (min-width: 760px)` means "only apply the rule inside the braces when the window is at least 760 pixels wide". Then `.grid` gets two columns, `1.1fr 1fr`, which share the room in proportion 1.1 to 1 (an `fr` is one share), and `align-items: start` aligns both cards to the top instead of stretching them to equal height. Worked example: if 1,000 px is left after the gap, one share is 1,000 / 2.1 = 476.2 px, so the map card is 1.1 x 476.2 = 523.8 px and the controls card 476.2 px. Below 760 px the cards stack.
+The `.grid` class (the "looking at" line, the map card, the controls and the map notes) is a grid with one shrinkable column and a 16 pixel gap (`--s-4`). This is the layout for narrow screens such as phones: the parts stack.
+
+```html
+  .looking-map { margin: 0; }
+```
+The "what you're looking at" line above the map (the class `looking-map`) gets no margin of its own. The spacing around it comes from the grid gap instead.
+
+```html
+  .map-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
+```
+The map card (the card that holds the map and the result) is also a grid: one shrinkable column, 16 pixels between the map and the result. The phone layout below changes this to two columns.
+
+```html
+  .map-card .readout { align-content: start; }
+```
+Inside the map card, the result box (`.readout`) packs its pieces at the top of its space (`align-content: start`) instead of spreading them out if the box is taller than they need.
+
+```html
+  .figure-strip svg { display: block; width: 100%; }
+```
+The sketch under the heading lives in a box with the class `figure-strip`. Any drawing (`svg`) in it fills the box's width (`width: 100%`) and is `display: block`, which removes the small gap browsers leave under a drawing sitting in a line of text.
+
+```html
+  .figure-strip .figure-narrow { height: 64px; }
+  .figure-strip .figure-wide { display: none; height: 76px; }
+```
+The page draws the sketch twice, a narrow version for phones and a wide one for bigger screens (see [`web/illustrations.js`](web/illustrations.js.md)). By default the narrow one is 64 pixels tall, and the wide one is switched off (`display: none`) and would be 76 pixels tall. The wide-window layout further down swaps them.
+
+```html
+  .figure :is(rect, line, path, circle) { vector-effect: non-scaling-stroke; }
+```
+For the shapes in the sketch (`rect` rectangles, `line`s, `path`s and `circle`s: `:is(...)` means "any of these"), `vector-effect: non-scaling-stroke` keeps the outline the same thickness on screen even though the drawing is scaled to fit. Without it the lines would get thicker or thinner with the screen width.
+
+```html
+  /* The pulse runs once along the line, then rests at the phone's end of it (reduced motion: it only rests). */
+```
+A comment about the small dot in the sketch that stands for the signal. It travels once along the dashed line from the satellite to the phone, then stays at the phone's end. For visitors who ask for less motion, it does not travel and simply sits there.
+
+```html
+  .fig-pulse { fill: var(--text); stroke: none; transform: translateX(var(--travel)); animation: fig-travel 1.2s linear 0.4s 1 backwards; }
+```
+The pulse dot (`.fig-pulse`) is filled with the main text colour and has no outline. `transform: translateX(var(--travel))` shifts it sideways by the length of the dashed line; `--travel` is a variable that each drawing sets for itself, in pixels, so the dot rests at the phone's end. `animation: fig-travel 1.2s linear 0.4s 1 backwards` runs the animation named `fig-travel` (defined next) for 1.2 seconds at constant speed (`linear`), after waiting 0.4 seconds, once (`1`). `backwards` means that during the wait the dot already shows the first frame of the animation (invisible, at the start), instead of sitting at the end and then jumping back.
+
+```html
+  @keyframes fig-travel { from { transform: translateX(0); opacity: 0; } 15% { opacity: 1; } to { transform: translateX(var(--travel)); opacity: 1; } }
+```
+`@keyframes` defines an animation as a list of moments. `from` (the start): the dot is at its starting place (`translateX(0)`) and fully see-through (`opacity: 0`). At 15 % of the way through it has faded in (`opacity: 1`). At `to` (the end) it has moved the whole distance to the phone and stays visible. Worked example: for a dashed line 104 pixels long, the dot slides 104 pixels to the right in 1.2 seconds.
+
+```html
+  @media (prefers-reduced-motion: reduce) { .fig-pulse { animation: none; } }
+```
+For a visitor whose computer is set to reduce motion, the animation is switched off (`animation: none`). The dot then just sits at the end, where its `transform` puts it.
+
+```html
+  .figure-strip { min-height: 64px; } /* the drawing is added by a script: keep its room so nothing below moves */
+```
+The sketch box keeps a minimum height of 64 pixels. The comment explains why: the drawing is put in by a script a moment after the page loads, and without this reserved room everything below would jump down when it arrived.
+
+```html
+  /* Phones: the map card stays at the top while its grid is on screen, so the map and the number are never scrolled away from the controls. */
+```
+A comment introducing the phone rules. On a phone the map card is pinned to the top while the visitor works the controls, so the map and the error number are never scrolled away. Nothing breaks without the comment.
+
+```html
+  @media (max-width: 759px) {
+```
+A media query: the rules inside the braces apply only when the window is 759 pixels wide or narrower, that is, on phones and small tablets. The next several blocks are inside it.
+
+```html
+    /* The "Part 1 of 4" label costs about 25 px; these four tighter gaps pay it back so the slider stays above the fold. */
+```
+A comment: the new "Part 1 of 4" label above the heading takes about 25 pixels of height. The next few rules tighten gaps to win that height back, so that the slider is still on screen without scrolling (the "fold" is the bottom edge of the first screenful).
+
+```html
+    main { padding-top: var(--s-3); --main-gap: var(--s-3); }
+```
+On phones the top padding of `main` falls to 12 pixels and the variable `--main-gap` drops from 24 to 12 pixels, so every row of the page grid sits closer together.
+
+```html
+    main .intro > .part-label { margin-bottom: 0; }
+```
+The "Part 1 of 4" label (`.part-label`, a direct child `>` of the intro inside `main`) gets no margin below it on phones.
+
+```html
+    .grid .looking-map { margin-bottom: 0; }
+    .grid { gap: var(--s-3); }
+```
+Inside the first-screen grid, the "looking at" line gets no bottom margin and the gap between the grid's parts drops to 12 pixels.
+
+```html
+    .slider-head label { font-size: var(--text-sm); }
+```
+The slider's label (`Make the phone's clock wrong`) is set to the small size, 14 pixels, so it fits on one line on a phone.
+
+```html
+    .grid .card { --pad-card: var(--s-4); }
+    .grid .controls { --pad-card: var(--s-3); }
+    .grid .map-card { --pad-card: var(--s-3); }
+```
+`--pad-card` is the variable [`theme.css`](web/theme.css.md) uses for the space inside a card. Here it is turned down for the cards of the first screen: 16 pixels for any card in the grid, then 12 pixels for the controls card and for the map card (these two rules are more specific, so they win). Cards are smaller on phones to leave room for the map.
+
+```html
+    .guide-target { padding: var(--s-3); }
+    .intro { gap: var(--s-1); }
+```
+The three groups the guide highlights get 12 pixels of padding instead of 16, and the intro's pieces (label, heading, sketch) are only 4 pixels apart instead of 8.
+
+```html
+    .map-card { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: var(--s-3); }
+```
+On a phone the map card has two equal columns, the map on the left and the result on the right, with 12 pixels between them, both aligned to the top (`align-items: start`). This makes the pinned card short, so it does not cover too much of the screen.
+
+```html
+    .map-card .readout { padding: 0; background: none; border: 0; gap: var(--s-1); }
+```
+On a phone the result box inside the map card loses its own padding, background and border (so it does not look like a box inside a box), and its parts sit 4 pixels apart.
+
+```html
+    .map-card .note { font-size: var(--text-xs); }
+    .map-card .big { line-height: 1.2; }
+```
+In the map card on a phone, messages are set at the smallest size (`--text-xs`, 12 pixels), and the big error number gets a line height of 1.2 times its size, which keeps it compact.
+
+```html
+    .map .map-wait { font-size: 30px; }
+```
+The "map appears when Python has loaded" text is given a font size of 30 on phones. The map is drawn smaller there, and the size is in the drawing's own units rather than screen pixels, so this larger number is what keeps the words readable.
+
+```html
+  }
+```
+Closes the phone block.
+
+```html
+  @media (max-width: 759px) and (min-height: 600px) {
+```
+Another media query: it applies only when the window is both narrow (759 pixels or less) and at least 600 pixels tall. On a short phone, for example held sideways, a pinned card would cover too much of the screen, so the pinning below is left out.
+
+```html
+    .map-card { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; }
+```
+This is the sticky map card. `position: sticky` makes the card scroll normally until it reaches `top`, and then stay pinned there while the rest scrolls under it. `top: env(safe-area-inset-top, 0px)` is the top edge of the screen, moved down by the phone's notch if it has one (0 if not). `z-index: 2` puts the card in front of the controls that scroll underneath it.
+
+```html
+    /* A focused control is never scrolled in under the sticky card. --sticky-h is set in first-screen.js. */
+```
+A comment: when a control is selected, for example with the keyboard, the browser scrolls it into view. These rules keep it from stopping underneath the pinned card. `--sticky-h` is the card's height, written into the page by [`web/first-screen.js`](web/first-screen.js.md) (it measures the card and updates the number when the card changes size).
+
+```html
+    .controls :is(input, button) { scroll-margin-top: calc(var(--sticky-h, 220px) + var(--s-3)); }
+```
+For any slider, switch or button inside the controls card, `scroll-margin-top` tells the browser to leave that much room above it when it scrolls it into view: the card's height plus 12 pixels. `var(--sticky-h, 220px)` means "use `--sticky-h`, or 220 pixels if it has not been set yet".
+
+```html
+    .controls #clock { scroll-margin-top: calc(var(--sticky-h, 220px) + 7rem); }
+```
+The clock slider (`#clock`) needs more room above it: the card's height plus `7rem` (7 times the page's base text size, 112 pixels at the usual 16), because the hint and the message line sit above the slider and should stay visible too.
+
+```html
+    .controls :is(input, button) { scroll-margin-bottom: var(--s-6); }
+```
+And the same controls keep 32 pixels free below them when scrolled into view, so they are not right at the bottom edge of the screen.
+
+```html
+  }
+```
+Closes the tall-phone block.
+
+```html
+  @media (min-width: 760px) {
+```
+A media query for windows at least 760 pixels wide: laptops, desktops and tablets. The blocks inside it make the two-column layout.
+
+```html
+    .figure-strip { min-height: 76px; }
+    .figure-strip .figure-narrow { display: none; }
+    .figure-strip .figure-wide { display: block; }
+```
+On a wide window the sketch box reserves 76 pixels, the narrow drawing is hidden and the wide drawing is shown (`display: block`). This is the swap mentioned earlier.
+
+```html
+    .grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-template-areas: "looking ." "map controls" "notes controls"; grid-template-rows: auto auto 1fr; column-gap: var(--s-5); row-gap: 0; align-items: start; }
+```
+The page grid becomes two columns sharing the room in proportion 1.1 to 1 (an `fr` is one share; `minmax(0, ...)` lets them shrink). Worked example: if 1,000 px is left after the gap, one share is 1,000 / 2.1 = 476.2 px, so the left column is 1.1 x 476.2 = 523.8 px and the right one 476.2 px. `grid-template-areas` draws the layout as a picture in words: three rows, each in quotes, two cells per row. Row 1 is `looking` on the left and `.` (a dot means "empty") on the right. Row 2 is `map` on the left and `controls` on the right. Row 3 is `notes` on the left and `controls` again, which means the controls card is tall and covers rows 2 and 3 on the right. `grid-template-rows: auto auto 1fr` makes the first two rows only as tall as their contents and gives the third row all the leftover height. `column-gap: var(--s-5)` is 24 pixels between columns and `row-gap: 0` is no space between rows (the rules below add their own margins). `align-items: start` aligns everything to the top.
+
+```html
+    .looking-map { grid-area: looking; margin-bottom: var(--s-3); }
+    .map-card { grid-area: map; }
+    .controls { grid-area: controls; }
+    .map-notes { grid-area: notes; margin-top: var(--s-4); }
+```
+Each part says which named area it goes in: the "looking at" line in `looking` (with 12 pixels below), the map card in `map`, the controls card in `controls`, and the map notes in `notes` (with 16 pixels above). Without these lines the parts would fill the cells in the order they are written, which would not match the picture.
+
+```html
+    /* The map is capped so the number under it stays on a laptop screen; the result is one compact row. */
+```
+A comment: the map is limited in size so that the error number under it still fits on a laptop screen without scrolling, and the result is one tidy row.
+
+```html
+    .map-card .map { width: min(100%, 420px, max(240px, calc(100vh - 400px))); margin: 0 auto; }
+```
+The map's width is the smallest (`min`) of three things: 100 % of the card, 420 pixels, and `max(240px, calc(100vh - 400px))`. `100vh` is the height of the window, so the third is "the window height minus 400 pixels, but never less than 240". Worked example: on a window 800 px tall, the third value is 400 px, so the map is the smaller of the card width, 420 and 400. `margin: 0 auto` centres it in the card.
+
+```html
+    .map-card .readout { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--s-4); }
+    .map-card .readout #msg-readout { flex-basis: 100%; }
+```
+On a wide window the result box becomes a row (`display: flex`): the label "Position off by", the big number and the badge sit side by side on the same text line (`align-items: baseline`), 16 pixels apart, and wrap to a new line if there is no room. The message line (`#msg-readout`, `#` means "the element with this id") takes 100 % of the width (`flex-basis: 100%`), so it always goes on its own line below.
+
+```html
+  }
+```
+Closes the wide-window block.
 
 ```html
   .stack { display: grid; gap: var(--s-4); }
@@ -165,9 +378,9 @@ Three rules for the parts of the map drawing (SVG is described later). `.map-fra
 Limits paragraphs inside the intro to `60ch`: sixty times the width of the letter 0, about 60 characters per line, which is comfortable to read.
 
 ```html
-  .map-key { list-style: none; margin: var(--s-3) 0 0; padding: 0; display: grid; gap: var(--s-1); font-size: var(--text-sm); color: var(--text-muted); }
+  .map-key { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-1); font-size: var(--text-sm); color: var(--text-muted); }
 ```
-The map key list (`.map-key`): `list-style: none` removes bullet points, `margin: var(--s-3) 0 0` gives 12 pixels above and nothing elsewhere, `padding: 0` removes the default indent, it is a grid with 4 pixels between entries, and the text is small (`--text-sm`, 14 pixels) and muted grey.
+The map key list (`.map-key`): `list-style: none` removes bullet points, `margin: 0` and `padding: 0` remove the default space around and inside it (the space now comes from the notes box that holds it), it is a grid with 4 pixels between entries, and the text is small (`--text-sm`, 14 pixels) and muted grey.
 
 ```html
   .map-key li { display: flex; align-items: center; gap: var(--s-2); }
@@ -218,6 +431,31 @@ The dot for "where the phone thinks it is": `currentColor` means "whatever the t
 The caption under the map gets 12 pixels of space above and small text.
 
 ```html
+  .slider > #status:empty { margin-top: calc(-1 * var(--s-2)); } /* an empty line below the slider takes no room, not even its grid gap */
+```
+The status line now sits under the slider, as the last child (`>` means a direct child) of the slider block. While it is empty, `margin-top: calc(-1 * var(--s-2))` pulls it up by 8 pixels, which is the grid gap of the slider block ([`theme.css`](web/theme.css.md) sets `.slider` to `gap: var(--s-2)`). The two cancel out, so an empty status line takes no room at all, not even the gap. The comment says the same.
+
+```html
+  /* One reserved line above the slider holds the step-1 hint or, when there is one, the message (same grid cell), so the slider never moves. */
+```
+A comment: above the slider there is one reserved space. It shows either the step-1 hint or, when there is a message, the message. Both are in the same place, so the slider never moves up or down when one replaces the other.
+
+```html
+  .slider > #hint-1, .slider > #msg-slider { grid-area: 1 / 1; font-size: var(--text-sm); }
+```
+Both the hint (`#hint-1`) and the message (`#msg-slider`) are placed in grid row 1, column 1 (`grid-area: 1 / 1`), the same single cell, so they overlap exactly. Both get the small text size.
+
+```html
+  .slider > #msg-slider { min-height: 3em; }
+```
+The message line keeps a height of at least `3em` (three lines of text), even when empty. This is the reserved space from the comment above. A rule that names an id is stronger than the general `.note:empty` rule further down, so this one wins and the room is kept.
+
+```html
+  .slider > #msg-slider:not(:empty) + #hint-1 { visibility: hidden; }
+```
+When the message line has words in it (`:not(:empty)`), the element right after it (`+ #hint-1`, the hint) is made invisible with `visibility: hidden`, which hides it but keeps its place. So the message and the hint never print over each other.
+
+```html
   .badge[hidden] { display: none; }
 ```
 The `hidden` attribute normally hides an element. But `.badge` in [`theme.css`](web/theme.css.md) sets `display: inline-flex`, and a stylesheet rule overrides the browser's built-in hiding, so the badge would show even when marked `hidden`. This rule puts the hiding back, only for badges that have the attribute.
@@ -243,15 +481,21 @@ The error readout box: 16 pixels of padding inside, laid out as a grid with 8 pi
 Message lines (`.note`): small and muted, with a minimum height of `1.5em`. An `em` is the current font size, so at 14 pixels it is 21 pixels. A line of text keeps its room even when empty.
 
 ```html
-  /* An empty message line takes no room, except where a control sits below it: those keep their height so nothing moves when words appear. */
+  /* An empty message line takes no room, not even its block's grid gap. They answer a press, so a one-line shift when words appear is fine. The readout's line keeps its height. */
   .note:empty { min-height: 0; }
 ```
-A comment, then a rule. `.note:empty { min-height: 0; }`: a message line with nothing in it takes no room, so there are no blank gaps. The comment states the exception handled in the next rule: where a control sits below, the line keeps its height so nothing jumps when words appear.
+A comment, then a rule. `.note:empty { min-height: 0; }`: a message line with nothing in it takes no room. The comment explains the choice: these lines answer a button press, so if the page moves down by one line when words appear, that is acceptable. The exceptions are the slider's message line (above) and the result's message line (next).
 
 ```html
-  #msg-slider:empty, #msg-readout:empty, #msg-solve:empty, #msg-switch:empty { min-height: 1.5em; }
+  #msg-readout:empty { min-height: 1.5em; }
 ```
-The exception. These ids (a `#` before a name means "the element with that id") are the message lines under the slider, the readout, the solve button and the satellite switches. For them `min-height: 1.5em` (21 pixels) is set again even when empty. An id selector is more specific than the `:empty` rule above, so it wins.
+The exception for the result. The message line under the error number (`#msg-readout`) keeps a height of `1.5em` (21 pixels at 14 pixels text) even when empty. The error number is the thing a visitor watches, and it should not jump when a message arrives.
+
+```html
+  /* Out of the flow while empty, so it makes no grid row and no gap (a negative margin cannot shrink a grid track); it stays a live region. */
+  #msg-solve:empty, #msg-switch:empty, #msg-reset:empty { position: absolute; }
+```
+A comment, then a rule for the message lines under the solve button, the satellite switches and the reset button. When one of them is empty, `position: absolute` takes it "out of the flow": the grid treats it as if it were not there, so it makes no row and no gap between rows. The comment says why not use a negative margin: a margin cannot shrink a grid row, but removing the item can. The line is still in the page, so screen readers still announce it when words arrive (it "stays a live region"). When words are added the rule stops matching (`:empty` no longer applies), the line goes back into the flow and the controls below move down one line.
 
 ```html
   h2.label, h3.label { margin-bottom: var(--s-3); }
@@ -345,19 +589,44 @@ Closes the reduced-motion block.
 A comment giving a reason for the next rule, taken from the team's speed test (`test_speed`): the link sentences are 18 pixels (0.9 of the large text size) and have no maximum width, because of a problem the test found in Safari-type browsers (WebKit). With 16 pixel text or a capped width, those browsers did not report a "first paint" (the moment something is first drawn on screen) while the CDN (the public file server Pyodide is downloaded from) was slow.
 
 ```html
-  .link-line { font-size: calc(var(--text-lg) * 0.9); color: var(--text-muted); text-wrap: balance; }
+  .link-line { font-size: calc(var(--text-lg) * 0.9); color: var(--text-muted); font-weight: 400; text-wrap: balance; /* main's grid gap is added to the margins, so subtract it: --s-7 above the bridge, --s-3 below. */ margin: calc(var(--s-7) - var(--main-gap)) 0 calc(var(--s-3) - var(--main-gap)); }
 ```
-The link sentences between sections (`.link-line`): `calc(var(--text-lg) * 0.9)` is 20 pixels x 0.9 = 18 pixels, muted colour, and `text-wrap: balance` for even lines.
+The link sentences between sections (the "bridges", `.link-line`). `calc(var(--text-lg) * 0.9)` is 20 pixels x 0.9 = 18 pixels. The colour is muted grey, the weight is 400 (normal, not bold) and `text-wrap: balance` evens out the lines. The `margin` is the space around the sentence, written top, sides, bottom: `calc(var(--s-7) - var(--main-gap)) 0 calc(var(--s-3) - var(--main-gap))`. The comment inside the rule explains it: `main`'s grid gap is added on top of margins, so the gap is subtracted to land on the wanted totals: 48 pixels (`--s-7`) above the sentence and 12 pixels (`--s-3`) below. Worked example on a wide window, where `--main-gap` is 24: the top margin is 48 - 24 = 24, plus the 24 gap = 48 above. The bottom margin is 12 - 24 = -12 (a negative margin pulls things closer), plus the 24 gap = 12 below. On a phone `--main-gap` is 12, and the totals are the same. So each bridge sits near the section it introduces and far from the one before.
 
 ```html
-  .link-line strong { color: var(--text); }
+  .link-line strong { color: var(--text-muted); font-weight: 500; }
 ```
-Bold words in a link sentence (`strong`) go back to the full text colour, so the "but" and "Therefore" stand out.
+The words in bold in a link sentence (`strong`: "but" and "Therefore") are now the same muted colour as the rest, with a medium weight of 500. The bridges are quiet: they link sections without competing with them for attention.
 
 ```html
-  #step-geometry, #step-signal, #step-relativity { margin-top: var(--s-6); }
+  .intro > .part-label { margin: 0 0 var(--s-2); }
 ```
-The three empty section holders get 32 pixels of space above (`--s-6`), separating the sections.
+The "Part 1 of 4" label (`.part-label`, a direct child of the intro) gets no margin on top or the sides and 8 pixels below (`margin` with three values means top, left and right, bottom). The same label class is used by the other three sections; each of them writes its own "Part 2 of 4", "Part 3 of 4" and "Part 4 of 4".
+
+```html
+  .looking { font-size: var(--text-sm); color: var(--text); margin: 0 0 var(--s-3); }
+```
+The "What you're looking at" line, a shared class `.looking`: small text (14 pixels) in the main text colour, with 12 pixels below. Every section uses it as the first line over its picture, so a visitor always gets one plain sentence about what the drawing shows.
+
+```html
+  .looking b { font-weight: 600; }
+```
+The bold opening words of that line (`b`, "What you're looking at:") are given a weight of 600, a semibold.
+
+```html
+  .figure { stroke: var(--text); stroke-width: 1.5; fill: none; }
+```
+The class `.figure` is for the small sketches from [`web/illustrations.js`](web/illustrations.js.md): their lines are drawn in the main text colour, 1.5 wide, and shapes are not filled in (`fill: none`).
+
+```html
+  .figure .dim { stroke: var(--text-muted); }
+```
+Parts of a sketch marked with the class `dim` (such as the dashed signal line) are drawn in the quieter muted colour.
+
+```html
+  .figure text { stroke: none; fill: var(--text-muted); font: 400 var(--text-xs) var(--font-sans); }
+```
+Words inside a sketch (`text`) have no outline (`stroke: none`), are filled with the muted colour, and use the shorthand `font: 400 var(--text-xs) var(--font-sans)`: weight 400, size 12 pixels, the sans-serif font. (An SVG word is coloured with `fill`, not `color`.)
 
 ```html
 </style>
@@ -385,19 +654,19 @@ Opens `<main>`, the main content. Screen readers can jump straight to it. The `m
 Opens the intro block, a `<header>`. `class="intro"` links it to the intro rules above.
 
 ```html
+    <p class="label part-label">Part 1 of 4</p>
+```
+A small label (the `label` look from [`theme.css`](web/theme.css.md): tiny capital letters in muted grey) saying `Part 1 of 4`. The page is told as four parts, and each part starts with one of these, so a visitor always knows where they are. The class `part-label` is what the page's own CSS uses to tighten its spacing.
+
+```html
     <h1>How does your phone know where you are?</h1>
 ```
-The page's main heading, `h1`: `How does your phone know where you are?`.
+The page's main heading, `h1`: `How does your phone know where you are?`. It is now the second thing in the intro, after the part label.
 
 ```html
-    <p>Each satellite's signal says when it left. Your phone times the trip, and travel time × the speed of light = distance. Each distance draws one line on the map, and you are where the lines meet.</p>
+    <div class="figure-strip" id="figure-first"></div>
 ```
-The first paragraph (`<p>`) tells the whole idea in one go: each satellite's signal says when it left, the phone times the trip, and travel time x the speed of light = distance.
-
-```html
-    <p class="muted">That only works if the phone's clock is right. Make it wrong and watch what happens.</p>
-```
-A second paragraph with the class `muted` (a muted colour from [`theme.css`](web/theme.css.md)): `That only works if the phone's clock is right. Make it wrong and watch what happens.`
+An empty box for the small sketch under the heading: a satellite, a dashed line with a pulse travelling along it, a phone, and the words "travel time x speed of light = distance". It replaces the two paragraphs that used to say this in words. The box starts empty; the script near the bottom of the file puts the drawing in, using the `id`. The class `figure-strip` is what the CSS above uses to size it and to keep room for it.
 
 ```html
   </header>
@@ -407,17 +676,17 @@ Closes the header.
 ```html
   <div class="grid">
 ```
-Opens `div class="grid"`, a generic box (`div`) that holds the two cards side by side, or stacked on a phone (see the two `.grid` rules in the style block above).
+Opens `div class="grid"`, a generic box (`div`) that holds the first screen's four parts: the "looking at" line, the map card, the controls card and the map notes. On a wide window they sit in two columns; on a phone they stack (see the `.grid` rules in the style block above).
 
 ```html
-    <section class="card" aria-labelledby="map-title">
+    <p class="looking looking-map" id="looking-map"><b>What you're looking at:</b> a map of the ground around the phone. Each line is one satellite's distance to you. Where the lines meet is where your phone thinks you are.</p>
 ```
-Opens the first card: a `<section>`, with the shared `card` look. `aria-labelledby="map-title"` says that the element with that id (the heading on the next line) is this section's name, so screen readers announce it as "Ground map".
+The one-line introduction to the map: `What you're looking at: a map of the ground around the phone. Each line is one satellite's distance to you. Where the lines meet is where your phone thinks you are.` The `<b>` makes the first words bold. `class="looking looking-map"` has two classes: `looking` is the shared look every section uses for this kind of line, and `looking-map` is the one the layout rules use to place this one. It sits above the map card, so a visitor reads what the picture shows before the picture.
 
 ```html
-      <h2 class="label" id="map-title">Ground map</h2>
+    <section class="card map-card" aria-label="Ground map and result">
 ```
-The card's heading `Ground map`, with `id="map-title"` for the line above to point to.
+Opens the first card: a `<section>`, with the shared `card` look and the `map-card` class that the phone and wide layouts use (the phone layout pins it to the top). `aria-label="Ground map and result"` names the section for screen readers. This card now holds the map and the error number together; the old heading `Ground map` is gone because the "looking at" line above does that job.
 
 ```html
       <svg class="map" id="map" viewBox="0 0 400 400" role="img" aria-label="Ground map. Each satellite draws a distance line. The dot is where the phone thinks it is.">
@@ -445,9 +714,9 @@ An empty group `map-lines`, which holds the distance lines the code draws, in fr
 A group `map-dot` for the "where the phone thinks it is" dot. `class="is-ok"` is its starting colour state. `style="display: none"` hides it until the code has a position. It contains a circle of radius 9 with the `map-dot` look. The code moves it by changing its centre numbers.
 
 ```html
-        <text id="map-wait" class="map-wait" x="200" y="240" text-anchor="middle">The map appears when Python has loaded.</text>
+        <text id="map-wait" class="map-wait" x="200" y="252" text-anchor="middle"><tspan x="200">The map appears when </tspan><tspan x="200" dy="1.3em">Python has loaded.</tspan></text>
 ```
-The waiting text, `The map appears when Python has loaded.`, centred (`text-anchor="middle"`) horizontally in the middle of the square (x 200) and low down (y 240). It sits below the middle on purpose: the "where it really is" cross is drawn in the middle and its arms end at y 212, so words at y 200 were drawn over the cross. The code hides it once the map is ready.
+The waiting text, `The map appears when Python has loaded.`, now on two lines so it fits in a map that is small on a phone. `text-anchor="middle"` centres each line on its `x`. The `<text>` is placed at x 200 (the middle across) and y 252 (low down). It sits below the middle on purpose: the "where it really is" cross is drawn in the middle and its arms end at y 212, so words at y 200 were drawn over the cross. Inside it, two `<tspan>` pieces are the two lines: the first, `The map appears when `, and the second, `Python has loaded.`. Both are at `x="200"` so they stay centred; `dy="1.3em"` moves the second line down by 1.3 times the font size (about 18 units for a 14 unit font), which is what makes it a second line. The code hides the whole text once the map is ready.
 
 ```html
       </svg>
@@ -455,49 +724,44 @@ The waiting text, `The map appears when Python has loaded.`, centred (`text-anch
 Closes the SVG.
 
 ```html
-      <ul class="map-key" aria-label="Map key">
+      <div class="inset readout">
 ```
-Opens the map key, a list (`<ul>`). `aria-label="Map key"` names the list for screen readers.
+Opens the error readout box, an `inset` look with the `readout` layout rules. It now sits inside the map card, under the map (on a phone, beside it), so the number is always next to the map it describes.
 
 ```html
-        <li><svg viewBox="0 0 24 12" aria-hidden="true"><line class="map-line" x1="1" y1="6" x2="23" y2="6"/></svg> A distance line: one satellite says you are somewhere on it</li>
+        <span class="label">Position off by</span>
 ```
-The first key item (`<li>`): a tiny 24 by 12 drawing of a line from x 1 to x 23 at height 6 (`<line>`), followed by `A distance line: one satellite says you are somewhere on it`. `aria-hidden="true"` on the drawing hides it from screen readers, since it only repeats what the words say.
+The small heading `Position off by`, in the label look.
 
 ```html
-        <li><svg viewBox="0 0 24 12" aria-hidden="true"><circle class="map-dot is-ok-sample" cx="12" cy="6" r="4"/></svg> Where the phone thinks it is</li>
+        <span class="num big" id="error-value">–</span>
 ```
-The second item: a little circle of radius 4 at the centre (12, 6) of its drawing, with the sample colour class, then `Where the phone thinks it is`.
+The error number, big and in the number font, starting as an en dash `–` (no value yet). The code writes the error in metres here.
 
 ```html
-        <li><svg viewBox="0 0 24 12" aria-hidden="true"><path class="map-true" d="M6 6h12M12 0v12"/></svg> Where it really is</li>
+        <div><span class="badge is-ok" id="error-badge" hidden></span></div>
 ```
-The third item: a cross drawn by a `<path>`. In its `d` text, `M6 6` moves to (6, 6), `h12` draws 12 across, `M12 0` moves to (12, 0), and `v12` draws 12 down. Then `Where it really is`.
+A box holding the badge, a small pill. The `badge` look and `is-ok` colour come from [`theme.css`](web/theme.css.md). It is `hidden` until there is a result, and the code then writes words such as `Good fix` into it and changes the colour class.
 
 ```html
-      </ul>
+        <p class="note" id="msg-readout" role="status" aria-live="polite"></p>
 ```
-Closes the list.
+A message line for the readout.
 
 ```html
-      <p class="map-caption muted" id="map-caption" role="status" aria-live="polite"></p>
+      </div>
 ```
-The caption under the map: empty at the start, filled in by the code with how wide the map is (for example `The map is about 2 km wide. North is up.`), or that the phone's position is off the edge, plus how many distance lines have moved off the map. `role="status"` and `aria-live="polite"` make a screen reader read out any change to it when it next has a pause, without cutting off what it is saying. The pattern is repeated on every message line below.
+Closes the readout.
 
 ```html
     </section>
 ```
-Closes the first card.
+Closes the map card.
 
 ```html
-    <section class="card stack" aria-label="Controls">
+    <section class="card stack controls" aria-label="Controls">
 ```
-Opens the second card, the controls. `class="card stack"` gives it both the card look and a vertical pile. `aria-label="Controls"` names it.
-
-```html
-      <p class="note" id="status" role="status" aria-live="polite">Loading the maths…</p>
-```
-The status line, shown first: `Loading the maths…`. The code changes it while Python loads and shows failure messages here.
+Opens the second card, the controls. `class="card stack controls"` gives it the card look, a vertical pile (`stack`), and the `controls` class that the layout rules use to place it and to size its scroll margins. `aria-label="Controls"` names it.
 
 ```html
       <div class="slider inset guide-target highlight" id="block-slider">
@@ -505,9 +769,14 @@ The status line, shown first: `Loading the maths…`. The code changes it while 
 Opens the slider block. `slider` and `inset` are look classes from [`theme.css`](web/theme.css.md), and `guide-target highlight` make it the first step of the guide, with the highlight border visible from the start. `id="block-slider"` lets the code switch the highlight.
 
 ```html
-        <p class="hint" id="hint-1" hidden>Step 1. Drag this slider to the right.</p>
+        <p class="note" id="msg-slider" role="status" aria-live="polite"></p>
 ```
-The first hint: `Step 1. Drag this slider to the right.` The `hidden` attribute hides it at first; the code reveals it.
+The message line for the slider, now above the slider, empty until the code has something to say. It shares one reserved space with the first hint below (see the `#msg-slider` rules in the style block), so the slider does not move when a message appears.
+
+```html
+        <p class="hint" id="hint-1" hidden>Step 1. This only works if the phone's clock is right. Drag the slider to make it wrong.</p>
+```
+The first hint: `Step 1. This only works if the phone's clock is right. Drag the slider to make it wrong.` It now says why the step matters, and replaces the short intro paragraph that said the same thing. The `hidden` attribute hides it at first; the code reveals it.
 
 ```html
         <div class="slider-head">
@@ -535,44 +804,19 @@ Closes the row.
 The slider itself: an `<input>` of `type="range"`, a draggable bar. `value="0"` starts it at the left end. `disabled` keeps it switched off until Python has loaded. What switches it on: `start()` in [`web/first-screen.js`](web/first-screen.js.md) waits (through `whenPythonReady`) for Python, builds the scene with `buildScene`, then calls `setControlsDisabled(false)`. No range is written here: `setupControls` in the same file sets the smallest value to 0, the largest to 60 and the step to 1. With the clock settings in [`web/config.js`](web/config.js.md) (0 to 3 microseconds in steps of 0.05) that is 3e-6 / 5e-8 = 60 steps, and each step is 0.05 microseconds.
 
 ```html
-        <p class="note" id="msg-slider" role="status" aria-live="polite"></p>
+        <p class="note" id="status" role="status" aria-live="polite">Loading the maths…</p>
 ```
-The message line under the slider, empty until the code has something to say.
+The status line, shown first: `Loading the maths…`. It has moved from the top of the controls card to just under the slider. The code changes it while Python loads and shows failure messages here. When it is empty it takes no room (see the `#status:empty` rule above).
+
+```html
+        <p class="note" id="load-note">The first visit can take up to a minute on a phone.</p>
+```
+A second line under the status line, added at Icarus's request: the first load downloads Python and numpy, and on phones (WebKit, Safari's engine) a measured first load took a median of about 35 seconds. It is not a live region, because it never changes. `start()` in [`web/first-screen.js`](web/first-screen.js.md) hides it once Python is ready.
 
 ```html
       </div>
 ```
 Closes the slider block.
-
-```html
-      <div class="inset readout">
-```
-Opens the error readout box, an `inset` look with the `readout` layout rules.
-
-```html
-        <span class="label">Position off by</span>
-```
-The small heading `Position off by`, in the label look.
-
-```html
-        <span class="num big" id="error-value">–</span>
-```
-The error number, big and in the number font, starting as an en dash `–` (no value yet). The code writes the error in metres here.
-
-```html
-        <div><span class="badge is-ok" id="error-badge" hidden></span></div>
-```
-A box holding the badge, a small pill. The `badge` look and `is-ok` colour come from [`theme.css`](web/theme.css.md). It is `hidden` until there is a result, and the code then writes words such as `Good fix` into it and changes the colour class.
-
-```html
-        <p class="note" id="msg-readout" role="status" aria-live="polite"></p>
-```
-A message line for the readout.
-
-```html
-      </div>
-```
-Closes the readout.
 
 ```html
       <div class="stack guide-target" id="block-solve" style="gap: var(--s-2)">
@@ -667,12 +911,52 @@ The final message, shown at the end of the guide, hidden until then: `That is th
 ```html
     </section>
 ```
-Closes the controls card.
+Closes the first card.
+
+```html
+    <div class="map-notes">
+```
+Opens a box for the notes about the map: the key and the caption. It used to sit inside the map card. Now it is its own part of the grid, so that on a phone the pinned map card is short and the notes scroll away, and on a wide window the notes sit under the map. The class `map-notes` is how the layout rules place it.
+
+```html
+      <ul class="map-key" aria-label="Map key">
+```
+Opens the map key, a list (`<ul>`). `aria-label="Map key"` names the list for screen readers.
+
+```html
+        <li><svg viewBox="0 0 24 12" aria-hidden="true"><line class="map-line" x1="1" y1="6" x2="23" y2="6"/></svg> A distance line: one satellite says you are somewhere on it</li>
+```
+The first key item (`<li>`): a tiny 24 by 12 drawing of a line from x 1 to x 23 at height 6 (`<line>`), followed by `A distance line: one satellite says you are somewhere on it`. `aria-hidden="true"` on the drawing hides it from screen readers, since it only repeats what the words say.
+
+```html
+        <li><svg viewBox="0 0 24 12" aria-hidden="true"><circle class="map-dot is-ok-sample" cx="12" cy="6" r="4"/></svg> Where the phone thinks it is</li>
+```
+The second item: a little circle of radius 4 at the centre (12, 6) of its drawing, with the sample colour class, then `Where the phone thinks it is`.
+
+```html
+        <li><svg viewBox="0 0 24 12" aria-hidden="true"><path class="map-true" d="M6 6h12M12 0v12"/></svg> Where it really is</li>
+```
+The third item: a cross drawn by a `<path>`. In its `d` text, `M6 6` moves to (6, 6), `h12` draws 12 across, `M12 0` moves to (12, 0), and `v12` draws 12 down. Then `Where it really is`.
+
+```html
+      </ul>
+```
+Closes the list.
+
+```html
+      <p class="map-caption muted" id="map-caption" role="status" aria-live="polite"></p>
+```
+The caption under the map: empty at the start, filled in by the code with how wide the map is (for example `The map is about 2 km wide. North is up.`), or that the phone's position is off the edge, plus how many distance lines have moved off the map. `role="status"` and `aria-live="polite"` make a screen reader read out any change to it when it next has a pause, without cutting off what it is saying. The pattern is repeated on every message line below.
+
+```html
+    </div>
+```
+Closes the map notes.
 
 ```html
   </div>
 ```
-Closes the grid of two cards.
+Closes the grid.
 
 ```html
   <!-- Rungs 2 to 4. Each step mounts into its own div. All of them share one bridge, so Pyodide loads once. -->
@@ -682,7 +966,7 @@ A comment: three more sections follow ("rung" is the team's word for one part of
 ```html
   <p class="link-line">Solving for the clock works, <strong>but</strong> only if the satellites are spread across the sky. <strong>Therefore</strong> where they sit matters as much as how many there are.</p>
 ```
-A link sentence between the first screen and the next section. The words: `Solving for the clock works, but only if the satellites are spread across the sky. Therefore where they sit matters as much as how many there are.` The `<strong>` words (`but`, `Therefore`) are bold. Each of these sentences ties one section to the next.
+A link sentence (a "bridge") between the first screen and the next section. The words: `Solving for the clock works, but only if the satellites are spread across the sky. Therefore where they sit matters as much as how many there are.` The `<strong>` words (`but`, `Therefore`) are bold. Each of these sentences ties one section to the next, in quiet grey text.
 
 ```html
   <div id="step-geometry"></div>
@@ -715,6 +999,26 @@ The empty holder for the relativity section, filled by [`web/step-relativity.js`
 Closes `<main>`.
 
 ```html
+<script type="module">
+```
+Opens a small script, a JavaScript *module* (the first of three at the bottom) with its code written right in the page, between the tags. It runs once the page has been read, so the empty `figure-first` box above exists by then.
+
+```html
+  import { firstScreenFigure } from "./web/illustrations.js";
+```
+One `import` line: it brings the function `firstScreenFigure` from [`web/illustrations.js`](web/illustrations.js.md). The `./` starts the address from this page's folder. The function returns the sketch as a piece of SVG text (drawing instructions).
+
+```html
+  document.getElementById("figure-first").innerHTML = firstScreenFigure();
+```
+`document.getElementById("figure-first")` looks up the empty box with that `id` (`document` is the page, as the program sees it). `.innerHTML = ...` puts the text on the right of the `=` inside it as the box's contents, and `firstScreenFigure()` runs the function to get that text: the narrow and the wide drawing, one of which the CSS hides. Without this line the box would stay empty.
+
+```html
+</script>
+```
+Closes this small script.
+
+```html
 <script type="module" src="web/first-screen.js"></script>
 ```
 Loads [`web/first-screen.js`](web/first-screen.js.md) as a JavaScript *module* (`type="module"`). A module may import other files and runs only after the page has been read, so the elements above already exist when it looks for them. It brings the first screen to life: finds the ids, loads Python, and wires up the slider, button and switches.
@@ -722,7 +1026,7 @@ Loads [`web/first-screen.js`](web/first-screen.js.md) as a JavaScript *module* (
 ```html
 <script type="module">
 ```
-Opens a second module, this time with the code written right in the page, between the tags.
+Opens a third module, again with the code written right in the page, between the tags.
 
 ```html
   import { mountGeometryStep } from "./web/step-geometry.js";

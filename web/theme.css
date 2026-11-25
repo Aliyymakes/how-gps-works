@@ -32,6 +32,7 @@
   --text-sm: 14px;
   --text-md: 16px;
   --text-lg: 20px;
+  --text-h: 24px;
   --text-xl: 32px;
 
   /* Space (4 px grid) */
@@ -86,7 +87,7 @@ body {
 
 h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; }
 h1 { font-size: var(--text-xl); }
-h2 { font-size: var(--text-lg); }
+h2 { font-size: var(--text-h); color: var(--text); }
 p { margin: 0; }
 .muted { color: var(--text-muted); }
 .mono, .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
