@@ -1,4 +1,4 @@
-# [Project name TBA]
+# How Gps Works
 
 An interactive web page that shows how a phone works out where it is from GPS satellite signals, using code that runs in your browser.
 
@@ -38,7 +38,7 @@ Every GPS number on the page is computed by the team's own Python in `mechanism/
 
 | GitHub | Area |
 |---|---|
-| aliyymakes (Icarus) | Page; spec, reviews, final calls |
+| aliyymakes  | Page; spec, reviews, final calls |
 | jstnstyad10 | Page |
 | tw-2866 | Mechanism |
 | scoobertfan | Mechanism |
