@@ -124,3 +124,7 @@ Reading: For every section, make it obvious what the section is showing, and add
 ### 2026-11-24 21:14
 His words: "how is it"
 Reading: Status check. Plan-004 had finished at 20:54 without acting on the 19:30 to 20:05 overhaul notes; the orchestrator wrote plan-005 to carry them out.
+
+### 2026-11-25 17:49
+His words: "1. cna we just name it \"how gps works\"2. just fill it in honestly3.scoobertfan is doing that4.they are prepping"
+Reading: Project name: How GPS Works. The "How AI was used" section is written honestly by the orchestrator. scoobertfan records the demo video. The teammates are preparing for the interview. Does NOT settle jstnstyad10's role line on the project page.

@@ -1,6 +1,4 @@
-# [Project name TBA]
-
-Draft for Icarus. Wording not approved.
+# How GPS Works
 
 Live link: https://aliyymakes.github.io/how-gps-works/
 
@@ -40,18 +38,22 @@ The one idea: the phone finds its position by measuring time. A signal travels a
 
 ## How AI was used
 
-Team to fill in.
+We used AI coding agents heavily, and we want to be clear about it.
+
+- **Who wrote what.** Most of the code, tests and documentation in this repository were written by AI agents (Claude Code with Anthropic's Claude models: Opus, Sonnet, Haiku and Fable; teammates also used OpenAI Codex), working from tasks the team set as GitHub issues. The first version of the position solver came from tw-2866 and was then adapted by an agent to match the agreed interface. Codex also reviewed pull requests automatically and found several real bugs.
+- **What the team decided.** The topic and the one idea (a phone finds its position by measuring time), the order of the four parts, what the first screen teaches, the look of the page, and which designs went live. Icarus approved every change to the page from before/after screenshots, and real people tried the page: when they could not follow the signal and relativity sections, those were rebuilt.
+- **How we kept it correct.** Every GPS number is checked against an official source in [docs/facts.md](facts.md). The maths has automated tests (for example: with four satellites the solver lands within 1 m, and the GPS codes match the published GPS specification). Every pull request was checked by a reviewer that did not write it.
+- **How we make sure we understand it.** Every line of code is explained in plain words in [docs/annotated/](annotated/), and a test fails if any line is left unexplained. Each of us has worked through the walkthrough in [docs/onboarding/](onboarding/) and its self-check questions, so we can explain any part of the code ourselves.
+- **No AI in the mechanism.** The page itself uses no AI service. Every result on screen is computed in your browser by our own Python code (run through Pyodide) from the settings you choose.
 
 ## The team
 
-| GitHub | Area |
+| GitHub | Role |
 |---|---|
-| aliyymakes (Icarus) | Page; spec, reviews, final calls |
-| jstnstyad10 | Page |
-| tw-2866 | Mechanism |
-| scoobertfan | Mechanism |
-
-The Area column is proposed and can change.
+| aliyymakes (Icarus) | Direction, design decisions, running the agents, reviewing and approving every change |
+| tw-2866 | First version of the position solver |
+| scoobertfan | Demo video |
+| jstnstyad10 | TBA |
 
 ## Sources
 
