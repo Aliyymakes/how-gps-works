@@ -110,9 +110,20 @@ The two limits, in metres. Worked example: an error of 4 m is "ok"; 50 m is "war
 A comment: the relativity section (the fourth step of the story) has its own settings below, and it reuses the receiver and satellites above.
 
 ```js
-export const relativitySlider = { min_h: 0, max_h: 24, step_h: 1, start_h: 0 }; // placeholder, provisional: hours of drift
+export const relativitySlider = { min_h: 0, max_h: 24, step_h: 1, start_h: 24 }; // placeholder, provisional: hours of drift. Starts at one day so the effect is already showing.
 ```
-The relativity slider counts hours of drift. It runs from 0 to 24 hours in steps of 1 hour (so there are 24 steps) and starts at 0. Without it the relativity section would have no slider range.
+The relativity slider counts hours of drift. It runs from 0 to 24 hours in steps of 1 hour (so there are 24 steps). It now starts at 24, one full day, so a visitor sees the effect of the drift straight away instead of a slider at zero. Without it the relativity section would have no slider range.
+
+```js
+// The two maps in this section show a square 40 km wide (-20000 to +20000 m). With the clock trusted at 24 h all four
+// distance lines stay on a map this wide; on a 20 km wide map two would leave it.
+```
+Two comments explaining the next number. The relativity section draws two maps. Each shows a square area 40 km wide, running from 20,000 m west or south of the phone to 20,000 m east or north. When the phone's clock is trusted after a full day of drift, all four distance lines still fit on a map that wide. On a map only 20 km wide, two of the lines would run off the edge. Nothing breaks without the comments.
+
+```js
+export const relativityMapHalfWidthM = 20000; // placeholder, provisional
+```
+The half-width of those maps, in metres (`M` at the end of the name means metres): 20000 m from the centre to each edge, so 40 km across. Half-width is the distance from the middle to one side. Without it the relativity section would not know how big to draw its maps.
 
 ```js
 // Zero, so at 0 hours both ways of solving agree and show 0 m. A 1 microsecond phone clock error would put

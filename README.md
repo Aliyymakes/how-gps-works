@@ -30,6 +30,7 @@ Every GPS number on the page is computed by the team's own Python in `mechanism/
 
 - **Pyodide** runs Python in the browser (numpy loads with it; a first visit downloads about 9 MB, and the page shows "Step 1 of 2" and "Step 2 of 2" progress words while it loads). Two teammates code only in Python and own the mechanism, so the mechanism stays Python and the page (JavaScript) only draws it and calls it.
 - **numpy** does the array maths in the mechanism.
+- **jsDelivr** (<https://www.jsdelivr.com/>) is the CDN that serves Pyodide 314.0.8 to the page, from cdn.jsdelivr.net.
 - **Google Fonts** supplies the page's fonts.
 - Hosting: GitHub Pages, served from the main branch.
 

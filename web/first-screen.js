@@ -37,12 +37,14 @@ loadSavedTheme();
 trackPointerLight();
 setupControls();
 drawTrueMark();
+keepStickyHeight();
 start();
 
 // ---------- start up ----------
 
 function start() {
   whenPythonReady(el.status, async (call) => {
+    $("load-note").hidden = true; // only needed while loading
     callPython = call;
     try {
       await buildScene();
@@ -412,6 +414,13 @@ function cancelGlide() {
   glideFinish = null;
 }
 
+// On phones the map card sticks to the top. index.html keeps every focused control that far below the top (scroll-margin-top).
+function keepStickyHeight() {
+  const card = document.querySelector(".map-card");
+  const save = () => document.documentElement.style.setProperty("--sticky-h", `${card.offsetHeight}px`);
+  new ResizeObserver(save).observe(card); // also calls save() once at the start
+}
+
 // ---------- the guided path ----------
 
 // Only the hint for the current step shows, and the white border sits on that step's control.
@@ -428,11 +437,14 @@ function showGuide() {
       node.classList.add("is-shown");
     }
   }
-  const closing = $("hint-done");
-  if (guideStep === 4 && closing.getBoundingClientRect().bottom > window.innerHeight) {
-    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    closing.scrollIntoView({ block: "nearest", behavior: calm ? "auto" : "smooth" }); // only when the closing line appears below the window
-  }
+  // Check on the next frame: the action's own message line may still push the closing line down.
+  requestAnimationFrame(() => {
+    const closing = $("hint-done");
+    if (guideStep === 4 && closing.getBoundingClientRect().bottom > window.innerHeight) {
+      const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      closing.scrollIntoView({ block: "nearest", behavior: calm ? "auto" : "smooth" }); // only when the closing line appears below the window
+    }
+  });
 }
 
 function nextGuideStep() {

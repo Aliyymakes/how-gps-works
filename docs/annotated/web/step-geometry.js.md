@@ -112,9 +112,9 @@ const SKY_RADIUS = 110; // horizon circle radius in that box
 Two numbers for the drawing. The sky picture is drawn on an imaginary square 240 units wide and 240 high (the `viewBox`), which the browser then scales to fit the screen. The horizon circle has radius 110 units in that square, leaving a margin for the labels. Without them the drawing code would have no sizes.
 
 ```js
-const SKY_LABEL = "Sky diagram. The edge is the horizon and the centre is straight overhead. Four dots are the satellites.";
+const SKY_LABEL = "Sky, seen from below. The edge is the horizon and the centre is straight overhead. Four dots are the satellites.";
 ```
-The words a screen reader says for the picture. A screen reader is software that reads the page aloud for people who cannot see it. Without it the diagram would be silent.
+The words a screen reader says for the picture. They also name the view ("seen from below": like lying on your back and looking up). A screen reader is software that reads the page aloud for people who cannot see it. Without it the diagram would be silent.
 
 ```js
 const LEVEL_WORDS = { ok: "Good fix", warn: "Fix is off", bad: "Fix is far off" };
@@ -254,22 +254,23 @@ Starts another long text, `PAGE`, which holds HTML: the page's parts. HTML is wr
 A `div` is a plain box. This one, with class `geo`, holds the whole section. Inside it, a `header` groups the section's heading. It uses the stack style with its gap reduced to 8 pixels by an inline `style` attribute.
 
 ```js
+    <p class="label part-label">Part 2 of 4</p>
     <h2>Does it matter where the satellites are?</h2>
     <p class="muted">Same four satellites, same clock error, same noise. Only the layout changes.</p>
   </header>
 ```
-The section's title, `h2` (a second-level heading), and a `p` (paragraph) in grey (`muted`). Then `</header>` closes the header. They tell the reader what is being tested: only the layout changes.
+A small label, "Part 2 of 4" (the classes `label` and `part-label` give it the theme's small-capitals look), so the reader knows where they are on the page. Then the section's title, `h2` (a second-level heading), and a `p` (paragraph) in grey (`muted`). Then `</header>` closes the header. They tell the reader what is being tested: only the layout changes.
 
 ```js
   <div class="geo-grid">
-    <section class="card" aria-labelledby="geo-sky-title">
+    <section class="card" aria-label="Sky, seen from below">
 ```
-The box that holds the two cards, then the first card. A `section` is a part of the page; `card` is a theme style (a panel). `aria-labelledby` is one of the `aria-*` attributes, which add information for screen readers: it says this section is named by the element whose `id` is `geo-sky-title` (the heading just below).
+The box that holds the two cards, then the first card. A `section` is a part of the page; `card` is a theme style (a panel). `aria-label` is one of the `aria-*` attributes, which add information for screen readers: it gives this section the spoken name "Sky, seen from below". (The card no longer has a visible heading; the line below says what the picture is.)
 
 ```js
-      <h3 class="label" id="geo-sky-title">Sky, seen from below</h3>
+      <p class="looking"><b>What you're looking at:</b> the sky above the phone, seen from below. Each dot is a satellite. The centre is straight overhead, the edge is the horizon.</p>
 ```
-The card's heading, small capital letters in grey. Its `id` is a unique name so the line above can point at it. Without it the section would have no spoken name.
+A short plain-words line, in the page's `looking` style, with "What you're looking at:" in bold (`<b>`). It tells the reader what the drawing is before they see it: the sky over the phone, each dot a satellite, the middle straight overhead and the edge the horizon. It replaces the old heading and the small note that used to sit under the drawing.
 
 ```js
       <svg class="geo-sky" data-id="sky" viewBox="0 0 ${SKY_SIZE} ${SKY_SIZE}" role="img"
@@ -278,10 +279,9 @@ The card's heading, small capital letters in grey. Its `id` is a unique name so 
 The drawing area, an `svg`. `data-id="sky"` lets this file find it. `viewBox="0 0 ${SKY_SIZE} ${SKY_SIZE}"` has holes `${...}` that are replaced with the numbers from the top, so it reads `0 0 240 240`: the imaginary square described above. `role="img"` tells screen readers to treat the whole drawing as one picture, and `aria-label` gives its spoken description, taken from `SKY_LABEL`. The circles and dots are added later by code. Without the viewBox the drawing would not scale.
 
 ```js
-      <p class="geo-note" style="margin-top: var(--s-3)">Edge is the horizon, centre is straight overhead.</p>
     </section>
 ```
-A visible caption under the diagram, with 12 pixels of space above it, telling how to read the picture. `</section>` closes the card.
+`</section>` closes the sky card.
 
 ```js
     <section class="card geo-stack" aria-label="Controls and results">
@@ -369,10 +369,10 @@ A box holding the Reset button. `type="button"` says it is a plain button (not o
 A live message line under Reset, with 8 pixels above it. Then the closing tags: the box, the controls card (`</section>`) and the grid (`</div>`).
 
 ```js
-  <p class="geo-closing">Spread out, the same errors barely move the fix. Bunched, they multiply. But all of this error began with time, so next: how does the phone measure it at all?</p>
+  <p class="geo-closing">Spread out, the same errors barely move the fix. Bunched, they multiply.</p>
 </div>`;
 ```
-The closing paragraph, which leads to the next section. Then `</div>` closes the whole section and the backtick ends the `PAGE` text.
+The closing paragraph, which sums up the section: a spread-out layout keeps small errors small, a bunched one multiplies them. (It no longer points ahead to the next section.) Then `</div>` closes the whole section and the backtick ends the `PAGE` text.
 
 ```js
 export function mountGeometryStep(container) {
@@ -890,9 +890,9 @@ Chooses the sentence to show.
 Turns the slider position into a whole percentage. Worked example: 25 / 100 * 100 = 25.
 
 ```js
-    el.sky.setAttribute("aria-label", `Sky diagram. Satellites ${percent} % bunched. DOP ${dopText}.`);
+    el.sky.setAttribute("aria-label", `Sky, seen from below. Satellites ${percent} % bunched. DOP ${dopText}.`);
 ```
-Updates the sky picture's spoken description to include the result, for example "Sky diagram. Satellites 25 % bunched. DOP 3.5." Without it, screen reader users would not hear the DOP.
+Updates the sky picture's spoken description to include the result, for example "Sky, seen from below. Satellites 25 % bunched. DOP 3.5." Without it, screen reader users would not hear the DOP.
 
 ```js
     el.dop.textContent = dopText;

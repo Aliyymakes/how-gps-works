@@ -34,8 +34,8 @@ def switch_one_satellite_off(page):
 def test_idea_key_and_map_text_show_before_python_is_ready(open_page):
     page = open_page(cdn="cache", delay_ms=3000, wait=False).page
     page.wait_for_selector("#map-wait", state="visible", timeout=1000)
-    assert page.get_by_text("Each satellite's signal says when it left.").is_visible()
-    assert page.get_by_text("That only works if the phone's clock is right.").is_visible()
+    assert page.locator("#figure-first svg:visible").count() == 1  # the drawing is there before Python is
+    assert page.get_by_text("a map of the ground around the phone.").is_visible()
     assert page.locator(".map-key li").count() == 3
     assert page.locator(".map-key li").nth(2).is_visible()
     assert page.locator("#map-wait").text_content() == "The map appears when Python has loaded."
@@ -78,11 +78,10 @@ def test_reset_does_not_bring_a_hint_back(open_page):
 
 
 # 5
-def test_the_path_is_quick_and_the_slider_fits_a_phone_screen(open_page):
+def test_the_path_is_quick_and_the_slider_fits_a_phone_screen_without_scrolling(open_page):
     page = open_page(width=390).page
-    page.locator("section[aria-labelledby=map-title]").evaluate("(node) => window.scrollTo(0, node.getBoundingClientRect().top + window.scrollY)")
     bottom = page.locator("#block-slider").evaluate("(node) => node.getBoundingClientRect().bottom")
-    assert bottom <= 844
+    assert bottom <= 844  # without scrolling (test_phone_layout.py holds the tighter limit)
     assert page.locator("#hint-1").is_visible()
     started = time.time()
     drag_slider_right(page)
