@@ -1,4 +1,4 @@
-# How Gps Works
+# How GPS Works
 
 An interactive web page that shows how a phone works out where it is from GPS satellite signals, using code that runs in your browser.
 
