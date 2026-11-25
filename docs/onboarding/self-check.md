@@ -294,7 +294,7 @@ A whole number from 1 to 32 that picks a satellite's code. Anything else returns
 
 <details><summary>Answer</summary>
 
-For each of 1023 shifts it computes `np.dot(values, np.roll(code_array, shift)) / CODE_LENGTH`: multiply chip by chip and average. A perfect noise-free match scores 1.0. The shift with the top score is `best_delay_chips`.
+For each of 1023 shifts it computes `np.dot(values, np.roll(code_array, shift)) / CODE_LENGTH`: multiply chip by chip and average. A perfect noise-free match scores 1.0. The shift with the top score is `best_delay_chips`. On the page, when you slide the phone's copy by hand, the "Match score" you see is Python's score for that shift (`result.scores[shift]` in step-signal.js), not a new calculation. Only the lit or dim shading of each step is chosen in JavaScript, by checking whether the copy and the heard value are on the same side of zero.
 
 </details>
 
@@ -318,7 +318,7 @@ The score adds up 1023 chip-by-chip products. At the right shift they all lean t
 
 <details><summary>Answer</summary>
 
-`levelOf` in step-signal.js says "Lost" when `best_delay_chips` is not the true delay (300), "Barely found" when `peak_to_next` is under 1.5, else "Found". With PRN 7, delay 300, seed 1 (computed in interview-prep): found up to 6 times the signal, barely found from 6.5 times to 9.5 times, lost from 10 times upward (best shift 713, not 300), for this one seed (PRN 7, delay 300, seed 1). That is not a general limit.
+`levelOf` in step-signal.js says "Lost" when `best_delay_chips` is not the true delay (14), "Barely found" when `peak_to_next` is under 1.5, else "Found". With PRN 7, delay 14, seed 1 (a replay of `make_received` and `correlate` at the slider's half-step notches): found up to 7.0 times the signal, barely found from 7.5 times to 11.5 times, lost at 12.0 times, the last notch (best shift 713, not 14), for this one seed. That is not a general limit.
 
 </details>
 
@@ -326,7 +326,7 @@ The score adds up 1023 chip-by-chip products. At the right shift they all lean t
 
 <details><summary>Answer</summary>
 
-In the code `make_received` rejects anything but a whole number from 0 to 1022 (float `delay_chips` or `seed` returns an error, gotchas.md). One chip is about 293 m of travel (docs/facts.md row 14, derived), so the demo cannot show smaller delays. A real receiver is not limited to whole chips. Why the team chose it: not recorded (interview-prep: team to fill in).
+In the code `make_received` rejects anything but a whole number from 0 to 1022 (float `delay_chips` or `seed` returns an error, gotchas.md). One chip is about 293 m of travel (docs/facts.md row 14, derived), so the demo cannot show smaller delays. On the page the real delay is 14 chips, and you slide the phone's copy by whole chips. A real receiver is not limited to whole chips. Why the team chose it: not recorded (interview-prep: team to fill in).
 
 </details>
 
@@ -346,7 +346,7 @@ Code: [mechanism/relativity.py](../../mechanism/relativity.py), [scripts/check_r
 
 <details><summary>Answer</summary>
 
-Tested with `scripts/check_relativity.py` (its own five satellites, computed in interview-prep 6.7): with the phone's clock solved, the position error stays 0 m after a day and the solved clock grows by the drift instead, because the solver cannot tell a phone clock error from a shared satellite clock drift (every distance changes by the same amount; a satellite clock running ahead makes each distance read shorter, our model adds it as longer, which flips the sign of the solved clock but not the position result). The satellite clocks would gain about 38 µs a day if uncorrected; real satellites are set slow before launch to cancel it (docs/facts.md rows 28-29), and our slider (0 to 24 hours) shows the uncorrected case. With the clock trusted, the same drift gives about 17 km (17 296 m, which also includes the script's 1 µs phone clock error) of position error after a day for that script's five satellites (with the page's four satellites and a phone clock error of 0: 19,767 m, which the page shows as "If the phone trusted its clock"). Do not say the position would be 11 km off.
+Tested with `scripts/check_relativity.py` (its own five satellites, computed in interview-prep 6.7): with the phone's clock solved, the position error stays 0 m after a day and the solved clock grows by the drift instead, because the solver cannot tell a phone clock error from a shared satellite clock drift (every distance changes by the same amount; a satellite clock running ahead makes each distance read shorter, our model adds it as longer, which flips the sign of the solved clock but not the position result). The satellite clocks would gain about 38 µs a day if uncorrected; real satellites are set slow before launch to cancel it (docs/facts.md rows 28-29), and our slider (0 to 24 hours, starting at 24) shows the uncorrected case. With the clock trusted, the same drift gives about 17 km (17 296 m, which also includes the script's 1 µs phone clock error) of position error after a day for that script's five satellites (with the page's four satellites and a phone clock error of 0: 19,767 m, which the page shows as "about 20 km off" on the "The phone trusts its clock" map). Do not say the position would be 11 km off.
 
 </details>
 
@@ -394,7 +394,7 @@ Every satellite's distance changes by the same number of metres (a satellite clo
 
 <details><summary>Answer</summary>
 
-Not with the clock solved. decisions.md (2026-11-23, `scripts/check_relativity.py`): position error 0.0000 m after 1 h, 6 h and 1 day. With the clock trusted, the error grows from 444 m to 17.3 km (these come from `scripts/check_relativity.py`'s five satellites; with the page's four satellites and the page's phone clock error of 0 the trusted error is 0 m at 0 h and 19,767 m at 24 h, which the page shows next to the clock-solved 0 m). The page shows the range error growing and the trusted-versus-solved position error, never a position drift with the clock solved (gotchas.md).
+Not with the clock solved. decisions.md (2026-11-23, `scripts/check_relativity.py`): position error 0.0000 m after 1 h, 6 h and 1 day. With the clock trusted, the error grows from 444 m to 17.3 km (these come from `scripts/check_relativity.py`'s five satellites; with the page's four satellites and the page's phone clock error of 0 the trusted error is 0 m at 0 h and 19,767 m at 24 h, which the page shows as "about 20 km off" next to the clock-solved "0 m off", on two maps). The page shows the satellite clock pulling ahead, the range error growing and the trusted-versus-solved position error, never a position drift with the clock solved (gotchas.md).
 
 </details>
 
@@ -410,7 +410,7 @@ Because it solves with the clock solved, which needs four (`_check_input` return
 
 <details><summary>Answer</summary>
 
-[web/step-relativity.js](../../web/step-relativity.js) has one slider, "Hours without correcting the satellite clocks" (0 to 24 h, `config.relativitySlider`). On each change it calls `relativity.drift_over_time` with a one-element hours list and `config.relativityPhoneClockErrorS`, which is 0 (so at 0 h both ways agree and the page says "No drift yet. Both ways of solving agree."). Three readouts: "Each measured distance is wrong by" (`range_added_m`), "If the phone trusted its clock" (`error_clock_trusted_m`) and "Because the phone solves for its clock" (`error_clock_solved_m`). At 24 h they read 11,392 m, 19,767 m and 0 m (computed by running the mechanism with the default satellites). The sentence under them says every distance is wrong by the same amount, so solving for the clock absorbs it.
+[web/step-relativity.js](../../web/step-relativity.js) has one slider, "Time since the satellite clocks were last corrected" (0 to 24 h, starting at 24, `config.relativitySlider`), that drives two cards. On each change it calls `relativity.drift_over_time` with a one-element hours list and `config.relativityPhoneClockErrorS`, which is 0 (so at 0 h both ways agree and the page says "No gap yet. Both maps agree."). The first card shows two clocks as digits ("Clock on the ground" and "Clock on the satellite"), "Satellite clock ahead by" (the solved clock error in whole microseconds) and "So every measured distance is wrong by" (`range_added_m`). The second card shows two 40 km maps, "The phone trusts its clock" (`error_clock_trusted_m`) and "The phone solves for its clock" (`error_clock_solved_m`). At 24 h they read "about 38 µs", "about 11 km", "about 20 km off" and "0 m off" (11,392 m, 19,767 m and 0 m, computed by running the mechanism with the default satellites). The sentence under the maps says every satellite is off by the same amount, so to the phone it looks like its own clock being wrong, and solving for the clock fixes it.
 
 </details>
 
@@ -446,7 +446,7 @@ Only plain numbers, strings, booleans, lists and dicts; no numpy arrays or custo
 
 <details><summary>Answer</summary>
 
-No. It calls Python and draws what comes back. The only arithmetic is metres or chips to pixels, slider steps to values (0.05 µs steps on the first screen), rounding for display, the slider-to-angle blend and sky scale (geometry step) and `Math.hypot` for the error length.
+No. It calls Python and draws what comes back. The only arithmetic is metres or chips to pixels, slider steps to values (0.05 µs steps on the first screen), rounding for display, the lit or dim shading of the signal step's copy row, the slider-to-angle blend and sky scale (geometry step) and `Math.hypot` for the error length.
 
 </details>
 
@@ -494,7 +494,7 @@ All four call `whenPythonReady` in startup.js; only the first call starts the lo
 
 <details><summary>Answer</summary>
 
-`start()` calls `whenPythonReady` (shared progress words while Python loads), then `buildScene()` calls `coords.latlon_to_xyz` for the receiver and `coords.satellite_from_sky` for each satellite in `config.satellites`, then enables the controls, shows the first guide hint ("Step 1. Drag this slider to the right.") and calls `update("start")`. If building the scene fails it says "Python loaded, but the satellites could not be set up, so the controls stay off. Reload the page to try again."
+`start()` calls `whenPythonReady` (shared progress words while Python loads). When Python is ready it hides the "The first visit can take up to a minute on a phone." line, then `buildScene()` calls `coords.latlon_to_xyz` for the receiver and `coords.satellite_from_sky` for each satellite in `config.satellites`, then it enables the controls, shows the first guide hint ("Step 1. This only works if the phone's clock is right. Drag the slider to make it wrong.") and calls `update("start")`. If building the scene fails it says "Python loaded, but the satellites could not be set up, so the controls stay off. Reload the page to try again."
 
 </details>
 

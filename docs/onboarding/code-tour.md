@@ -141,7 +141,7 @@ scores.append(float(np.dot(values, np.roll(code_array, shift)) / CODE_LENGTH))
 
 Try all 1023 shifts, multiply chip by chip, average. A perfect clean match scores 1.0. `best_delay_chips` is the shift with the top score.
 
-**Judge asks:** how can it find a signal buried in noise? **Answer:** `correlate` scores every one of the 1023 shifts and takes the best, and a clean match scores 1.0. Each score averages 1023 products, so the noise in a score is about noise divided by the square root of 1023 (about noise/32), while the true peak stays near 1. With the page's settings (PRN 7, delay 300, seed 1) it is "Found" up to 6 times the signal, "Barely found" from 6.5 to 9.5 times, and "Lost" from 10 times upward (best shift 713, not 300), for this one seed.
+**Judge asks:** how can it find a signal buried in noise? **Answer:** `correlate` scores every one of the 1023 shifts and takes the best, and a clean match scores 1.0. Each score averages 1023 products, so the noise in a score is about noise divided by the square root of 1023 (about noise/32), while the true peak stays near 1. With the page's settings (PRN 7, delay 14, seed 1, noise slider in steps of 0.5) it is "Found" up to 7.0 times the signal, "Barely found" from 7.5 to 11.5 times, and "Lost" at 12.0 times, the slider's last notch (best shift 713, not 14), for this one seed (a replay of `make_received` and `correlate`).
 
 ## 8. [mechanism/relativity.py](../../mechanism/relativity.py)
 
@@ -178,15 +178,17 @@ It loads a pinned Pyodide together with numpy, fetches each file in `MECHANISM_F
 
 ### 9b. [web/startup.js](../../web/startup.js), [web/say.js](../../web/say.js), [web/format.js](../../web/format.js)
 
-Three small helpers every section uses.
+Three small helpers.
 
 ```js
 export function whenPythonReady(statusNode, onReady, { hasControls = true } = {}) {
 export function say(node, text) {
 export function formatMetres(m) {
+export function formatRoughDistance(m) {
+export function formatClockDigits(hours, gapMicroseconds) {
 ```
 
-`whenPythonReady` is the one start-up path: the first caller starts the load, every section shows the same progress words and, if the download fails, the same sentence ("Python could not be downloaded, so nothing here can calculate yet. Check your internet connection, then press Try again.") and one "Try again" button. `say` writes a message and flashes it for 160 ms, so pressing something always gives a visible answer even when the words repeat. `formatMetres` is the one metres format: one decimal under 100 m, whole metres from 100 m up, so 520.3 m shows as "520 m".
+`whenPythonReady` is the one start-up path: the first caller starts the load, every section shows the same progress words and, if the download fails, the same sentence ("Python could not be downloaded, so nothing here can calculate yet. Check your internet connection, then press Try again.") and one "Try again" button. `say` writes a message and flashes it for 160 ms, so pressing something always gives a visible answer even when the words repeat. `formatMetres` is the one metres format: one decimal under 100 m, whole metres from 100 m up, so 520.3 m shows as "520 m". `formatRoughDistance` writes the "about" distances of rung 4 ("11 km"), and `formatClockDigits` writes its clock digits.
 
 **Judge asks:** what if the download fails? **Answer:** the page says so in words and offers "Try again"; nothing pretends to calculate. Annotated: [startup.js.md](../annotated/web/startup.js.md), [say.js.md](../annotated/web/say.js.md), [format.js.md](../annotated/web/format.js.md).
 
@@ -200,7 +202,8 @@ export const receiver = { lat_deg: -6.2, lon_deg: 106.8 };
 export const mapHalfWidthM = 1000;
 export const clockSlider = { min_s: 0, max_s: 3e-6, step_s: 5e-8 };
 export const errorLimits = { ok_m: 10, warn_m: 100 };
-export const relativitySlider = { min_h: 0, max_h: 24, step_h: 1, start_h: 0 };
+export const relativitySlider = { min_h: 0, max_h: 24, step_h: 1, start_h: 24 };
+export const relativityMapHalfWidthM = 20000;
 export const relativityPhoneClockErrorS = 0;
 ```
 
@@ -208,7 +211,7 @@ export const relativityPhoneClockErrorS = 0;
 
 ## 11. [web/first-screen.js](../../web/first-screen.js)
 
-Walked through in [follow-one-click.md](follow-one-click.md). It also runs the three-step guide (hints "Step 1. Drag this slider to the right.", "Step 2. The lines no longer meet. Press this button.", "Step 3. Now switch one satellite off.", then a closing line), refuses in words when too few satellites are on, and glides the lines together when you press the solve button. Annotated: [first-screen.js.md](../annotated/web/first-screen.js.md). Key lines:
+Walked through in [follow-one-click.md](follow-one-click.md). It also runs the three-step guide (hints "Step 1. This only works if the phone's clock is right. Drag the slider to make it wrong.", "Step 2. The lines no longer meet. Press this button.", "Step 3. Now switch one satellite off.", then a closing line), refuses in words when too few satellites are on, and glides the lines together when you press the solve button. It also hides the "The first visit can take up to a minute on a phone." line once Python is ready, and on phones it saves the sticky map card's height (`keepStickyHeight`) so a focused control is never scrolled in under the card. Annotated: [first-screen.js.md](../annotated/web/first-screen.js.md). Key lines:
 
 ```js
 if (running) { rerun = true; return; }
@@ -235,30 +238,34 @@ The clock is solved, with fixed noise (`noise_m: 3`) and a fixed seed, so only t
 
 ## 13. [web/step-signal.js](../../web/step-signal.js)
 
-Rung 3. The "Add noise" slider calls `signal.make_received` then `signal.correlate`, and draws both lists as polylines.
+Rung 3 (Part 3 of 4). The reader does the phone's job by hand first. Three rows of 40 steps are drawn as square waves: what the satellite sends, what the phone hears (a little later, with noise) and the phone's own copy. You slide the copy with the range input "Slide the phone's copy" or by dragging the row (the real delay is 14 chips). The "Match score" is looked up from Python's scores, not calculated again: `result.scores[shift]`. Then "Let the phone try every shift" draws two score charts (the first 40 shifts, and all 1023), which stay 60 px tall until you press it. The "Add noise" slider calls `signal.make_received` then `signal.correlate`.
 
 ```js
-const received = await callPython("signal.make_received", [prn, trueDelayChips, usedNoise, seed]);
-const result = await callPython("signal.correlate", [received, prn]);
-if (result.best_delay_chips !== signalConfig.trueDelayChips) return "bad";
+const heard = await callPython("signal.make_received", [prn, trueDelayChips, usedNoise, seed]);
+const scored = await callPython("signal.correlate", [heard, prn]);
+const score = result.scores[shift];
+const lit = (value > 0) === (received[index] > 0);
+if (scored.best_delay_chips !== signalConfig.trueDelayChips) return "bad";
 ```
 
-The last line is in `levelOf`. The label words are "Found", "Barely found" and "Lost". The true delay is `trueDelayChips: 300` for `prn: 7`.
+The first two lines are in `runOnce`, which then keeps `heard` as `received` and `scored` as `result`. The `lit` line is in `drawCopyRow`: a step of the copy is lit when it is on the same side of zero as the heard value above it, and dim when it is not. This is a sign check on two numbers Python returned, and it only picks a shade; no number on the screen comes from it. The last line is in `levelOf`. The label words are "Found", "Barely found" and "Lost". The true delay is `trueDelayChips: 14` for `prn: 7`.
 
-**Judge asks:** is the "Lost" verdict computed? **Answer:** yes: it is "Lost" only when Python's best shift differs from the true delay. `peak_to_next` under `barelyHoldingBelow` (1.5) only gives "Barely found".
+**Judge asks:** is the "Lost" verdict computed? **Answer:** yes: it is "Lost" only when Python's best shift differs from the true delay. `peak_to_next` under `barelyHoldingBelow` (1.5) only gives "Barely found". **Judge asks:** is the match score the page's own maths? **Answer:** no, it is the score Python's `correlate` gave for that shift. Only the lit and dim shading is chosen in JavaScript.
 
 ## 14. [web/step-relativity.js](../../web/step-relativity.js)
 
-Rung 4. A slider, "Hours without correcting the satellite clocks" (0 to 24 h, `config.relativitySlider`). On every change it calls `relativity.drift_over_time` with a one-element hours list and `config.relativityPhoneClockErrorS`, which is 0, so at 0 h both ways of solving agree.
+Rung 4 (Part 4 of 4). One slider, "Time since the satellite clocks were last corrected" (0 to 24 h, starting at 24, `config.relativitySlider`), drives two cards. On every change it calls `relativity.drift_over_time` with a one-element hours list and `config.relativityPhoneClockErrorS`, which is 0, so at 0 h both ways of solving agree.
 
 ```js
 const result = await callPython("relativity.drift_over_time",
   [receiver, satellites, config.relativityPhoneClockErrorS, [hours]]);
+const trusted = await fix(ranges, false);
+const solved = trusted.error ? trusted : await fix(ranges, true);
 ```
 
-Three readouts: "Each measured distance is wrong by" (`range_added_m`), "If the phone trusted its clock" (`error_clock_trusted_m`) and "Because the phone solves for its clock" (`error_clock_solved_m`). At 24 h with the default satellites they read 11,392 m, 19,767 m and 0 m (computed by running `relativity.drift_over_time`). The range figure follows our model, which adds the drift as longer distances; a real satellite clock running ahead would make them shorter by the same amount (see section 8). The clock-solved result (0 m) is the same either way; the trusted figure differs slightly (19,779 m with the sign flipped, computed). Annotated: [step-relativity.js.md](../annotated/web/step-relativity.js.md).
+The first card, "Satellite clocks run fast.", shows two clocks as digits ("Clock on the ground", "Clock on the satellite"; digits that differ are bright), "Satellite clock ahead by" (`solved_clock_error_s` in whole microseconds) and "So every measured distance is wrong by" (`range_added_m`). The second card, "So why doesn't your position drift?", draws the first screen's map twice, each 40 km wide (`relativityMapHalfWidthM`): "The phone trusts its clock" and "The phone solves for its clock". Each map comes from the same chain of calls the first screen uses (`make_pseudoranges`, `solve_position`, `to_local`, `distance_lines`). `drift_over_time` is called by the page but is not yet in interface.md. At 24 h with the default satellites the readouts are "about 38 µs", "about 11 km" (11,392 m), "about 20 km off" (19,767 m, with a grey line that most of it is height) and "0 m off" (computed by running `relativity.drift_over_time`). The range figure follows our model, which adds the drift as longer distances; a real satellite clock running ahead would make them shorter by the same amount (see section 8). The clock-solved result (0 m) is the same either way; the trusted figure differs slightly (19,779 m with the sign flipped, computed). The fixed lines "45 µs a day", "7 µs a day" and "about 38 µs a day" are text from facts.md rows 25 to 27; the slider does not scale them. Annotated: [step-relativity.js.md](../annotated/web/step-relativity.js.md).
 
-**Judge asks:** why does the position not move? **Answer:** the page says it ("Every distance is wrong by the same amount, so solving for the clock absorbs it. Trusting the clock would not."): the drift is the same for every satellite, so it looks like the phone's own clock error and solving for the clock absorbs it.
+**Judge asks:** why does the position not move? **Answer:** the page says it ("Every satellite is off by the same amount. To the phone that looks exactly like its own clock being wrong, and the fourth satellite already fixes that."): the drift is the same for every satellite, so it looks like the phone's own clock error and solving for the clock absorbs it.
 
 ## 15. [web/theme.js](../../web/theme.js) and [web/theme.css](../../web/theme.css)
 
@@ -266,6 +273,6 @@ Three readouts: "Each measured distance is wrong by" (`range_added_m`), "If the 
 
 ## 16. [index.html](../../index.html)
 
-Opens with the idea in words ("Each satellite's signal says when it left. Your phone times the trip, and travel time × the speed of light = distance. Each distance draws one line on the map, and you are where the lines meet."), then holds the first-screen elements by `id` (`clock`, `solve`, `error-value`, `map-lines`, `map-dot`, `switches`, the map key) and three empty `div`s (`step-geometry`, `step-signal`, `step-relativity`) that the step modules fill with `mount...Step`. Between the sections are the "but / therefore" link lines. Annotated: [index.html.md](../annotated/index.html.md).
+Opens with "Part 1 of 4", the heading, a small drawing (`firstScreenFigure()` from `web/illustrations.js`) and a "What you're looking at" line above the map, then holds the first-screen elements by `id` (`clock`, `solve`, `error-value`, `map-lines`, `map-dot`, `switches`, the map key, and the `load-note` line "The first visit can take up to a minute on a phone.") and three empty `div`s (`step-geometry`, `step-signal`, `step-relativity`) that the step modules fill with `mount...Step`. Between the sections are the "but / therefore" link lines. On phones the map card is `position: sticky`, so the map and the number stay on screen while you use the controls below. Annotated: [index.html.md](../annotated/index.html.md).
 
 **Judge asks:** where does the page get its numbers? **Answer:** from Python through the bridge; the HTML only has places to put them.

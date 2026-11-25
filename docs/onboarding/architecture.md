@@ -20,7 +20,8 @@ flowchart TD
   css["web/theme.css"]
   startup["web/startup.js<br/>shared start-up and Try again"]
   bridge["web/bridge.js<br/>loadMechanism and callPython"]
-  small["web/say.js and web/format.js<br/>flash a message, format metres"]
+  small["web/say.js and web/format.js<br/>flash a message, format numbers"]
+  illus["web/illustrations.js<br/>the first screen's drawing"]
   pyo["Pyodide plus numpy<br/>from the jsDelivr CDN"]
   coords["mechanism/coords.py"]
   scen["mechanism/scenario.py"]
@@ -38,6 +39,7 @@ flowchart TD
   first --> cfg
   rel --> cfg
   index --> css
+  index --> illus
   first --> theme
   first --> startup
   geo --> startup
@@ -68,10 +70,10 @@ flowchart TD
 
 Notes on the diagram, each checked in the code:
 
-- `index.html` loads `web/first-screen.js` with `<script type="module" src=...>`, and a second inline module imports `mountGeometryStep`, `mountSignalStep` and `mountRelativityStep`.
+- `index.html` draws the first screen's small drawing with an inline module that calls `firstScreenFigure()` from `web/illustrations.js`, loads `web/first-screen.js` with `<script type="module" src=...>`, and a second inline module (the third script) imports `mountGeometryStep`, `mountSignalStep` and `mountRelativityStep`.
 - All four sections call `whenPythonReady` in `startup.js`. It imports `bridge.js` with a dynamic `import("./bridge.js")` inside `attempt()`, not at the top, so the page still paints if that file fails to download. Only the first call starts the load; the others wait for the same one, so Pyodide loads once (`loadMechanism` also memoises its promise, and a failed load is not remembered, so "Try again" works).
 - While it loads, `bridge.js` reports "Step 1 of 2: downloading Python and numpy. This is the slow step on a first visit…" and then "Step 2 of 2: loading our GPS code…"; numpy loads together with Pyodide and our `.py` files download in parallel.
-- `step-geometry.js` has its own `geometryConfig` and does not import `config.js`. `first-screen.js` and `step-relativity.js` import `config.js`.
+- `step-geometry.js` has its own `geometryConfig` and `step-signal.js` its own `signalConfig`; neither imports `config.js`. `first-screen.js` and `step-relativity.js` import `config.js`.
 - `mapview.py` imports the private `_local_directions` from `coords.py` (gotchas.md, 2026-11-23: renaming it breaks `mapview`).
 - `geometry.py` and `signal.py` import no other mechanism module.
 - Which module a call goes to is chosen by the string you pass to `callPython`, for example `"solver.solve_position"`. `bridge.js` imports `mechanism.<module>` at call time (`importlib.import_module`), so there is no direct JavaScript-to-Python import edge. The arrows from Pyodide to each module stand for that.
@@ -109,7 +111,7 @@ Taken from `git ls-files` on this branch.
 
 ### Root
 
-- [index.html](../../index.html): the one page: first screen, then three step sections mounted below it.
+- [index.html](../../index.html): the one page: first screen (Part 1 of 4), then three step sections mounted below it.
 - [README.md](../../README.md): public project description and what is simplified.
 - [AGENTS.md](../../AGENTS.md): the one instruction file all AI agents read. [CLAUDE.md](../../CLAUDE.md) only imports it.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md): how the four teammates work with issues and pull requests.
@@ -136,12 +138,13 @@ Taken from `git ls-files` on this branch.
 - [bridge.js](../../web/bridge.js): loads Pyodide (with numpy) and the mechanism files; exports `loadMechanism`, `callPython`, and `evalPython` (debug helper for the test page).
 - [startup.js](../../web/startup.js): `whenPythonReady`, the one start-up path for all four sections: shared progress words, shared failure words, one "Try again".
 - [say.js](../../web/say.js): `say(node, text)` writes a message and flashes it, so a repeated message still looks like an answer.
-- [format.js](../../web/format.js): `formatMetres`, the one metres format for the whole page (one decimal under 100 m, whole metres from 100 m up, thousands separator).
-- [config.js](../../web/config.js): placeholder numbers for the first screen and rung 4: receiver, satellites, map size, slider range, error limits, relativity slider (0 to 24 h) and the phone clock error used there (0).
-- [first-screen.js](../../web/first-screen.js): the first screen: opening words, map and its key, clock slider, solve button, satellite switches, the three-step guide.
-- [step-geometry.js](../../web/step-geometry.js): rung 2, the "Bunch the satellites" slider and DOP readout.
-- [step-signal.js](../../web/step-signal.js): rung 3, the "Add noise" slider and the correlation graphs.
-- [step-relativity.js](../../web/step-relativity.js): rung 4, the "Hours without correcting the satellite clocks" slider (0 to 24 h) and its three readouts.
+- [format.js](../../web/format.js): the number formats for the whole page. `formatMetres` (one decimal under 100 m, whole metres from 100 m up, thousands separator), `formatRoughDistance` ("about" distances such as "11 km") and `formatClockDigits` (the clock digits in rung 4).
+- [config.js](../../web/config.js): placeholder numbers for the first screen and rung 4: receiver, satellites, map size, slider range, error limits, relativity slider (0 to 24 h, starting at 24), the width of rung 4's two maps (40 km) and the phone clock error used there (0).
+- [illustrations.js](../../web/illustrations.js): `firstScreenFigure()`, the small drawing at the top of the first screen (a signal travelling from a satellite to a phone). It draws no numbers.
+- [first-screen.js](../../web/first-screen.js): the first screen (the opening words now live in `index.html`'s small drawing and "What you're looking at" line): map and its key, clock slider, solve button, satellite switches, the three-step guide, and on phones the sticky map card's height.
+- [step-geometry.js](../../web/step-geometry.js): rung 2 (Part 2 of 4), the "Bunch the satellites" slider and DOP readout.
+- [step-signal.js](../../web/step-signal.js): rung 3 (Part 3 of 4): three rows of 40 steps, the phone's copy you slide by hand (a range input "Slide the phone's copy" or a drag), the match score, the "Let the phone try every shift" button, two score charts, and the "Add noise" slider. It has its own `signalConfig` and does not import `config.js`.
+- [step-relativity.js](../../web/step-relativity.js): rung 4 (Part 4 of 4): one slider, "Time since the satellite clocks were last corrected" (0 to 24 h, starts at 24), driving two cards: two clocks as digits with the gap and range error, and two small maps ("The phone trusts its clock", "The phone solves for its clock").
 - [theme.css](../../web/theme.css), [theme.js](../../web/theme.js): the Instrument look (colours, fonts, spacing) and two helpers (pointer light, light/dark switch).
 - [theme-preview.html](../../web/theme-preview.html): a page that previews the theme alone.
 - [bridge-test.html](../../web/bridge-test.html): a page that tests the bridge alone.
@@ -167,7 +170,7 @@ Taken from `git ls-files` on this branch.
 
 ### tests/ui/ (Playwright, a real browser)
 
-- [conftest.py](../../tests/ui/conftest.py) and [test_*.py](../../tests/ui/): real-browser tests of the page (no silent actions, the first two minutes, layers, accessibility, polish, speed). They run only with `UI_TESTS=1` and Playwright installed (`requirements-ui.txt`), so plain `python -m pytest -q` never starts a browser. The workflow [ui-tests.yml](../../.github/workflows/ui-tests.yml) runs them by hand. The full suite takes about 3 minutes (gotchas.md, 2026-11-24).
+- [conftest.py](../../tests/ui/conftest.py) and [test_*.py](../../tests/ui/): real-browser tests of the page (no silent actions, the first two minutes, layers, accessibility, polish, speed, phone layout, hierarchy and spacing, final fixes, and one file each for the redesigned signal, relativity and geometry sections). They run only with `UI_TESTS=1` and Playwright installed (`requirements-ui.txt`), so plain `python -m pytest -q` never starts a browser. The workflow [ui-tests.yml](../../.github/workflows/ui-tests.yml) runs them by hand. The full suite takes about 3 minutes (gotchas.md, 2026-11-24).
 
 ### scripts/
 
